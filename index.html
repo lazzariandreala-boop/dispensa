@@ -73,6 +73,12 @@ body{display:flex;justify-content:center}
 .snum{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--accent)}
 .slbl{font-size:10px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
 
+/* Stats row */
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+.stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; color: var(--accent); }
+.stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+
 /* ITEM CARD (dispensa) */
 .icard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;transition:border-color .15s}
 .icard.expiring{border-left:3px solid var(--warn)}
@@ -212,17 +218,17 @@ body{display:flex;justify-content:center}
       <div class="scard"><div class="snum" style="color:var(--freeze)" id="st-frz">0</div><div class="slbl">In cella</div></div>
     </div>-->
 
-    <div class="stats">
-      <div class="scard">
-        <div class="stat-num" id="st-tot">0</div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">0</div>
         <div class="stat-label">Totale</div>
       </div>
-      <div class="scard">
-        <div class="stat-num" style="color:var(--warn)" id="st-exp">0</div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--warn)" id="stat-expiring">0</div>
         <div class="stat-label">In scadenza</div>
       </div>
-      <div class="scard">
-        <div class="stat-num" style="color:var(--freeze)" id="st-frz">0</div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--freeze)" id="stat-frozen">0</div>
         <div class="stat-label">In cella</div>
       </div>
     </div>
