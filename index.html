@@ -43,11 +43,51 @@ html, body {
 body { display: flex; justify-content: center; }
 
 /* ================================================
-   LAYOUT
+   LAYOUT — adattivo
+   Su mobile/tablet (< 900px) occupa tutto lo schermo.
+   Su desktop (≥ 900px) mostra colonna centrata max 520px
+   affiancata da un pannello info laterale.
 ================================================ */
 #wrap {
-  width: 100%; max-width: 600px; height: 100%;
+  width: 100%; height: 100%;
   display: flex; flex-direction: column; position: relative;
+}
+
+/* Desktop: colonna principale + sidebar */
+@media (min-width: 900px) {
+  body { background: #0d0d0d; }
+  #app-shell { display:flex;width:100%;height:100%;max-width:1160px;margin:0 auto;border-left:1px solid var(--border);border-right:1px solid var(--border); }
+  #wrap { max-width:520px;border-right:1px solid var(--border);flex-shrink:0; }
+  #sidebar { flex:1;display:flex;flex-direction:column;padding:22px 20px;overflow-y:auto; }
+  #sidebar-inner { position:sticky;top:0; }
+  .sb-section { margin-bottom:20px; }
+  .sb-section-title { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:9px;padding-left:2px; }
+  .sb-btn { display:flex;align-items:center;gap:12px;width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:7px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text);transition:all .15s;text-align:left; }
+  .sb-btn:hover { background:var(--bg3);border-color:var(--border2); }
+  .sb-btn:active { transform:scale(.98);opacity:.8; }
+  .sb-ico { font-size:20px;flex-shrink:0;width:28px;text-align:center; }
+  .sb-txt { flex:1; }
+  .sb-label { font-size:13px;font-weight:600;display:block; }
+  .sb-sub { font-size:11px;color:var(--text2);margin-top:1px;display:block; }
+  .sb-arrow { font-size:14px;color:var(--text3); }
+  .sb-stats { display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:20px;width:100%; }
+  .sb-stat { background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:11px 8px;text-align:center;cursor:pointer;transition:border-color .15s; }
+  .sb-stat .n { font-family:'Syne',sans-serif;font-weight:800;font-size:22px;line-height:1;display:block; }
+  .sb-stat .l { font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-top:4px;display:block;line-height:1.3; }
+  .sb-quick { background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 15px;margin-bottom:20px; }
+  .sb-quick-title { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:10px; }
+  .sb-quick input,.sb-quick select { width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;-webkit-appearance:none;margin-bottom:7px;transition:border-color .15s; }
+  .sb-quick input:focus,.sb-quick select:focus { border-color:var(--accent); }
+  .sb-quick .sq-row { display:flex;gap:7px; }
+  .sb-quick .sq-row input { margin-bottom:0; }
+  .sq-add { width:100%;margin-top:9px;padding:10px;border-radius:var(--rs);background:var(--accent);color:#fff;border:none;font-weight:700;font-size:13px;cursor:pointer;font-family:'Syne',sans-serif;transition:background .15s; }
+  .sq-add:hover { background:#d0731a; }
+}
+/* Mobile/tablet: niente sidebar */
+@media (max-width:899px) {
+  #app-shell { width:100%;height:100%; }
+  #sidebar { display:none; }
+  #wrap { max-width:100%; }
 }
 
 /* Header */
@@ -92,8 +132,8 @@ body { display: flex; justify-content: center; }
   transition: color .2s; position: relative;
 }
 .tb.active { color: var(--accent); }
-.tb .ico { font-size: 20px; line-height: 1; }
-.tb .lbl { font-size: 10px; font-weight: 600; letter-spacing: .3px; }
+.tb .ico { font-size: 18px; line-height: 1; }
+.tb .lbl { font-size: 9px; font-weight: 600; letter-spacing: .2px; }
 /* Badge numerino sul tab spesa */
 .tb-badge {
   position: absolute; top: 9px; right: calc(50% - 18px);
@@ -408,12 +448,129 @@ body { display: flex; justify-content: center; }
 .etop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .etop h2 { font-family: 'Syne', sans-serif; font-size: 17px; }
 
+
+/* Undo check button nella lista spesa */
+.shop-undo {
+  padding: 5px 8px; border-radius: var(--rs); background: rgba(91,155,224,.12);
+  border: 1px solid var(--freeze); color: var(--freeze); font-size: 12px;
+  font-weight: 700; cursor: pointer; transition: all .15s; flex-shrink: 0;
+}
+.shop-undo:active { background: var(--freeze); color: #fff; }
+
+/* Bottone reinserimento dispensa su item spesa spuntato */
+.shop-restock {
+  padding: 5px 10px; border-radius: var(--rs); background: rgba(91,191,126,.12);
+  border: 1px solid var(--success); color: var(--success); font-size: 11px;
+  font-weight: 600; cursor: pointer; font-family: 'DM Sans',sans-serif;
+  white-space: nowrap; transition: all .15s; flex-shrink: 0;
+}
+.shop-restock:active { background: var(--success); color: #fff; }
+
+/* Modal reinserimento in dispensa dalla lista spesa */
+.restock-modal { position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:160;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;pointer-events:none;transition:opacity .2s; }
+.restock-modal.show { opacity:1;pointer-events:all; }
+.restock-box { background:var(--bg2);border-radius:var(--r);padding:20px;width:100%;max-width:400px;border:1px solid var(--border);transform:scale(.96);transition:transform .2s; }
+.restock-modal.show .restock-box { transform:scale(1); }
+.restock-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+.restock-header h3 { font-family:'Syne',sans-serif;font-size:16px;font-weight:700; }
+
 /* Scrollbar sottile */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ================================================
+   NUOVI TAB: REPORT + CALENDARIO
+================================================ */
+
+/* ── Report ── */
+.rep-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+.rep-period { font-size:12px;color:var(--text2); }
+.rep-card { background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px; }
+.rep-card-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:10px; }
+.rep-bar-row { display:flex;align-items:center;gap:8px;margin-bottom:7px; }
+.rep-bar-label { font-size:13px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.rep-bar-wrap { flex:2;height:7px;background:var(--bg4);border-radius:4px;overflow:hidden; }
+.rep-bar-fill { height:100%;border-radius:4px;transition:width .4s; }
+.rep-bar-val { font-size:12px;color:var(--text2);min-width:22px;text-align:right;font-family:'Syne',sans-serif;font-weight:700; }
+.rep-cat-chip { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);font-size:12px;margin:3px; }
+.rep-empty { text-align:center;padding:40px 20px;color:var(--text3);font-size:14px; }
+.rep-monthly-item { display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:7px;cursor:pointer;transition:border-color .15s; }
+.rep-monthly-item:hover { border-color:var(--border2); }
+.rep-monthly-month { font-family:'Syne',sans-serif;font-weight:700;font-size:13px;min-width:70px; }
+.rep-monthly-meta { flex:1;font-size:12px;color:var(--text2); }
+.rep-monthly-arrow { color:var(--text3);font-size:14px; }
+.rep-detail-modal { position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:170;display:flex;align-items:flex-end;padding-bottom:0;opacity:0;pointer-events:none;transition:opacity .2s; }
+.rep-detail-modal.show { opacity:1;pointer-events:all; }
+.rep-detail-sheet { background:var(--bg2);border-radius:var(--r) var(--r) 0 0;width:100%;max-height:85vh;overflow-y:auto;padding:20px;transform:translateY(100%);transition:transform .3s; }
+.rep-detail-modal.show .rep-detail-sheet { transform:translateY(0); }
+
+/* ── Calendario ── */
+.cal-nav { display:flex;align-items:center;justify-content:space-between;margin-bottom:14px; }
+.cal-nav-btn { background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:7px 14px;color:var(--text);cursor:pointer;font-size:14px;transition:background .15s; }
+.cal-nav-btn:hover { background:var(--bg3); }
+.cal-month-label { font-family:'Syne',sans-serif;font-weight:700;font-size:16px; }
+.cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px; }
+.cal-dow { text-align:center;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;padding:4px 0; }
+.cal-day { aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:var(--rs);cursor:pointer;position:relative;transition:background .15s;font-size:13px;font-weight:500; }
+.cal-day:hover { background:var(--bg3); }
+.cal-day.today { background:rgba(232,130,30,.15);color:var(--accent);font-weight:700; }
+.cal-day.has-events::after { content:'';position:absolute;bottom:4px;width:5px;height:5px;border-radius:50%;background:var(--accent); }
+.cal-day.has-events.has-spend::after { background:var(--success); }
+.cal-day.other-month { color:var(--text3); }
+.cal-day.selected { background:var(--accent)!important;color:#fff!important; }
+.cal-day-detail { background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;min-height:80px; }
+.cal-day-detail-title { font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:10px; }
+.cal-event-row { display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border); }
+.cal-event-row:last-child { border-bottom:none; }
+.cal-event-ico { font-size:16px;flex-shrink:0; }
+.cal-event-txt { flex:1;font-size:13px; }
+.cal-event-price { font-size:12px;color:var(--success);font-family:'Syne',sans-serif;font-weight:700;white-space:nowrap; }
+.cal-event-del { background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;transition:color .15s; }
+.cal-event-del:hover { color:var(--danger); }
+.cal-totspend { text-align:right;font-size:13px;color:var(--success);font-family:'Syne',sans-serif;font-weight:700;margin-top:8px; }
+.cal-empty-day { text-align:center;color:var(--text3);font-size:13px;padding:20px 0; }
+
+/* Report period filter chips */
+.rep-filter-bar { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px; }
+.rep-fchip { padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif; }
+.rep-fchip:hover { border-color:var(--border2);color:var(--text); }
+.rep-fchip.active { background:var(--accent);border-color:var(--accent);color:#fff; }
+.rep-fchip-custom { border-style:dashed; }
+/* Generate button inside card header */
+.rep-gen-btn { padding:4px 10px;border-radius:var(--rs);border:1px solid var(--accent);background:none;color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s; }
+.rep-gen-btn:hover { background:var(--accent);color:#fff; }
+/* SVG bar chart */
+.rep-chart-wrap { width:100%;overflow-x:auto;padding-bottom:4px; }
+.rep-chart-wrap svg { display:block; }
+.rep-chart-bar { cursor:default;transition:opacity .15s; }
+.rep-chart-bar:hover { opacity:.8; }
+
+/* Prezzo nel form aggiunta */
+.price-row { display:flex;align-items:center;gap:8px; }
+.price-symbol { font-size:16px;color:var(--text2);flex-shrink:0; }
+
+
+/* ── Listino Prezzi tab ───────────────────────────────────────── */
+.listino-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 14px 16px 10px; gap: 12px;
+}
+.listino-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--text1); }
+.listino-sub   { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.listino-add-btn { padding: 9px 16px; font-size: 14px; white-space: nowrap; flex-shrink: 0; }
+.listino-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; border-bottom: 1px solid var(--border);
+  background: var(--bg2); transition: background .15s;
+}
+.listino-row:first-child { border-top: 1px solid var(--border); border-radius: var(--rc) var(--rc) 0 0; }
+.listino-row:last-child  { border-radius: 0 0 var(--rc) var(--rc); }
+.listino-row:hover { background: var(--bg3); }
+
 </style>
 </head>
 <body>
+<div id="app-shell">
 <div id="wrap">
 
 <header id="hdr">
@@ -425,26 +582,6 @@ body { display: flex; justify-content: center; }
 
   <!-- ===== TAB: DISPENSA ===== -->
   <div id="pg-dispensa" class="page active">
-
-    <!-- 4 stat cards cliccabili come filtro -->
-    <div class="stats">
-      <div class="scard sf-tutti" id="sc-tutti" onclick="setDF('tutti',this)">
-        <div class="snum" style="color:var(--accent)" id="st-tot">0</div>
-        <div class="slbl">Totale</div>
-      </div>
-      <div class="scard" id="sc-presto" onclick="setDF('presto',this)">
-        <div class="snum" style="color:var(--warn)" id="st-exp">0</div>
-        <div class="slbl">Scadono</div>
-      </div>
-      <div class="scard" id="sc-frozen" onclick="setDF('frozen',this)">
-        <div class="snum" style="color:var(--freeze)" id="st-frz">0</div>
-        <div class="slbl">In cella</div>
-      </div>
-      <div class="scard" id="sc-scaduti" onclick="setDF('scaduti',this)">
-        <div class="snum" style="color:var(--danger)" id="st-scd">0</div>
-        <div class="slbl">Scaduti</div>
-      </div>
-    </div>
 
     <div class="sbox">
       <span>🔍</span>
@@ -499,6 +636,7 @@ body { display: flex; justify-content: center; }
           <option value="uova">🥚 Uova</option>
         </select>
       </div>
+      <div class="cat-detected" id="pb-hint-shop" style="margin-top:4px"></div>
       <button class="btn btn-p" onclick="addToShopList()">➕ Aggiungi</button>
     </div>
 
@@ -540,14 +678,21 @@ body { display: flex; justify-content: center; }
     <div class="fg">
       <label class="fl">Categoria</label>
       <select class="fi" id="fc">
-        <option value="generico">Generico</option><option value="carne">Carne</option>
-        <option value="pesce">Pesce</option><option value="verdure">Verdure</option>
-        <option value="frutta">Frutta</option><option value="latticini">Latticini</option>
-        <option value="pasta_cereali">Pasta / Cereali</option><option value="pane">Pane</option>
-        <option value="salumi">Salumi</option><option value="condimenti">Condimenti</option>
-        <option value="surgelati">Surgelati</option><option value="bevande">Bevande</option>
-        <option value="dolci">Dolci</option><option value="legumi">Legumi</option>
-        <option value="uova">Uova</option>
+        <option value="generico">📦 Generico</option>
+        <option value="carne">🥩 Carne</option>
+        <option value="pesce">🐟 Pesce</option>
+        <option value="verdure">🥬 Verdure</option>
+        <option value="frutta">🍎 Frutta</option>
+        <option value="latticini">🧀 Latticini</option>
+        <option value="pasta_cereali">🍝 Pasta / Cereali</option>
+        <option value="pane">🍞 Pane</option>
+        <option value="salumi">🥓 Salumi</option>
+        <option value="condimenti">🫙 Condimenti</option>
+        <option value="surgelati">❄️ Surgelati</option>
+        <option value="bevande">🥤 Bevande</option>
+        <option value="dolci">🍰 Dolci</option>
+        <option value="legumi">🫘 Legumi</option>
+        <option value="uova">🥚 Uova</option>
       </select>
     </div>
     <div class="fg">
@@ -559,7 +704,75 @@ body { display: flex; justify-content: center; }
       <div><div class="sw-t">❄️ Metti in cella</div><div class="sw-s">Stima scadenza da congelamento</div></div>
       <label class="tgl"><input type="checkbox" id="ff" onchange="onFreezeChange()"><span class="tgl-s"></span></label>
     </div>
+    <div class="fg">
+      <label class="fl">Prezzo pagato (opzionale)</label>
+      <div class="price-row">
+        <span class="price-symbol">€</span>
+        <input class="fi" id="fprice" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1">
+      </div>
+      <div class="cat-detected" id="pb-hint-add"></div>
+    </div>
     <button class="btn btn-p" onclick="saveItem()">💾 Aggiungi alla Dispensa</button>
+  </div>
+
+  <!-- ===== TAB: REPORT ===== -->
+  <div id="pg-report" class="page">
+
+    <!-- Filtro periodo -->
+    <div class="rep-filter-bar">
+      <button class="rep-fchip active" data-rp="mese"    onclick="setRepPeriod('mese',this)">Questo mese</button>
+      <button class="rep-fchip"        data-rp="30"      onclick="setRepPeriod('30',this)">30 giorni</button>
+      <button class="rep-fchip"        data-rp="90"      onclick="setRepPeriod('90',this)">90 giorni</button>
+      <button class="rep-fchip"        data-rp="anno"    onclick="setRepPeriod('anno',this)">Anno</button>
+      <button class="rep-fchip"        data-rp="tutto"   onclick="setRepPeriod('tutto',this)">Tutto</button>
+      <button class="rep-fchip rep-fchip-custom" data-rp="custom" onclick="setRepPeriod('custom',this)">📅 Periodo</button>
+    </div>
+    <!-- Date picker periodo custom -->
+    <div id="rep-custom-dates" style="display:none;gap:8px;padding:0 0 10px">
+      <input type="date" id="rep-from" class="fi" style="flex:1" onchange="renderReport()">
+      <input type="date" id="rep-to"   class="fi" style="flex:1" onchange="renderReport()">
+    </div>
+    <div id="rep-period-label" style="font-size:11px;color:var(--text2);margin-bottom:8px;min-height:16px"></div>
+
+    <!-- Contenuto live (si aggiorna automaticamente) -->
+    <div id="rep-live"></div>
+
+    <!-- Lista report mensili salvati -->
+    <div class="rep-card">
+      <div class="rep-card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>📁 Report mensili salvati</span>
+        <button class="rep-gen-btn" onclick="generateManualReport()">+ Genera ora</button>
+      </div>
+      <div id="rep-monthly-list"><div class="rep-empty">Nessun report mensile ancora.<br>Il primo verrà generato automaticamente il 1° del mese.</div></div>
+    </div>
+  </div>
+
+  <!-- ===== TAB: CALENDARIO ===== -->
+  <div id="pg-calendario" class="page">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+      <div class="cal-month-label" id="cal-month-label"></div>
+      <button class="cal-nav-btn" onclick="calNext()">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-day-detail" id="cal-day-detail" style="display:none"></div>
+  </div>
+
+
+  <!-- ===== TAB: LISTINO PREZZI ===== -->
+  <div id="pg-listino" class="page">
+    <div class="listino-header">
+      <div>
+        <div class="listino-title">📒 Listino Prezzi</div>
+        <div class="listino-sub">Memoria automatica dei tuoi acquisti</div>
+      </div>
+      <button class="btn btn-p listino-add-btn" onclick="openListinoEdit(null)">＋ Aggiungi</button>
+    </div>
+    <div class="sbox" style="margin-bottom:10px">
+      <span>🔍</span>
+      <input id="listino-search" placeholder="Cerca alimento…" oninput="renderListino()">
+    </div>
+    <div id="listino-list"></div>
   </div>
 
 </div><!-- #main -->
@@ -576,12 +789,225 @@ body { display: flex; justify-content: center; }
     <span class="ico">🛒</span><span class="lbl">Spesa</span>
     <span class="tb-badge" id="spesa-badge"></span>
   </button>
+  <button class="tb" onclick="goTab('report',this)">
+    <span class="ico">📊</span><span class="lbl">Report</span>
+  </button>
+  <button class="tb" onclick="goTab('calendario',this)">
+    <span class="ico">📅</span><span class="lbl">Calendario</span>
+  </button>
+  <button class="tb" onclick="goTab('listino',this)">
+    <span class="ico">📒</span><span class="lbl">Listino</span>
+  </button>
   <button class="tb" onclick="goTab('aggiungi',this)">
     <span class="ico">➕</span><span class="lbl">Aggiungi</span>
   </button>
 </nav>
 
 </div><!-- #wrap -->
+
+<!-- SIDEBAR DESKTOP — shortcut, stats live, aggiunta rapida -->
+<aside id="sidebar">
+  <div id="sidebar-inner">
+
+    <!-- Stat live (si aggiornano via JS) -->
+    <div class="sb-section">
+      <div class="sb-section-title">Riepilogo dispensa</div>
+      <div class="sb-stats">
+        <div class="sb-stat" onclick="goTabById('dispensa');setDF('tutti',document.getElementById('sc-tutti'))" title="Tutti i prodotti"><span class="n" id="sb-tot" style="color:var(--accent)">0</span><span class="l">Totale prodotti</span></div>
+        <div class="sb-stat" onclick="goTabById('dispensa');setDF('scaduti',document.getElementById('sc-scaduti'))" title="Prodotti scaduti"><span class="n" id="sb-scd" style="color:var(--danger)">0</span><span class="l">Scaduti</span></div>
+        <div class="sb-stat" onclick="goTabById('dispensa');setDF('presto',document.getElementById('sc-presto'))" title="In scadenza 7gg"><span class="n" id="sb-scad-exp" style="color:var(--warn)">0</span><span class="l">In scadenza</span></div>
+        <div class="sb-stat" onclick="goTabById('dispensa');setDF('frozen',document.getElementById('sc-frozen'))" title="Prodotti congelati"><span class="n" id="sb-frz" style="color:var(--freeze)">0</span><span class="l">In cella</span></div>
+      </div>
+    </div>
+
+    <!-- Aggiunta rapida senza barcode -->
+    <div class="sb-section">
+      <div class="sb-section-title">➕ Aggiunta rapida</div>
+      <div class="sb-quick">
+        <input id="sb-name" placeholder="Nome alimento…" oninput="sbDetectCat()" onkeydown="if(event.key==='Enter')sbQuickAdd()">
+        <div class="sq-row">
+          <input id="sb-qty" type="number" min="0" step="any" placeholder="Qtà" style="max-width:80px">
+          <select id="sb-unit"><option value="pz">pz</option><option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="l">l</option><option value="conf">conf.</option></select>
+          <select id="sb-cat">
+            <option value="generico">📦 Generico</option><option value="carne">🥩 Carne</option><option value="pesce">🐟 Pesce</option>
+            <option value="verdure">🥬 Verdure</option><option value="frutta">🍎 Frutta</option><option value="latticini">🧀 Latticini</option>
+            <option value="pasta_cereali">🍝 Pasta/Cereali</option><option value="pane">🍞 Pane</option><option value="salumi">🥓 Salumi</option>
+            <option value="condimenti">🫙 Condimenti</option><option value="surgelati">❄️ Surgelati</option><option value="bevande">🥤 Bevande</option>
+            <option value="dolci">🍰 Dolci</option><option value="legumi">🫘 Legumi</option><option value="uova">🥚 Uova</option>
+          </select>
+        </div>
+        <div class="sq-row" style="margin-top:7px">
+          <input id="sb-date" type="date" style="flex:1" placeholder="Scadenza (opz.)">
+          <input id="sb-price" type="number" min="0" step="0.01" placeholder="€ Prezzo" style="max-width:90px">
+        </div>
+        <div class="sw-row" style="margin-top:6px;padding:0">
+          <div><div class="sw-t" style="font-size:12px">❄️ Metti in cella</div></div>
+          <label class="tgl"><input type="checkbox" id="sb-freeze"><span class="tgl-s"></span></label>
+        </div>
+        <div style="font-size:10px;color:var(--accent2);min-height:14px;margin-top:2px" id="pb-hint-sb"></div>
+        <button class="sq-add" onclick="sbQuickAdd()">💾 Aggiungi alla dispensa</button>
+      </div>
+    </div>
+
+    <!-- Azioni rapide -->
+    <div class="sb-section">
+      <div class="sb-section-title">Azioni rapide</div>
+      <button class="sb-btn" onclick="goTabById('aggiungi');setTimeout(()=>openScanner(),200)">
+        <span class="sb-ico">📷</span><div class="sb-txt"><span class="sb-label">Scansiona barcode</span><span class="sb-sub">Aggiungi prodotto con fotocamera</span></div><span class="sb-arrow">›</span>
+      </button>
+      <button class="sb-btn" onclick="goTabById('ricette');setRF('possibili',document.querySelector('[data-rf=possibili]'))">
+        <span class="sb-ico">✅</span><div class="sb-txt"><span class="sb-label">Cosa posso cucinare</span><span class="sb-sub" id="sb-ricette-sub">Ricette con ingredienti presenti</span></div><span class="sb-arrow">›</span>
+      </button>
+      <button class="sb-btn" onclick="goTabById('spesa')">
+        <span class="sb-ico">🛒</span><div class="sb-txt"><span class="sb-label">Lista della spesa</span><span class="sb-sub" id="sb-spesa-sub">Aggiorna la lista</span></div><span class="sb-arrow">›</span>
+      </button>
+      <button class="sb-btn" onclick="goTabById('report')">
+        <span class="sb-ico">📊</span><div class="sb-txt"><span class="sb-label">Report consumi</span><span class="sb-sub">Statistiche e report mensili</span></div><span class="sb-arrow">›</span>
+      </button>
+      <button class="sb-btn" onclick="goTabById('calendario')">
+        <span class="sb-ico">📅</span><div class="sb-txt"><span class="sb-label">Calendario acquisti</span><span class="sb-sub">Storico aggiunte e spesa</span></div><span class="sb-arrow">›</span>
+      </button>
+    </div>
+
+  </div>
+</aside>
+
+</div><!-- #app-shell -->
+
+<!-- ===== LISTINO EDIT MODAL ===== -->
+<div id="listino-modal" class="restock-modal" onclick="closeListinoModal(event)">
+  <div class="restock-box">
+    <div class="restock-header">
+      <h3>📒 Aggiungi / Modifica prezzo</h3>
+      <button class="mclose" style="position:static" onclick="closeListinoModal(null,1)">×</button>
+    </div>
+    <input type="hidden" id="le-key">
+    <div class="fg"><label class="fl">Nome prodotto *</label>
+      <input class="fi" id="le-name" placeholder="es. Pasta De Cecco, Petto di Pollo…" oninput="leDetectCat()">
+    </div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Prezzo €</label>
+        <div class="price-row"><span class="price-symbol">€</span>
+          <input class="fi" id="le-price" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1">
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Qtà acquistata</label>
+        <input class="fi" id="le-qty" type="number" min="0" step="any" placeholder="es. 500">
+      </div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Unità</label>
+        <select class="fi" id="le-unit">
+          <option value="pz">pz</option><option value="g">g</option>
+          <option value="kg">kg</option><option value="ml">ml</option>
+          <option value="l">l</option><option value="conf">conf.</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Categoria</label>
+        <select class="fi" id="le-cat">
+          <option value="generico">📦 Generico</option><option value="carne">🥩 Carne</option>
+          <option value="pesce">🐟 Pesce</option><option value="verdure">🥬 Verdure</option>
+          <option value="frutta">🍎 Frutta</option><option value="latticini">🧀 Latticini</option>
+          <option value="pasta_cereali">🍝 Pasta/Cereali</option><option value="pane">🍞 Pane</option>
+          <option value="salumi">🥓 Salumi</option><option value="condimenti">🫙 Condimenti</option>
+          <option value="surgelati">❄️ Surgelati</option><option value="bevande">🥤 Bevande</option>
+          <option value="dolci">🍰 Dolci</option><option value="legumi">🫘 Legumi</option>
+          <option value="uova">🥚 Uova</option>
+        </select>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <button class="btn btn-p" onclick="saveListinoEntry()">💾 Salva</button>
+    <button class="btn btn-s" onclick="closeListinoModal(null,1)">Annulla</button>
+  </div>
+</div>
+
+<!-- ===== PRICE MODAL ===== -->
+<div id="price-modal" class="restock-modal" onclick="closePriceModal(event)">
+  <div class="restock-box">
+    <div class="restock-header">
+      <h3 id="price-modal-title">€ Imposta prezzo</h3>
+      <button class="mclose" style="position:static" onclick="closePriceModal(null,1)">×</button>
+    </div>
+    <div class="fg">
+      <label class="fl">Prezzo pagato</label>
+      <div class="price-row">
+        <span class="price-symbol">€</span>
+        <input class="fi" id="pm-price" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1" onkeydown="if(event.key==='Enter')confirmPriceModal()">
+      </div>
+    </div>
+    <div class="divider"></div>
+    <button class="btn btn-p" onclick="confirmPriceModal()">💾 Salva prezzo</button>
+    <button class="btn btn-s" onclick="closePriceModal(null,1)">Annulla</button>
+  </div>
+</div>
+
+<!-- ===== REPORT DETAIL MODAL ===== -->
+<div id="rep-kpi-modal" class="restock-modal" onclick="closeRepKpiModal(event)">
+  <div class="restock-box" style="max-height:80vh;overflow-y:auto">
+    <div class="restock-header">
+      <h3 id="rep-kpi-title">Dettaglio</h3>
+      <button class="mclose" style="position:static" onclick="closeRepKpiModal(null,1)">×</button>
+    </div>
+    <div id="rep-kpi-content"></div>
+  </div>
+</div>
+
+<!-- ===== RESTOCK MODAL (inserimento in dispensa da lista spesa) ===== -->
+<div id="restock-modal" class="restock-modal" onclick="closeRestock(event)">
+  <div class="restock-box">
+    <div class="restock-header">
+      <h3 id="restock-title">📥 Inserisci in dispensa</h3>
+      <button class="mclose" style="position:static" onclick="closeRestock(null,1)">×</button>
+    </div>
+    <div class="fg">
+      <label class="fl">Quantità *</label>
+      <div class="fr2">
+        <div class="fg" style="margin-bottom:0">
+          <input class="fi" id="rq" type="number" min="0" step="any" placeholder="1">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <select class="fi" id="ru">
+            <option value="pz">pz</option><option value="g">g</option>
+            <option value="kg">kg</option><option value="ml">ml</option>
+            <option value="l">l</option><option value="conf">conf.</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Scadenza</label>
+      <input class="fi" id="re" type="date">
+    </div>
+    <div class="fg">
+      <label class="fl">Categoria</label>
+      <select class="fi" id="rcat">
+        <option value="generico">📦 Generico</option>
+        <option value="carne">🥩 Carne</option>
+        <option value="pesce">🐟 Pesce</option>
+        <option value="verdure">🥬 Verdure</option>
+        <option value="frutta">🍎 Frutta</option>
+        <option value="latticini">🧀 Latticini</option>
+        <option value="pasta_cereali">🍝 Pasta / Cereali</option>
+        <option value="pane">🍞 Pane</option>
+        <option value="salumi">🥓 Salumi</option>
+        <option value="condimenti">🫙 Condimenti</option>
+        <option value="surgelati">❄️ Surgelati</option>
+        <option value="bevande">🥤 Bevande</option>
+        <option value="dolci">🍰 Dolci</option>
+        <option value="legumi">🫘 Legumi</option>
+        <option value="uova">🥚 Uova</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Prezzo pagato (opz.)</label>
+      <div class="price-row"><span class="price-symbol">€</span><input class="fi" id="rprice" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1"></div>
+    </div>
+    <div class="divider"></div>
+    <button class="btn btn-p" onclick="confirmRestock()">📥 Aggiungi alla dispensa</button>
+    <button class="btn btn-s" onclick="closeRestock(null,1)">Annulla</button>
+  </div>
+</div>
 
 <!-- ===== SCANNER OVERLAY ===== -->
 <div id="scan-overlay">
@@ -620,17 +1046,28 @@ body { display: flex; justify-content: center; }
     </div>
     <div class="fg"><label class="fl">Categoria</label>
       <select class="fi" id="ecat">
-        <option value="generico">Generico</option><option value="carne">Carne</option>
-        <option value="pesce">Pesce</option><option value="verdure">Verdure</option>
-        <option value="frutta">Frutta</option><option value="latticini">Latticini</option>
-        <option value="pasta_cereali">Pasta / Cereali</option><option value="pane">Pane</option>
-        <option value="salumi">Salumi</option><option value="condimenti">Condimenti</option>
-        <option value="surgelati">Surgelati</option><option value="bevande">Bevande</option>
-        <option value="dolci">Dolci</option><option value="legumi">Legumi</option>
-        <option value="uova">Uova</option>
+        <option value="generico">📦 Generico</option>
+        <option value="carne">🥩 Carne</option>
+        <option value="pesce">🐟 Pesce</option>
+        <option value="verdure">🥬 Verdure</option>
+        <option value="frutta">🍎 Frutta</option>
+        <option value="latticini">🧀 Latticini</option>
+        <option value="pasta_cereali">🍝 Pasta / Cereali</option>
+        <option value="pane">🍞 Pane</option>
+        <option value="salumi">🥓 Salumi</option>
+        <option value="condimenti">🫙 Condimenti</option>
+        <option value="surgelati">❄️ Surgelati</option>
+        <option value="bevande">🥤 Bevande</option>
+        <option value="dolci">🍰 Dolci</option>
+        <option value="legumi">🫘 Legumi</option>
+        <option value="uova">🥚 Uova</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Scadenza</label><input class="fi" id="ee" type="date"></div>
+    <div class="fg">
+      <label class="fl">Prezzo pagato (opz.)</label>
+      <div class="price-row"><span class="price-symbol">€</span><input class="fi" id="eprice" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1"></div>
+    </div>
     <div class="divider"></div>
     <button class="btn btn-p" onclick="saveEdit()">💾 Salva</button>
     <button class="btn btn-s" onclick="closeEdit(null,1)">Annulla</button>
@@ -923,7 +1360,7 @@ const SK = 'dispensa_v3';
  * - scanner : istanza Html5Qrcode
  * - scanRunning : true se scanner aperto
  */
-let items = [], shopping = [];
+let items = [], shopping = [], consumptionLog = [], additionLog = [], monthlyReports = [], priceBook = {};
 let df = 'tutti', rf = 'possibili';
 let editId = null, scanner = null, scanRunning = false;
 
@@ -933,8 +1370,12 @@ function load() {
     const raw = localStorage.getItem(SK);
     if (raw) {
       const d = JSON.parse(raw);
-      items    = Array.isArray(d.items)    ? d.items    : [];
-      shopping = Array.isArray(d.shopping) ? d.shopping : [];
+      items          = Array.isArray(d.items)          ? d.items          : [];
+      shopping       = Array.isArray(d.shopping)       ? d.shopping       : [];
+      consumptionLog = Array.isArray(d.consumptionLog) ? d.consumptionLog : [];
+      additionLog    = Array.isArray(d.additionLog)    ? d.additionLog    : [];
+      monthlyReports = Array.isArray(d.monthlyReports) ? d.monthlyReports : [];
+      priceBook      = (typeof d.priceBook === 'object' && d.priceBook && !Array.isArray(d.priceBook)) ? d.priceBook : {};
     } else {
       // Tenta migrazione da v2
       const old = localStorage.getItem('dispensa_v2');
@@ -942,13 +1383,13 @@ function load() {
         const d2 = JSON.parse(old);
         items = Array.isArray(d2.items) ? d2.items : [];
         shopping = [];
-        save(); // salva subito in formato v3
+        save();
         console.log('Migrazione da dispensa_v2 completata');
       }
     }
   } catch(e) {
     console.error('Errore caricamento dati:', e);
-    items = []; shopping = [];
+    items = []; shopping = []; consumptionLog = []; additionLog = []; monthlyReports = []; priceBook = {};
   }
 }
 
@@ -956,7 +1397,8 @@ function load() {
 function save() {
   try {
     localStorage.setItem(SK, JSON.stringify({
-      items, shopping, v: 3, at: new Date().toISOString()
+      items, shopping, consumptionLog, additionLog, monthlyReports, priceBook,
+      v: 3, at: new Date().toISOString()
     }));
   } catch(e) {
     showAlert('⚠ Errore salvataggio dati!', 'err', 4000);
@@ -1110,6 +1552,10 @@ function goTab(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('pg-' + name).classList.add('active');
   document.querySelectorAll('.tb').forEach(b => b.classList.remove('active'));
+  // Render tab-specific content on switch
+  if (name === 'report')     { setTimeout(renderReport,   0); }
+  if (name === 'calendario') { setTimeout(renderCalendar, 0); }
+  if (name === 'listino')    { setTimeout(renderListino,  0); }
   el.classList.add('active');
   // Render specifici per tab
   if (name === 'dispensa')  renderD();
@@ -1156,10 +1602,7 @@ function renderD() {
   // "In scadenza" = non congelati, scadenza entro 7 giorni (non scaduti)
   const exp    = items.filter(it => { const d = daysTo(it.expiryDate); return !it.frozen && d !== null && d >= 0 && d <= 7; }).length;
 
-  document.getElementById('st-tot').textContent = tot;
-  document.getElementById('st-exp').textContent = exp;
-  document.getElementById('st-frz').textContent = frz;
-  document.getElementById('st-scd').textContent = scad;
+  updateSidebar(); // aggiorna le stat live nella sidebar desktop
 
   // Filtra lista
   let list = items.filter(it => {
@@ -1233,7 +1676,9 @@ function renderD() {
   <div class="iactions" id="ia-${it.id}">
     <button class="abtn ok" onclick="consumeItem('${it.id}',event)">🍴 Consumato</button>
     ${freezeBtn}
+    <button class="abtn wn" onclick="openPriceModal('${it.id}',event)">€ Prezzo</button>
     <button class="abtn ac" onclick="openEdit('${it.id}',event)">✏️ Modifica</button>
+    <button class="abtn ac" onclick="copyItem('${it.id}',event)" style="color:var(--accent2);border-color:var(--accent2)">📋 Copia</button>
     <button class="abtn dn" onclick="delItem('${it.id}',event)">🗑 Elimina</button>
   </div>
 </div>`;
@@ -1266,7 +1711,13 @@ function consumeItem(id, e) {
   // Aggiungi alla lista spesa (solo se non c'è già, confronto case-insensitive)
   const alreadyInList = shopping.some(s => s.name.toLowerCase() === name.toLowerCase());
   if (!alreadyInList) {
-    shopping.push({ id: uid(), name, category: cat, checked: false, addedDate: today() });
+    const pbHint = pbGet(name);
+    shopping.push({
+      id: uid(), name, category: cat, checked: false, addedDate: today(),
+      hintPrice: pbHint?.price || null,
+      hintQty:   pbHint?.qty   || null,
+      hintUnit:  pbHint?.unit  || null
+    });
     showAlert(`🍴 Consumato! "${name}" aggiunto alla lista spesa.`, 'ok', 3500);
   } else {
     showAlert(`🍴 "${name}" consumato.`, 'ok', 2500);
@@ -1275,6 +1726,7 @@ function consumeItem(id, e) {
   renderD();
   renderR();
   updateShopBadge();
+  refreshReportIfVisible();
 }
 
 /** Elimina definitivamente un item (senza aggiungerlo alla spesa) */
@@ -1285,6 +1737,118 @@ function delItem(id, e) {
   items = items.filter(x => x.id !== id);
   save(); renderD(); renderR();
   showAlert('🗑 Eliminato', 'warn');
+}
+
+/**
+ * Copia un item: crea un duplicato identico con nuovo ID.
+ * Utile ad es. per 4 scatole dello stesso prodotto — congela 3,
+ * poi copia invece di reinserire manualmente.
+ */
+// ── Price Modal ──────────────────────────────────────────────────
+let priceModalId = null;
+
+function openPriceModal(id, e) {
+  e && e.stopPropagation();
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  priceModalId = id;
+  document.getElementById('price-modal-title').textContent = `€ Prezzo — ${it.name}`;
+  const pm = document.getElementById('pm-price');
+  pm.value = it.price > 0 ? it.price : '';
+  document.getElementById('price-modal').classList.add('show');
+  setTimeout(() => pm.focus(), 150);
+}
+
+function confirmPriceModal() {
+  const it = items.find(x => x.id === priceModalId);
+  if (!it) return;
+  const v = parseFloat(document.getElementById('pm-price').value);
+  if (isNaN(v) || v < 0) { showAlert('Prezzo non valido', 'err'); return; }
+  it.price = v > 0 ? v : null;
+  // Aggiorna priceBook
+  pbUpdate(it.name, it.price, it.quantity, it.unit, it.category);
+  // Aggiorna anche il log aggiunte se esiste voce oggi
+  const log = additionLog.find(a => a.name.toLowerCase() === it.name.toLowerCase() && a.date === today());
+  if (log) log.price = it.price;
+  save(); closePriceModal(null, 1); renderD();
+  showAlert(`€ Prezzo ${v > 0 ? '€'+v.toFixed(2) : 'rimosso'}`, 'ok', 2000);
+}
+
+function closePriceModal(e, force) {
+  if (force || e?.target === document.getElementById('price-modal')) {
+    document.getElementById('price-modal').classList.remove('show');
+    priceModalId = null;
+  }
+}
+
+// ── Report KPI detail modal ───────────────────────────────────────
+function openRepKpiModal(type, from, to) {
+  const [f, t] = from !== undefined ? [from, to] : getRepRange();
+  const logSlice = filterLog(consumptionLog, f, t);
+  const addSlice = filterLog(additionLog, f, t);
+
+  let title = '', content = '';
+  if (type === 'consumed') {
+    title = `🍴 Consumati (${logSlice.length})`;
+    if (!logSlice.length) { content = '<p style="color:var(--text2);padding:12px 0">Nessun consumo nel periodo.</p>'; }
+    else {
+      const sorted = [...logSlice].sort((a,b) => b.date.localeCompare(a.date));
+      content = sorted.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px">${getCatIco(c.category)}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${escHtml(c.name)}</div>
+        <div style="font-size:11px;color:var(--text2)">${fmtDate(c.date)} · ${CAT_LABELS_FULL[c.category]||c.category}</div></div>
+      </div>`).join('');
+    }
+  } else if (type === 'added') {
+    title = `🛍 Aggiunti (${addSlice.length})`;
+    if (!addSlice.length) { content = '<p style="color:var(--text2);padding:12px 0">Nessuna aggiunta nel periodo.</p>'; }
+    else {
+      const sorted = [...addSlice].sort((a,b) => b.date.localeCompare(a.date));
+      content = sorted.map(a => `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px">${getCatIco(a.category)}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${escHtml(a.name)}</div>
+        <div style="font-size:11px;color:var(--text2)">${fmtDate(a.date)} · ${a.qty} ${a.unit} · ${CAT_LABELS_FULL[a.category]||a.category}</div></div>
+        ${a.price ? `<div style="font-size:13px;font-weight:700;color:var(--success)">€${a.price.toFixed(2)}</div>` : ''}
+      </div>`).join('');
+    }
+  } else if (type === 'spesa') {
+    const withPrice = addSlice.filter(a => a.price > 0);
+    const total = withPrice.reduce((s,a) => s+a.price, 0);
+    title = `💰 Spesa — €${total.toFixed(2)}`;
+    if (!withPrice.length) { content = '<p style="color:var(--text2);padding:12px 0">Nessuna transazione con prezzo nel periodo.</p>'; }
+    else {
+      const sorted = [...withPrice].sort((a,b) => b.date.localeCompare(a.date));
+      content = sorted.map(a => `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px">${getCatIco(a.category)}</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${escHtml(a.name)}</div>
+        <div style="font-size:11px;color:var(--text2)">${fmtDate(a.date)} · ${a.qty} ${a.unit}</div></div>
+        <div style="font-size:14px;font-weight:800;color:var(--success)">€${a.price.toFixed(2)}</div>
+      </div>`).join('') +
+      `<div style="text-align:right;margin-top:12px;font-size:14px;font-weight:800;color:var(--success);font-family:'Syne',sans-serif">Totale: €${total.toFixed(2)}</div>`;
+    }
+  }
+
+  document.getElementById('rep-kpi-title').textContent = title;
+  document.getElementById('rep-kpi-content').innerHTML = content;
+  document.getElementById('rep-kpi-modal').classList.add('show');
+}
+
+function closeRepKpiModal(e, force) {
+  if (force || e?.target === document.getElementById('rep-kpi-modal')) {
+    document.getElementById('rep-kpi-modal').classList.remove('show');
+  }
+}
+
+function copyItem(id, e) {
+  e && e.stopPropagation();
+  const src = items.find(x => x.id === id);
+  if (!src) return;
+  const copy = { ...src, id: uid(), addedDate: today() };
+  // Inserisci subito dopo l'originale nella lista
+  const idx = items.findIndex(x => x.id === id);
+  items.splice(idx + 1, 0, copy);
+  save(); renderD();
+  showAlert(`📋 Copia di "${src.name}" aggiunta`, 'ok', 2500);
 }
 
 /** Congela un item: aggiorna scadenza in base alla categoria */
@@ -1493,7 +2057,11 @@ function renderShop() {
     const itemsHtml = sorted.map(s => `
 <div class="shop-item${s.checked ? ' checked' : ''}" id="si-${s.id}">
   <div class="shop-check${s.checked ? ' checked' : ''}" onclick="toggleShopItem('${s.id}')">${s.checked ? '✓' : ''}</div>
-  <span class="shop-name">${escHtml(s.name)}</span>
+  <div style="flex:1;min-width:0">
+    <span class="shop-name">${escHtml(s.name)}</span>
+    ${(s.hintPrice||s.hintQty) && !s.checked ? `<div style="font-size:10px;color:var(--accent2);margin-top:2px">${[s.hintPrice?'€'+parseFloat(s.hintPrice).toFixed(2):null,s.hintQty?(s.hintQty+' '+(s.hintUnit||'pz')):null].filter(Boolean).join(' · ')}</div>` : ''}
+  </div>
+  ${s.checked ? `<button class="shop-undo" onclick="toggleShopItem('${s.id}')" title="Rimuovi spunta">↩</button><button class="shop-restock" onclick="openRestock('${s.id}')">📥 Dispensa</button>` : ''}
   <button class="shop-del" onclick="deleteShopItem('${s.id}')" title="Rimuovi">×</button>
 </div>`).join('');
     return `<div class="shop-group">
@@ -1557,6 +2125,147 @@ function clearAllShop() {
   showAlert('🗑 Lista svuotata', 'warn');
 }
 
+// ----------------------------------------------------------------
+// RESTOCK — reinserimento in dispensa da lista spesa
+// ----------------------------------------------------------------
+
+let restockId = null; // id item spesa in fase di reinserimento
+
+/** Apre il modal di reinserimento in dispensa per un item spuntato */
+function openRestock(id) {
+  const s = shopping.find(x => x.id === id);
+  if (!s) return;
+  restockId = id;
+  document.getElementById('restock-title').textContent = `📥 "${s.name}" → Dispensa`;
+  document.getElementById('rq').value   = '';
+  document.getElementById('ru').value   = 'pz';
+  document.getElementById('re').value   = '';
+  document.getElementById('rcat').value = s.category || 'generico';
+  document.getElementById('restock-modal').classList.add('show');
+}
+
+/** Conferma il reinserimento: aggiunge l'item alla dispensa e rimuove dalla spesa */
+function confirmRestock() {
+  const s = shopping.find(x => x.id === restockId);
+  if (!s) return;
+  const qty = parseFloat(document.getElementById('rq').value);
+  if (isNaN(qty) || qty <= 0) { showAlert('Inserisci una quantità valida', 'err'); return; }
+  const unit  = document.getElementById('ru').value;
+  const exp   = document.getElementById('re').value || null;
+  const cat   = document.getElementById('rcat').value;
+  const priceRaw = parseFloat(document.getElementById('rprice')?.value);
+  const price = isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw;
+  // Aggiungi alla dispensa
+  items.push({
+    id: uid(), name: s.name, quantity: qty, unit, category: cat,
+    expiryDate: exp, originalExpiry: null,
+    frozen: false, frozenDate: null, thawedDate: null,
+    barcode: null, addedDate: today()
+  });
+  // Traccia nel log aggiunte con eventuale prezzo
+  additionLog.push({ id: uid(), name: s.name, category: cat, qty, unit, price, date: today() });
+  pbUpdate(s.name, price, qty, unit, cat);
+  // Rimuovi dalla lista spesa
+  shopping = shopping.filter(x => x.id !== restockId);
+  save();
+  closeRestock(null, 1);
+  renderD(); renderR(); renderShop(); refreshReportIfVisible();
+  showAlert(`✅ "${s.name}" aggiunto alla dispensa!`, 'ok', 3000);
+}
+
+/** Chiude il modal di reinserimento */
+function closeRestock(e, force) {
+  if (force || e?.target === document.getElementById('restock-modal')) {
+    document.getElementById('restock-modal').classList.remove('show');
+    restockId = null;
+  }
+}
+
+// ----------------------------------------------------------------
+// SIDEBAR DESKTOP — funzioni helper
+// ----------------------------------------------------------------
+
+/** Naviga su un tab tramite ID (usato dalla sidebar desktop) */
+function goTabById(name) {
+  const tabBtn = document.querySelector(`#tabs .tb[onclick*="'${name}'"]`);
+  if (tabBtn) goTab(name, tabBtn);
+}
+
+/** Auto-rileva categoria nel form aggiunta rapida sidebar */
+function sbDetectCat() {
+  const v = document.getElementById('sb-name').value.trim();
+  if (v.length >= 2) {
+    document.getElementById('sb-cat').value = detectCat(v);
+    pbAutofill('sb-name', 'sb-price', 'sb-qty', 'sb-unit', 'pb-hint-sb');
+  }
+}
+
+/** Aggiunta rapida dalla sidebar desktop */
+function sbQuickAdd() {
+  const name   = document.getElementById('sb-name').value.trim();
+  const qty    = parseFloat(document.getElementById('sb-qty').value);
+  const unit   = document.getElementById('sb-unit').value;
+  const cat    = document.getElementById('sb-cat').value;
+  const expRaw = document.getElementById('sb-date').value || null;
+  const frozen = document.getElementById('sb-freeze')?.checked || false;
+  const priceRaw = parseFloat(document.getElementById('sb-price')?.value);
+  const price  = isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw;
+  if (!name)             { showAlert('Nome obbligatorio', 'err'); return; }
+  if (isNaN(qty)||qty<=0){ showAlert('Quantità non valida', 'err'); return; }
+  let finalExp = null, origExp = null;
+  if (frozen && expRaw) { origExp = expRaw; finalExp = freezeExp(expRaw, cat); }
+  else { finalExp = expRaw; }
+  items.push({
+    id: uid(), name, quantity: qty, unit, category: cat,
+    expiryDate: finalExp, originalExpiry: origExp,
+    frozen, frozenDate: frozen ? today() : null,
+    thawedDate: null, barcode: null, addedDate: today()
+  });
+  // Registra nel log aggiunte
+  additionLog.push({ id: uid(), name, category: cat, qty, unit, price, date: today() });
+  pbUpdate(name, price, qty, unit, cat);
+  save();
+  // Reset form sidebar
+  ['sb-name','sb-qty','sb-date','sb-price'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('sb-unit').value = 'pz';
+  document.getElementById('sb-cat').value  = 'generico';
+  if (document.getElementById('sb-freeze')) document.getElementById('sb-freeze').checked = false;
+  renderD(); renderR(); refreshReportIfVisible();
+  updateSidebar();
+  showAlert(`✅ "${name}" aggiunto${frozen ? ' ❄️' : ''}!`, 'ok', 2000);
+}
+
+/** Aggiorna le stat live nella sidebar desktop */
+function updateSidebar() {
+  const sbTot = document.getElementById('sb-tot');
+  if (!sbTot) return; // sidebar non presente (mobile)
+  const lsub = document.getElementById('sb-listino-sub');
+  if (lsub) { const cnt = Object.keys(priceBook).length; lsub.textContent = cnt ? `${cnt} prezzi memorizzati` : 'Memoria automatica prezzi'; }
+  const tot  = items.length;
+  const scd  = items.filter(it => { const d = daysTo(it.expiryDate); return d !== null && d < 0; }).length;
+  const exp  = items.filter(it => { const d = daysTo(it.expiryDate); return !it.frozen && d !== null && d >= 0 && d <= 7; }).length;
+  const frz  = items.filter(it => it.frozen).length;
+  const shop = shopping.filter(x => !x.checked).length;
+  document.getElementById('sb-tot').textContent = tot;
+  document.getElementById('sb-scd').textContent = scd;
+  document.getElementById('sb-scad-exp').textContent = exp;
+  document.getElementById('sb-frz').textContent = frz;
+  const sub = document.getElementById('sb-spesa-sub');
+  if (sub) sub.textContent = shop > 0 ? `${shop} prodotti da acquistare` : 'Lista aggiornata';
+  // Aggiorna sub-label ricette possibili
+  const rSub = document.getElementById('sb-ricette-sub');
+  if (rSub) {
+    const possible = RECIPES.filter(r => {
+      if (!r.ingredients) return false;
+      return r.ingredients.every(ing => {
+        const k = (ing.name||'').toLowerCase().trim();
+        return items.some(it => it.name.toLowerCase().includes(k) || k.includes(it.name.toLowerCase().trim()));
+      });
+    }).length;
+    rSub.textContent = possible > 0 ? `${possible} ricette disponibili` : 'Aggiungi ingredienti';
+  }
+}
+
 /** Auto-rileva categoria nel form lista spesa */
 function onShopNameInput() {
   const v = document.getElementById('sn').value.trim();
@@ -1564,6 +2273,16 @@ function onShopNameInput() {
     const c = detectCat(v);
     document.getElementById('sc-shop').value = c;
     const lbl = CAT_LABELS_FULL[c];
+    // Mostra hint prezzo dal priceBook nella lista spesa form
+    const pb = pbGet(v);
+    const sh = document.getElementById('pb-hint-shop');
+    if (sh) {
+      const parts = [];
+      if (pb?.price) parts.push('€'+parseFloat(pb.price).toFixed(2));
+      if (pb?.qty)   parts.push(pb.qty+' '+(pb.unit||'pz'));
+      sh.textContent = parts.length ? `📒 Ultima volta: ${parts.join(' · ')}` : '';
+      sh.style.color = 'var(--accent2)';
+    }
     document.getElementById('scat-hint').textContent = (c !== 'generico' && lbl)
       ? `Categoria rilevata: ${lbl}` : '';
   } else {
@@ -1586,6 +2305,8 @@ function openEdit(id, e) {
   document.getElementById('eu').value   = it.unit;
   document.getElementById('ee').value   = it.expiryDate || '';
   document.getElementById('ecat').value = it.category || 'generico';
+  const ep = document.getElementById('eprice');
+  if (ep) ep.value = it.price > 0 ? it.price : '';
   document.getElementById('emodal').classList.add('show');
 }
 
@@ -1597,11 +2318,14 @@ function saveEdit() {
   const qty  = parseFloat(document.getElementById('eq').value);
   if (!name)          { showAlert('Il nome è obbligatorio', 'err'); return; }
   if (isNaN(qty)||qty<0) { showAlert('Quantità non valida', 'err'); return; }
+  const epriceRaw = parseFloat(document.getElementById('eprice')?.value);
   it.name      = name;
   it.quantity  = qty;
   it.unit      = document.getElementById('eu').value;
   it.expiryDate= document.getElementById('ee').value || null;
   it.category  = document.getElementById('ecat').value;
+  if (!isNaN(epriceRaw) && epriceRaw > 0) it.price = epriceRaw;
+  pbUpdate(it.name, it.price, it.quantity, it.unit, it.category);
   save(); closeEdit(null, 1); renderD();
   showAlert('✅ Modifiche salvate', 'ok');
 }
@@ -1629,8 +2353,11 @@ function onNameInput() {
     const lbl = CAT_LABELS_FULL[c];
     document.getElementById('cat-hint').textContent = (c !== 'generico' && lbl)
       ? `Categoria rilevata: ${lbl}` : '';
+    // Precompila prezzo, qtà e unità dal priceBook
+    pbAutofill('fn', 'fprice', 'fq', 'fu', 'pb-hint-add');
   } else {
     document.getElementById('cat-hint').textContent = '';
+    const h = document.getElementById('pb-hint-add'); if(h) h.textContent='';
   }
 }
 
@@ -1661,7 +2388,7 @@ document.getElementById('fc').addEventListener('change', updateFreezeEst);
 
 /** Azzera il form aggiungi */
 function clearForm() {
-  ['fn','fq','fe'].forEach(id => document.getElementById(id).value = '');
+  ['fn','fq','fe','fprice'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('fu').value  = 'pz';
   document.getElementById('fc').value  = 'generico';
   document.getElementById('ff').checked = false;
@@ -1698,7 +2425,12 @@ function saveItem() {
     thawedDate: null, barcode: lastScanBarcode, addedDate: today()
   });
 
-  save(); clearForm(); renderD(); renderR();
+  // Registra nel log aggiunte (calendario)
+  const priceRaw = parseFloat(document.getElementById('fprice').value);
+  const price = isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw;
+  additionLog.push({ id: uid(), name, category: cat, qty, unit, price, date: today() });
+  pbUpdate(name, price, qty, unit, cat);
+  save(); clearForm(); renderD(); renderR(); refreshReportIfVisible();
   showAlert(`✅ "${name}" aggiunto alla dispensa!`, 'ok');
 }
 
@@ -1770,14 +2502,706 @@ async function onScanOk(barcode) {
 }
 
 // ----------------------------------------------------------------
-// 10. INIT
+// 11. REPORT TAB
 // ----------------------------------------------------------------
+
+const MESI_IT = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+                 'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+/** Renderizza il tab report: live stats + lista mensili */
+
+// ----------------------------------------------------------------
+// REPORT: stato periodo
+// ----------------------------------------------------------------
+let repPeriod = 'mese'; // 'mese'|'30'|'90'|'anno'|'tutto'|'custom'
+
+/** Imposta il periodo del report e ri-renderizza */
+function setRepPeriod(p, el) {
+  repPeriod = p;
+  document.querySelectorAll('.rep-fchip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const customDates = document.getElementById('rep-custom-dates');
+  if (customDates) customDates.style.display = (p === 'custom') ? 'flex' : 'none';
+  renderReportLive();
+}
+
+/** Ritorna [fromStr, toStr] in base al periodo selezionato */
+function getRepRange() {
+  const t = today();
+  if (repPeriod === 'tutto') return [null, null];
+  if (repPeriod === 'mese')  return [t.slice(0,7) + '-01', t];
+  if (repPeriod === 'anno')  return [t.slice(0,4) + '-01-01', t];
+  if (repPeriod === 'custom') {
+    const from = document.getElementById('rep-from')?.value || null;
+    const to   = document.getElementById('rep-to')?.value   || t;
+    return [from, to];
+  }
+  // N giorni
+  const days = parseInt(repPeriod);
+  const d = new Date(); d.setDate(d.getDate() - days);
+  const from = d.toISOString().slice(0,10);
+  return [from, t];
+}
+
+/** Filtra i log per il periodo selezionato */
+function filterLog(log, from, to) {
+  return log.filter(e => {
+    if (!e.date) return false;
+    if (from && e.date < from) return false;
+    if (to   && e.date > to)   return false;
+    return true;
+  });
+}
+
+function renderReport() {
+  renderReportLive();
+  renderMonthlyList();
+}
+
+/** Genera le statistiche live sui consumi — si aggiorna al cambio periodo */
+function renderReportLive() {
+  const el = document.getElementById('rep-live');
+  if (!el) return;
+
+  const [from, to] = getRepRange();
+  const logSlice   = filterLog(consumptionLog, from, to);
+  const addSlice   = filterLog(additionLog, from, to);
+
+  // Label periodo
+  const lbl = document.getElementById('rep-period-label');
+  if (lbl) {
+    if (from && to) lbl.textContent = `📅 dal ${fmtDate(from)} al ${fmtDate(to)} · ${logSlice.length} consumi`;
+    else lbl.textContent = logSlice.length ? `📅 Tutto il periodo · ${logSlice.length} consumi` : '';
+  }
+
+  if (!logSlice.length && !addSlice.length) {
+    el.innerHTML = `<div class="rep-card"><div class="rep-empty">🍽 Nessun dato per il periodo selezionato.<br><small style="margin-top:6px;display:block">Prova a selezionare un periodo più ampio.</small></div></div>`;
+    return;
+  }
+
+  // Aggrega consumi per nome
+  const byName = {};
+  logSlice.forEach(c => {
+    const key = c.name.toLowerCase().trim();
+    if (!byName[key]) byName[key] = { name: c.name, count: 0, category: c.category || 'generico' };
+    byName[key].count++;
+  });
+  const sorted   = Object.values(byName).sort((a,b) => b.count - a.count);
+  const top8     = sorted.slice(0, 8);
+  const maxCount = top8[0]?.count || 1;
+  const rari     = sorted.filter(x => x.count === 1).slice(0, 5);
+
+  // Aggrega consumi per categoria
+  const byCat = {};
+  logSlice.forEach(c => {
+    const cat = c.category || 'generico';
+    byCat[cat] = (byCat[cat] || 0) + 1;
+  });
+  const catSorted = Object.entries(byCat).sort((a,b) => b[1] - a[1]);
+  const maxCat    = catSorted[0]?.[1] || 1;
+
+  // Aggiunte per nome (per chart barre)
+  const addByName = {};
+  addSlice.forEach(a => {
+    const key = a.name.toLowerCase().trim();
+    if (!addByName[key]) addByName[key] = { name: a.name, count: 0 };
+    addByName[key].count++;
+  });
+  const addSorted = Object.values(addByName).sort((a,b) => b.count - a.count).slice(0,8);
+  const maxAdd    = addSorted[0]?.count || 1;
+
+  // Spesa totale periodo
+  const totalSpesa = addSlice.reduce((s,a) => s + (a.price || 0), 0);
+
+  // Confronto vs periodo precedente (solo se non 'tutto')
+  let prevCount = null;
+  if (from) {
+    const fromD  = new Date(from), toD = new Date(to||today());
+    const span   = toD - fromD;
+    const pFrom  = new Date(fromD - span).toISOString().slice(0,10);
+    const pTo    = new Date(fromD).toISOString().slice(0,10);
+    prevCount    = filterLog(consumptionLog, pFrom, pTo).length;
+  }
+  const trend = prevCount !== null && prevCount > 0
+    ? (logSlice.length > prevCount ? '▲' : logSlice.length < prevCount ? '▼' : '=')
+    : null;
+
+  const barColor = (i) => {
+    const cols = ['var(--accent)','var(--accent2)','var(--success)','var(--freeze)','var(--warn)','#b07bde','#de7b7b','#7bdec8'];
+    return cols[i % cols.length];
+  };
+  const CAT_COLORS = {
+    carne:'#e05555', pesce:'#5b9be0', verdure:'#5bbf7e', frutta:'#e0b855',
+    latticini:'#c8a8e0', pasta_cereali:'#e8821e', pane:'#d4a574',
+    salumi:'#de7b7b', condimenti:'#7bdec8', surgelati:'#5b9be0',
+    bevande:'#5bbf7e', dolci:'#b07bde', legumi:'#c8b45e',
+    uova:'#e0c855', generico:'#888'
+  };
+
+  // ── SVG Bar Chart: consumi per categoria ──────────────────────
+  const chartData = catSorted.slice(0, 10); // max 10 categorie
+  const chartW    = Math.max(320, chartData.length * 62);
+  const chartH    = 160;
+  const barW      = 40;
+  const barGap    = (chartW - chartData.length * barW) / (chartData.length + 1);
+  const maxBarH   = 100;
+
+  const svgBars = chartData.map(([cat, cnt], i) => {
+    const bh    = Math.max(4, Math.round(cnt / maxCat * maxBarH));
+    const x     = barGap + i * (barW + barGap);
+    const y     = chartH - 30 - bh;
+    const color = CAT_COLORS[cat] || '#888';
+    const label = (CAT_LABELS_FULL[cat] || cat).replace(/[^a-zA-Z0-9àèéìòùÀÈÉÌÒÙ ]/g,'').trim();
+    const shortL = label.length > 7 ? label.slice(0,6)+'…' : label;
+    return `
+      <rect class="rep-chart-bar" x="${x}" y="${y}" width="${barW}" height="${bh}" rx="5" fill="${color}" opacity="0.88"/>
+      <text x="${x + barW/2}" y="${y - 5}" text-anchor="middle" fill="${color}" font-size="11" font-weight="700" font-family="system-ui,sans-serif">${cnt}</text>
+      <text x="${x + barW/2}" y="${chartH - 12}" text-anchor="middle" fill="#888" font-size="9" font-family="system-ui,sans-serif">${shortL}</text>`;
+  }).join('');
+
+  const svgChart = chartData.length >= 2 ? `
+  <div class="rep-card">
+    <div class="rep-card-title">📊 Consumi per categoria</div>
+    <div class="rep-chart-wrap">
+      <svg width="${chartW}" height="${chartH}" viewBox="0 0 ${chartW} ${chartH}">
+        <!-- Linea base -->
+        <line x1="0" y1="${chartH-28}" x2="${chartW}" y2="${chartH-28}" stroke="#2e2e2e" stroke-width="1"/>
+        ${svgBars}
+      </svg>
+    </div>
+  </div>` : '';
+
+  // ── SVG Bar Chart: aggiunte per prodotto (se ci sono) ─────────
+  let svgAddChart = '';
+  if (addSorted.length >= 2) {
+    const aW   = Math.max(300, addSorted.length * 52);
+    const aBars = addSorted.map(({name, count}, i) => {
+      const bh = Math.max(4, Math.round(count / maxAdd * maxBarH));
+      const x  = barGap + i * (barW + barGap);
+      const y  = chartH - 30 - bh;
+      const shortL = name.length > 7 ? name.slice(0,6)+'…' : name;
+      return `
+        <rect class="rep-chart-bar" x="${x}" y="${y}" width="${barW}" height="${bh}" rx="5" fill="${barColor(i)}" opacity="0.88"/>
+        <text x="${x+barW/2}" y="${y-5}" text-anchor="middle" fill="${barColor(i)}" font-size="11" font-weight="700" font-family="system-ui,sans-serif">${count}</text>
+        <text x="${x+barW/2}" y="${chartH-12}" text-anchor="middle" fill="#888" font-size="9" font-family="system-ui,sans-serif">${shortL}</text>`;
+    }).join('');
+    svgAddChart = `
+  <div class="rep-card">
+    <div class="rep-card-title">🛍 Aggiunte per prodotto</div>
+    <div class="rep-chart-wrap">
+      <svg width="${aW}" height="${chartH}" viewBox="0 0 ${aW} ${chartH}">
+        <line x1="0" y1="${chartH-28}" x2="${aW}" y2="${chartH-28}" stroke="#2e2e2e" stroke-width="1"/>
+        ${aBars}
+      </svg>
+    </div>
+  </div>`;
+  }
+
+  el.innerHTML = `
+  <!-- KPI veloci cliccabili -->
+  <div style="display:grid;grid-template-columns:1fr 1fr ${totalSpesa > 0 ? '1fr' : ''};gap:8px;margin-bottom:12px">
+    <div class="rep-card" style="margin-bottom:0;text-align:center;cursor:pointer;transition:border-color .15s" onclick="openRepKpiModal('consumed')" title="Vedi tutti i consumati">
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent);line-height:1.1">${logSlice.length}${trend ? `<span style="font-size:13px;margin-left:3px;color:${trend==='▲'?'var(--success)':'var(--danger)'}">${trend}</span>` : ''}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px;font-weight:600">🍴 Consumati</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:2px">tocca per dettaglio</div>
+    </div>
+    <div class="rep-card" style="margin-bottom:0;text-align:center;cursor:pointer;transition:border-color .15s" onclick="openRepKpiModal('added')" title="Vedi tutti gli aggiunti">
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--success);line-height:1.1">${addSlice.length}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px;font-weight:600">🛍 Aggiunti</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:2px">tocca per dettaglio</div>
+    </div>
+    ${totalSpesa > 0 ? `<div class="rep-card" style="margin-bottom:0;text-align:center;cursor:pointer;transition:border-color .15s" onclick="openRepKpiModal('spesa')" title="Vedi transazioni">
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--warn);line-height:1.1">€${totalSpesa.toFixed(2)}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:4px;font-weight:600">💰 Spesa</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:2px">tocca per dettaglio</div>
+    </div>` : ''}
+  </div>
+
+  ${svgChart}
+  ${svgAddChart}
+
+  ${top8.length ? `
+  <!-- Top consumati -->
+  <div class="rep-card">
+    <div class="rep-card-title">🏆 Più consumati</div>
+    ${top8.map((p,i) => `
+    <div class="rep-bar-row">
+      <div class="rep-bar-label">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'   '} ${escHtml(p.name)}</div>
+      <div class="rep-bar-wrap"><div class="rep-bar-fill" style="width:${Math.round(p.count/maxCount*100)}%;background:${barColor(i)}"></div></div>
+      <div class="rep-bar-val" style="color:${barColor(i)}">${p.count}</div>
+    </div>`).join('')}
+  </div>` : ''}
+
+  ${rari.length >= 2 ? `
+  <div class="rep-card">
+    <div class="rep-card-title">💤 Raramente usati <small style="color:var(--text3);font-weight:400">(solo 1 volta)</small></div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px">${rari.map(p => `<div class="rep-cat-chip" style="opacity:.7">${escHtml(p.name)}</div>`).join('')}</div>
+  </div>` : ''}
+  `;
+}
+
+/** Funzione helper: se il tab report è visibile, ri-renderizza */
+function refreshReportIfVisible() {
+  const pg = document.getElementById('pg-report');
+  if (pg && pg.classList.contains('active')) renderReport();
+}
+
+/** Genera manualmente un report per il mese corrente */
+function generateManualReport() {
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const existing = monthlyReports.find(r => r.month === monthKey);
+
+  const consumed = consumptionLog.filter(c => c.date && c.date.startsWith(monthKey));
+  const added    = additionLog.filter(a => a.date && a.date.startsWith(monthKey));
+
+  if (!consumed.length && !added.length) {
+    showAlert('Nessun dato per il mese corrente', 'warn'); return;
+  }
+
+  const byName = {}, byCat = {};
+  consumed.forEach(c => {
+    const k = c.name.toLowerCase().trim();
+    byName[k] = (byName[k]||0) + 1;
+    byCat[c.category||'generico'] = (byCat[c.category||'generico']||0) + 1;
+  });
+  const totalSpesa = added.reduce((s,a) => s + (a.price||0), 0);
+
+  const reportData = {
+    month: monthKey,
+    generated: new Date().toISOString(),
+    data: { totalConsumed: consumed.length, totalAdded: added.length,
+            totalSpesa: Math.round(totalSpesa*100)/100, byName, byCat }
+  };
+
+  if (existing) {
+    const idx = monthlyReports.indexOf(existing);
+    monthlyReports[idx] = reportData;
+    showAlert('📊 Report aggiornato!', 'ok', 2500);
+  } else {
+    monthlyReports.push(reportData);
+    showAlert('📊 Report generato!', 'ok', 2500);
+  }
+  save();
+  renderMonthlyList();
+}
+
+/** Renderizza la lista dei report mensili salvati */
+function renderMonthlyList() {
+  const el = document.getElementById('rep-monthly-list');
+  if (!el) return;
+  if (!monthlyReports.length) {
+    el.innerHTML = `<div class="rep-empty">Nessun report mensile ancora.<br>Il primo verrà generato automaticamente il 1° del mese.</div>`;
+    return;
+  }
+  const sorted = [...monthlyReports].sort((a,b) => b.month.localeCompare(a.month));
+  el.innerHTML = sorted.map(r => {
+    const [y, m] = r.month.split('-');
+    const label = `${MESI_IT[parseInt(m)-1]} ${y}`;
+    return `<div class="rep-monthly-item" onclick="openMonthlyReport('${r.month}')">
+      <div class="rep-monthly-month">${label}</div>
+      <div class="rep-monthly-meta">${r.data.totalConsumed} consumati · ${r.data.totalAdded} aggiunti</div>
+      <div class="rep-monthly-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+/** Apre il dettaglio di un report mensile */
+function openMonthlyReport(month) {
+  const r = monthlyReports.find(x => x.month === month);
+  if (!r) return;
+  const [y, m] = month.split('-');
+  const label = `${MESI_IT[parseInt(m)-1]} ${y}`;
+  const d = r.data;
+
+  // Crea modal
+  let modal = document.getElementById('rep-detail-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'rep-detail-modal';
+    modal.className = 'rep-detail-modal';
+    modal.innerHTML = `<div class="rep-detail-sheet" id="rep-detail-sheet"></div>`;
+    modal.onclick = (e) => { if (e.target === modal) closeMonthlyReport(); };
+    document.body.appendChild(modal);
+  }
+
+  const top5 = Object.entries(d.byName||{}).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const cats  = Object.entries(d.byCat||{}).sort((a,b)=>b[1]-a[1]);
+  const totalSpesa = d.totalSpesa || 0;
+
+  document.getElementById('rep-detail-sheet').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px">📊 ${label}</div>
+      <button class="mclose" style="position:static" onclick="closeMonthlyReport()">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      <div class="rep-card" style="margin-bottom:0;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent)">${d.totalAdded||0}</div><div style="font-size:10px;color:var(--text2);text-transform:uppercase">Aggiunti</div></div>
+      <div class="rep-card" style="margin-bottom:0;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--success)">${d.totalConsumed||0}</div><div style="font-size:10px;color:var(--text2);text-transform:uppercase">Consumati</div></div>
+      <div class="rep-card" style="margin-bottom:0;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--warn)">${totalSpesa > 0 ? '€'+totalSpesa.toFixed(2) : '—'}</div><div style="font-size:10px;color:var(--text2);text-transform:uppercase">Spesa</div></div>
+    </div>
+    ${top5.length ? `<div class="rep-card"><div class="rep-card-title">🏆 Top consumati</div>${top5.map(([name,cnt])=>`<div class="rep-bar-row"><div class="rep-bar-label">${escHtml(name)}</div><div class="rep-bar-val" style="color:var(--accent)">${cnt}</div></div>`).join('')}</div>` : ''}
+    ${cats.length ? `<div class="rep-card"><div class="rep-card-title">📦 Per categoria</div><div style="display:flex;flex-wrap:wrap;gap:4px">${cats.map(([cat,cnt])=>`<div class="rep-cat-chip">${CAT_LABELS_FULL[cat]||cat} <strong>${cnt}</strong></div>`).join('')}</div></div>` : ''}
+  `;
+  modal.classList.add('show');
+}
+
+function closeMonthlyReport() {
+  const m = document.getElementById('rep-detail-modal');
+  if (m) m.classList.remove('show');
+}
+
+/**
+ * Genera e salva il report del mese precedente.
+ * Viene chiamata al caricamento app se non già presente per il mese scorso.
+ */
+function maybeGenerateMonthlyReport() {
+  const now = new Date();
+  // Solo il 1° di ogni mese (o se manca il report del mese scorso)
+  const lastM = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const monthKey = `${lastM.getFullYear()}-${String(lastM.getMonth()+1).padStart(2,'0')}`;
+  if (monthlyReports.find(r => r.month === monthKey)) return; // già generato
+
+  // Filtra log del mese scorso
+  const consumed = consumptionLog.filter(c => c.date.startsWith(monthKey));
+  const added    = additionLog.filter(a => a.date.startsWith(monthKey));
+  if (!consumed.length && !added.length) return; // nulla da salvare
+
+  const byName = {}, byCat = {};
+  consumed.forEach(c => {
+    const k = c.name.toLowerCase().trim();
+    byName[k] = (byName[k]||0) + 1;
+    const cat = c.category||'generico';
+    byCat[cat] = (byCat[cat]||0) + 1;
+  });
+  const totalSpesa = added.reduce((s,a) => s + (a.price||0), 0);
+
+  monthlyReports.push({
+    month: monthKey,
+    generated: new Date().toISOString(),
+    data: {
+      totalConsumed: consumed.length,
+      totalAdded: added.length,
+      totalSpesa: Math.round(totalSpesa*100)/100,
+      byName, byCat
+    }
+  });
+  save();
+}
+
+// ----------------------------------------------------------------
+// 12. CALENDARIO TAB
+// ----------------------------------------------------------------
+
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-based
+let calSelectedDay = null;
+
+/** Renderizza il calendario del mese corrente */
+function renderCalendar() {
+  const el = document.getElementById('cal-grid');
+  const lbl = document.getElementById('cal-month-label');
+  if (!el || !lbl) return;
+
+  lbl.textContent = `${MESI_IT[calMonth]} ${calYear}`;
+
+  const todayStr = today();
+  const firstDay = new Date(calYear, calMonth, 1).getDay(); // 0=Dom
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  // Converti: settimana parte da Lunedì
+  const startOffset = (firstDay === 0) ? 6 : firstDay - 1;
+
+  // Calcola giorni con eventi
+  const monthKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const evDays = new Set();
+  const spendDays = new Set();
+  additionLog.forEach(a => {
+    if (a.date && a.date.startsWith(monthKey)) {
+      evDays.add(a.date);
+      if (a.price) spendDays.add(a.date);
+    }
+  });
+
+  const dowLabels = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+  let html = dowLabels.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  // Celle vuote prima del primo giorno
+  for (let i = 0; i < startOffset; i++) {
+    html += `<div class="cal-day other-month"></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday    = ds === todayStr;
+    const hasEv      = evDays.has(ds);
+    const hasSpend   = spendDays.has(ds);
+    const isSelected = ds === calSelectedDay;
+    const cls = [
+      'cal-day',
+      isToday    ? 'today' : '',
+      hasEv      ? 'has-events' : '',
+      hasSpend   ? 'has-spend' : '',
+      isSelected ? 'selected' : ''
+    ].filter(Boolean).join(' ');
+    html += `<div class="${cls}" onclick="calSelectDay('${ds}')">${d}</div>`;
+  }
+
+  el.innerHTML = html;
+  if (calSelectedDay) renderCalDayDetail(calSelectedDay);
+}
+
+/** Navigazione mese precedente */
+function calPrev() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  calSelectedDay = null;
+  renderCalendar();
+  document.getElementById('cal-day-detail').innerHTML = `<div class="cal-empty-day">Seleziona un giorno per vedere le attività</div>`;
+}
+
+/** Navigazione mese successivo */
+function calNext() {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  calSelectedDay = null;
+  renderCalendar();
+  document.getElementById('cal-day-detail').innerHTML = `<div class="cal-empty-day">Seleziona un giorno per vedere le attività</div>`;
+}
+
+/** Seleziona un giorno e mostra i dettagli */
+function calSelectDay(ds) {
+  calSelectedDay = ds;
+  renderCalendar();
+  renderCalDayDetail(ds);
+}
+
+/** Mostra gli eventi (aggiunte) del giorno selezionato */
+function renderCalDayDetail(ds) {
+  const el = document.getElementById('cal-day-detail');
+  if (!el) return;
+  const events = additionLog.filter(a => a.date === ds);
+  const [y, m, d] = ds.split('-');
+  const dateLabel = `${parseInt(d)} ${MESI_IT[parseInt(m)-1]} ${y}`;
+
+  if (!events.length) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  el.style.display = 'block';
+
+  const totalSpesa = events.reduce((s,e) => s + (e.price||0), 0);
+  const rows = events.map(e => `
+    <div class="cal-event-row">
+      <div class="cal-event-ico">${getCatIco(e.category)}</div>
+      <div class="cal-event-txt">
+        <strong>${escHtml(e.name)}</strong>
+        <span style="color:var(--text2);font-size:12px;margin-left:6px">${e.qty} ${e.unit}</span>
+      </div>
+      ${e.price ? `<div class="cal-event-price">€${e.price.toFixed(2)}</div>` : ''}
+      <button class="cal-event-del" onclick="calDeleteEvent('${e.id}')" title="Rimuovi">×</button>
+    </div>`).join('');
+
+  el.innerHTML = `
+    <div class="cal-day-detail-title">📅 ${dateLabel} · <span style="color:var(--text2);font-size:13px;font-weight:400">${events.length} aggiunt${events.length===1?'o':'i'}</span></div>
+    ${rows}
+    ${totalSpesa > 0 ? `<div class="cal-totspend">Spesa totale: €${totalSpesa.toFixed(2)}</div>` : ''}`;
+}
+
+/** Ritorna emoji icona categoria */
+function getCatIco(cat) {
+  const m = { carne:'🥩',pesce:'🐟',verdure:'🥬',frutta:'🍎',latticini:'🧀',pasta_cereali:'🍝',
+              pane:'🍞',salumi:'🥓',condimenti:'🫙',surgelati:'❄️',bevande:'🥤',
+              dolci:'🍰',legumi:'🫘',uova:'🥚',generico:'📦' };
+  return m[cat] || '📦';
+}
+
+/** Elimina un evento dal log aggiunte */
+function calDeleteEvent(id) {
+  additionLog = additionLog.filter(x => x.id !== id);
+  save();
+  if (calSelectedDay) renderCalDayDetail(calSelectedDay);
+  renderCalendar();
+  showAlert('🗑 Voce rimossa', 'warn', 2000);
+}
+
+
+
+// ================================================================
+// PRICE BOOK — catalogo prezzi con memoria automatica
+// ================================================================
+
+/** Chiave normalizzata per il priceBook */
+function pbKey(name) {
+  return (name || '').toLowerCase().trim().replace(/\s+/g,' ');
+}
+
+/**
+ * Aggiorna il priceBook con nuove informazioni su un prodotto.
+ */
+function pbUpdate(name, price, qty, unit, category) {
+  if (!name) return;
+  const key = pbKey(name);
+  const existing = priceBook[key] || {};
+  priceBook[key] = {
+    name: name.trim(),
+    price:    (price    > 0) ? price    : (existing.price    || null),
+    qty:      (qty      > 0) ? qty      : (existing.qty      || null),
+    unit:     unit      || existing.unit      || 'pz',
+    category: category  || existing.category  || 'generico',
+    updatedAt: today()
+  };
+}
+
+/**
+ * Legge il suggerimento dal priceBook.
+ * Prima match esatto, poi match parziale ≥60%.
+ */
+function pbGet(name) {
+  if (!name) return null;
+  const key = pbKey(name);
+  if (priceBook[key]) return priceBook[key];
+  const kLen = key.length;
+  if (kLen < 3) return null;
+  let best = null, bestScore = 0;
+  for (const [k, v] of Object.entries(priceBook)) {
+    if (k.includes(key) || key.includes(k)) {
+      const score = Math.min(k.length, kLen) / Math.max(k.length, kLen);
+      if (score > bestScore) { bestScore = score; best = v; }
+    }
+  }
+  return bestScore >= 0.6 ? best : null;
+}
+
+/**
+ * Auto-compila prezzo (e opz. qtà/unità) in un form dal priceBook.
+ */
+function pbAutofill(nameInputId, priceInputId, qtyInputId, unitInputId, hintElId) {
+  const nameEl  = document.getElementById(nameInputId);
+  const priceEl = document.getElementById(priceInputId);
+  if (!nameEl || !priceEl) return;
+  const name = nameEl.value.trim();
+  const pb   = pbGet(name);
+  if (!pb) {
+    if (priceEl.dataset.pbFilled === '1') priceEl.value = '';
+    priceEl.dataset.pbFilled = '0';
+    if (hintElId) { const h = document.getElementById(hintElId); if (h) h.textContent = ''; }
+    return;
+  }
+  if (pb.price && !priceEl.value) {
+    priceEl.value = pb.price;
+    priceEl.dataset.pbFilled = '1';
+  }
+  if (qtyInputId && pb.qty) {
+    const qEl = document.getElementById(qtyInputId);
+    if (qEl && !qEl.value) qEl.value = pb.qty;
+  }
+  if (unitInputId && pb.unit) {
+    const uEl = document.getElementById(unitInputId);
+    if (uEl) uEl.value = pb.unit;
+  }
+  if (hintElId) {
+    const h = document.getElementById(hintElId);
+    if (h) {
+      const parts = [];
+      if (pb.price) parts.push(`€${parseFloat(pb.price).toFixed(2)}`);
+      if (pb.qty)   parts.push(`${pb.qty} ${pb.unit||'pz'}`);
+      h.textContent = parts.length ? `📒 Ultima volta: ${parts.join(' · ')}` : '';
+      h.style.color = 'var(--accent2)';
+    }
+  }
+}
+
+/** Renderizza il tab Listino prezzi */
+function renderListino() {
+  const el = document.getElementById('pg-listino');
+  if (!el) return;
+  const searchEl = document.getElementById('listino-search');
+  const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
+  const entries = Object.values(priceBook)
+    .filter(e => !q || (e.name||'').toLowerCase().includes(q))
+    .sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  const listEl = el.querySelector('#listino-list');
+  if (!listEl) return;
+  if (!entries.length) {
+    listEl.innerHTML = `<div class="rep-empty" style="padding:30px 16px;text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">📒</div>
+      <div style="font-weight:600;color:var(--text2)">${q ? 'Nessun risultato' : 'Nessun prezzo memorizzato'}</div>
+      <small style="margin-top:6px;display:block;color:var(--text3)">${q ? '' : 'I prezzi vengono ricordati automaticamente ogni volta che inserisci un alimento con prezzo. Puoi aggiungerli anche manualmente.'}</small>
+    </div>`;
+    return;
+  }
+  listEl.innerHTML = entries.map(e => `
+<div class="listino-row" id="lb-${CSS.escape(pbKey(e.name))}">
+  <span style="font-size:20px;flex-shrink:0">${getCatIco(e.category)}</span>
+  <div style="flex:1;min-width:0">
+    <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(e.name)}</div>
+    <div style="font-size:11px;color:var(--text2);margin-top:2px">${CAT_LABELS_FULL[e.category]||e.category}${e.qty ? ` · ${e.qty} ${e.unit||'pz'}` : ''} · ${fmtDate(e.updatedAt)}</div>
+  </div>
+  <div style="font-size:16px;font-weight:800;color:var(--success);font-family:'Syne',sans-serif;white-space:nowrap;flex-shrink:0">${e.price ? '€'+parseFloat(e.price).toFixed(2) : '—'}</div>
+  <button class="abtn wn" style="padding:6px 9px;flex-shrink:0" onclick="openListinoEdit('${pbKey(e.name).replace(/'/g,"\\'")}')">✏️</button>
+  <button class="abtn dn" style="padding:6px 9px;flex-shrink:0" onclick="deleteListinoEntry('${pbKey(e.name).replace(/'/g,"\\'")}')">🗑</button>
+</div>`).join('');
+}
+
+/** Apre la modale aggiunta/modifica listino */
+function openListinoEdit(key) {
+  const existing = key ? priceBook[key] : null;
+  document.getElementById('le-name').value  = existing?.name     || '';
+  document.getElementById('le-price').value = existing?.price    || '';
+  document.getElementById('le-qty').value   = existing?.qty      || '';
+  document.getElementById('le-unit').value  = existing?.unit     || 'pz';
+  document.getElementById('le-cat').value   = existing?.category || 'generico';
+  document.getElementById('le-key').value   = key || '';
+  document.getElementById('listino-modal').classList.add('show');
+  setTimeout(() => document.getElementById('le-name').focus(), 100);
+}
+
+function leDetectCat() {
+  const v = document.getElementById('le-name')?.value.trim();
+  if (v && v.length >= 2) {
+    const c = detectCat(v);
+    const el = document.getElementById('le-cat');
+    if (el) el.value = c;
+  }
+}
+
+function saveListinoEntry() {
+  const name  = document.getElementById('le-name').value.trim();
+  const price = parseFloat(document.getElementById('le-price').value);
+  const qty   = parseFloat(document.getElementById('le-qty').value);
+  const unit  = document.getElementById('le-unit').value;
+  const cat   = document.getElementById('le-cat').value;
+  const oldKey = document.getElementById('le-key').value;
+  if (!name) { showAlert('Nome obbligatorio', 'err'); return; }
+  if (oldKey && oldKey !== pbKey(name)) delete priceBook[oldKey];
+  pbUpdate(name, isNaN(price) ? null : price, isNaN(qty) ? null : qty, unit, cat);
+  save(); closeListinoModal(null, 1); renderListino();
+  showAlert('📒 Salvato nel listino', 'ok', 2000);
+}
+
+function deleteListinoEntry(key) {
+  delete priceBook[key];
+  save(); renderListino();
+  showAlert('🗑 Rimosso dal listino', 'warn', 2000);
+}
+
+function closeListinoModal(e, force) {
+  if (force || e?.target === document.getElementById('listino-modal'))
+    document.getElementById('listino-modal').classList.remove('show');
+}
 
 /** Punto di ingresso: carica dati e renderizza la home */
 load();
 renderD();
 renderR();
 updateShopBadge();
+updateSidebar();
+maybeGenerateMonthlyReport();
+// Listino prezzi: migra eventuali prezzi già noti dagli item
+items.forEach(it => { if (it.price > 0) pbUpdate(it.name, it.price, it.quantity, it.unit, it.category); });
+// Init calendario (anno/mese corrente già impostati come default)
+calYear  = new Date().getFullYear();
+calMonth = new Date().getMonth();
 
 // Swipe down per chiudere il modal ricetta
 let swipeStartY = 0;
