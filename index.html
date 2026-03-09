@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║  DISPENSA APP v3                                         ║
+  ║  Features: dispensa, ricette, lista spesa, barcode scan  ║
+  ║  Storage:  localStorage "dispensa_v3"                    ║
+  ║  Layout:   iPad Chrome / Safari ottimizzato              ║
+  ╚══════════════════════════════════════════════════════════╝
+-->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -10,193 +18,399 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <style>
-:root{
-  --bg:#111;--bg2:#1c1c1c;--bg3:#252525;--border:#2e2e2e;
-  --accent:#e8821e;--accent2:#f0a84e;
-  --text:#f0ede8;--text2:#999;--text3:#555;
-  --danger:#e05555;--success:#5bbf7e;--freeze:#5b9be0;--warn:#e0b855;
-  --r:14px;--rs:8px;--shadow:0 4px 24px rgba(0,0,0,.55);
-  --tabh:66px;--safe-bottom:env(safe-area-inset-bottom,0px);
+/* ================================================
+   CSS VARIABLES & GLOBAL RESET
+================================================ */
+:root {
+  --bg:#111; --bg2:#1c1c1c; --bg3:#252525; --bg4:#2e2e2e;
+  --border:#2e2e2e; --border2:#3a3a3a;
+  --accent:#e8821e; --accent2:#f0a84e;
+  --text:#f0ede8; --text2:#999; --text3:#555;
+  --danger:#e05555; --success:#5bbf7e; --freeze:#5b9be0; --warn:#e0b855;
+  --r:16px; --rs:10px; --shadow:0 4px 28px rgba(0,0,0,.6);
+  --tabh:68px; --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;overflow:hidden}
-body{display:flex;justify-content:center}
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+html, body {
+  height: 100%; background: var(--bg); color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 16px;
+  overflow: hidden; -webkit-text-size-adjust: 100%;
+}
+body { display: flex; justify-content: center; }
 
-#wrap{width:100%;max-width:580px;height:100%;display:flex;flex-direction:column;position:relative}
+/* ================================================
+   LAYOUT
+================================================ */
+#wrap {
+  width: 100%; max-width: 600px; height: 100%;
+  display: flex; flex-direction: column; position: relative;
+}
 
-/* HEADER */
-#hdr{padding:max(16px,env(safe-area-inset-top)) 18px 12px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0}
-#hdr h1{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+/* Header */
+#hdr {
+  padding: calc(var(--safe-top) + 14px) 18px 12px;
+  background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+#hdr h1 {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px;
+  letter-spacing: -.5px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
 
-/* ALERT */
-#alert{display:none;padding:9px 18px;font-size:13px;font-weight:500;text-align:center;flex-shrink:0}
-#alert.show{display:block}
-#alert.warn{background:var(--warn);color:#1a1200}
-#alert.err{background:var(--danger);color:#fff}
-#alert.ok{background:var(--success);color:#fff}
+/* Alert banner */
+#alert { display: none; padding: 9px 18px; font-size: 13px; font-weight: 500; text-align: center; flex-shrink: 0; }
+#alert.show { display: block; }
+#alert.warn { background: var(--warn); color: #1a1200; }
+#alert.err  { background: var(--danger); color: #fff; }
+#alert.ok   { background: var(--success); color: #fff; }
 
-/* MAIN */
-#main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--tabh) + 8px)}
-.page{display:none;padding:14px 14px 0;animation:fi .2s ease}
-.page.active{display:block}
-@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+/* Scrollable main area */
+#main {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--tabh) + 8px);
+}
+.page { display: none; padding: 14px 14px 0; animation: fi .2s ease; }
+.page.active { display: block; }
+@keyframes fi { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
 
-/* TABS */
-#tabs{height:var(--tabh);background:var(--bg2);border-top:1px solid var(--border);display:flex;flex-shrink:0;padding-bottom:var(--safe-bottom)}
-.tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:color .2s}
-.tb.active{color:var(--accent)}
-.tb .ico{font-size:21px;line-height:1}
-.tb .lbl{font-size:11px;font-weight:600;letter-spacing:.3px}
+/* Bottom tab bar */
+#tabs {
+  height: var(--tabh); background: var(--bg2);
+  border-top: 1px solid var(--border); display: flex;
+  flex-shrink: 0; padding-bottom: var(--safe-bottom);
+}
+.tb {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; border: none; background: none;
+  color: var(--text3); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: color .2s; position: relative;
+}
+.tb.active { color: var(--accent); }
+.tb .ico { font-size: 20px; line-height: 1; }
+.tb .lbl { font-size: 10px; font-weight: 600; letter-spacing: .3px; }
+/* Badge numerino sul tab spesa */
+.tb-badge {
+  position: absolute; top: 9px; right: calc(50% - 18px);
+  background: var(--danger); color: #fff; border-radius: 10px;
+  font-size: 9px; font-weight: 700; padding: 1px 5px; min-width: 16px;
+  text-align: center; pointer-events: none; display: none;
+}
+.tb-badge.show { display: block; }
 
-/* CARD / COMMON */
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:9px}
-.stitle{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin-bottom:11px}
-.badge{border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700}
-.badge.fr{background:var(--freeze);color:#fff}
-.badge.wn{background:var(--warn);color:#1a1200}
-.badge.dn{background:var(--danger);color:#fff}
+/* ================================================
+   COMPONENTI CONDIVISI
+================================================ */
+/* Casella di ricerca */
+.sbox {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 10px 14px; display: flex; align-items: center; gap: 9px; margin-bottom: 12px;
+}
+.sbox input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-size: 15px; font-family: 'DM Sans', sans-serif;
+}
+.sbox input::placeholder { color: var(--text3); }
 
-/* SEARCH */
-.sbox{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;display:flex;align-items:center;gap:8px;margin-bottom:11px}
-.sbox input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif}
-.sbox input::placeholder{color:var(--text3)}
+/* Chip filtro */
+.frow { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; scrollbar-width: none; }
+.frow::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0; padding: 7px 14px; border-radius: 20px; font-size: 12px;
+  font-weight: 600; border: 1px solid var(--border); cursor: pointer;
+  background: var(--bg2); color: var(--text2); transition: all .15s; white-space: nowrap;
+}
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-/* FILTER CHIPS */
-.frow{display:flex;gap:7px;overflow-x:auto;padding-bottom:9px;margin-bottom:11px;scrollbar-width:none}
-.frow::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer;background:var(--bg2);color:var(--text2);transition:all .15s;white-space:nowrap}
-.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* Card generica */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; margin-bottom: 10px; }
+.stitle { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 12px; }
 
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:13px}
-.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 8px;text-align:center}
-.snum{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--accent)}
-.slbl{font-size:10px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+/* Badge */
+.badge { border-radius: 20px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.badge.fr { background: var(--freeze); color: #fff; }
+.badge.wn { background: var(--warn);   color: #1a1200; }
+.badge.dn { background: var(--danger); color: #fff; }
 
-/* Stats row */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
-.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
-.stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; color: var(--accent); height: 35px; }
-.stat-label { font-size: 11px; color: var(--text2); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.4px; }
+/* Stato vuoto */
+.empty { text-align: center; padding: 52px 20px; color: var(--text3); }
+.empty .eico { font-size: 52px; margin-bottom: 12px; }
+.empty .etit { font-family: 'Syne', sans-serif; font-size: 18px; color: var(--text2); margin-bottom: 6px; }
+.empty .esub { font-size: 13px; }
 
-/* ITEM CARD (dispensa) */
-.icard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;transition:border-color .15s}
-.icard.expiring{border-left:3px solid var(--warn)}
-.icard.expired{border-left:3px solid var(--danger);opacity:.8}
-.icard.frozen{border-left:3px solid var(--freeze)}
-.irow{display:flex;align-items:center;gap:11px;padding:12px 13px;cursor:pointer}
-.irow:active{background:var(--bg3)}
-.iico{font-size:26px;flex-shrink:0;width:36px;text-align:center}
-.iinfo{flex:1;min-width:0}
-.iname{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.imeta{font-size:11px;color:var(--text2);margin-top:2px}
-.iexp{font-size:11px;font-weight:600;margin-top:2px}
-.iexp.ok{color:var(--success)}
-.iexp.soon{color:var(--warn)}
-.iexp.expired{color:var(--danger)}
-.iqty{font-size:13px;color:var(--text2);flex-shrink:0;white-space:nowrap}
+/* Divisore */
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
 
-/* ITEM ACTIONS (inline) */
-.iactions{display:none;border-top:1px solid var(--border);padding:10px 12px;background:var(--bg3);gap:7px;flex-wrap:wrap}
-.iactions.open{display:flex}
-.abtn{padding:7px 13px;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;border:1px solid;background:transparent;font-family:'DM Sans',sans-serif;transition:opacity .15s;white-space:nowrap}
-.abtn:active{opacity:.65}
-.abtn.ok{color:var(--success);border-color:var(--success)}
-.abtn.fr{color:var(--freeze);border-color:var(--freeze)}
-.abtn.dn{color:var(--danger);border-color:var(--danger)}
-.abtn.wn{color:var(--warn);border-color:var(--warn)}
-.abtn.ac{color:var(--accent);border-color:var(--accent)}
+/* Label sezione */
+.section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .7px; color: var(--text3); margin-bottom: 8px;
+}
 
-/* EMPTY */
-.empty{text-align:center;padding:50px 20px;color:var(--text3)}
-.empty .eico{font-size:52px;margin-bottom:10px}
-.empty .etit{font-family:'Syne',sans-serif;font-size:17px;color:var(--text2);margin-bottom:5px}
-.empty .esub{font-size:13px}
+/* ================================================
+   STAT CARDS — pulsanti filtro (4 in griglia)
+================================================ */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 14px; }
+.scard {
+  background: var(--bg2); border: 1.5px solid var(--border); border-radius: var(--r);
+  padding: 11px 6px; text-align: center; cursor: pointer; transition: all .18s;
+  -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.scard:active { opacity: .75; transform: scale(.97); }
+/* Stato attivo con colore specifico per tipo */
+.scard.sf-tutti   { border-color: var(--accent);  background: rgba(232,130,30,.1); }
+.scard.sf-presto  { border-color: var(--warn);    background: rgba(224,184,85,.1); }
+.scard.sf-frozen  { border-color: var(--freeze);  background: rgba(91,155,224,.1); }
+.scard.sf-scaduti { border-color: var(--danger);  background: rgba(224,85,85,.1); }
+/* Numero grande */
+.snum { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; line-height: 1; }
+.slbl { font-size: 9px; color: var(--text2); margin-top: 3px; text-transform: uppercase; letter-spacing: .4px; }
 
-/* RECIPE CARD */
-.rcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:border-color .15s}
-.rcard:active{background:var(--bg3)}
-.rname{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
-.rcat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
-.rcat.italiana{color:var(--accent)}.rcat.europea{color:var(--freeze)}.rcat.giapponese{color:var(--danger)}.rcat.cinese{color:var(--warn)}.rcat.asiatica{color:var(--success)}
-.rmeta{font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:10px}
-.ringr{font-size:11px;color:var(--text3);margin-top:5px}
+/* ================================================
+   ITEM CARD (dispensa)
+================================================ */
+.icard {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r);
+  margin-bottom: 9px; overflow: hidden; transition: border-color .15s;
+}
+.icard.expiring { border-left: 3px solid var(--warn); }
+.icard.expired  { border-left: 3px solid var(--danger); opacity: .8; }
+.icard.frozen   { border-left: 3px solid var(--freeze); }
 
-/* RECIPE MODAL */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
-.overlay.show{opacity:1;pointer-events:all}
-.sheet{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:18px 18px calc(18px + var(--safe-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);border-top:1px solid var(--border)}
-.overlay.show .sheet{transform:translateY(0)}
-.handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
-.mclose{position:absolute;top:18px;right:18px;width:30px;height:30px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:7px}
-.ingr-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
-.ingr-item:last-child{border-bottom:none}
-.idot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.idot.ok{background:var(--success)}.idot.miss{background:var(--danger)}
-.iqt{margin-left:auto;color:var(--text2);font-size:12px;flex-shrink:0}
-.step{display:flex;gap:10px;margin-bottom:10px}
-.snum{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.stxt{font-size:13px;line-height:1.6;color:var(--text2);flex:1}
-.portion-warn{background:rgba(224,184,85,.12);border:1px solid var(--warn);border-radius:var(--rs);padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--warn)}
-.snum-n{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.mambo-box{background:rgba(91,155,224,.08);border:1px solid var(--freeze);border-radius:var(--r);padding:14px;margin-top:4px;margin-bottom:8px}
-.mambo-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--freeze);margin-bottom:12px}
+.irow {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 14px; cursor: pointer;
+}
+.irow:active { background: var(--bg3); }
+.iico  { font-size: 28px; flex-shrink: 0; width: 38px; text-align: center; }
+.iinfo { flex: 1; min-width: 0; }
+.iname { font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.imeta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.iexp  { font-size: 12px; font-weight: 600; margin-top: 3px; }
+.iexp.ok      { color: var(--success); }
+.iexp.soon    { color: var(--warn); }
+.iexp.expired { color: var(--danger); }
 
-/* ADD FORM */
-.scan-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:13px;border-radius:var(--r);background:var(--bg3);border:1px dashed var(--border);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:16px;transition:all .2s}
-.scan-btn:active{opacity:.7}
-.scan-btn.scanning{border-color:var(--accent);color:var(--accent);background:rgba(232,130,30,.08)}
-.fl{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
-.fi{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 13px;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;outline:none;-webkit-appearance:none;transition:border-color .15s}
-.fi:focus{border-color:var(--accent)}
-.fi::placeholder{color:var(--text3)}
-.fg{margin-bottom:14px}
-.fr2{display:flex;gap:9px}
-.fr2 .fg{flex:1}
-.sw-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:14px}
-.sw-t{font-size:14px;font-weight:500}
-.sw-s{font-size:11px;color:var(--text2);margin-top:2px}
-.tgl{position:relative;width:48px;height:26px;flex-shrink:0}
-.tgl input{opacity:0;width:0;height:0}
-.tgl-s{position:absolute;inset:0;cursor:pointer;background:var(--bg3);border-radius:13px;transition:background .2s;border:1px solid var(--border)}
-.tgl-s::before{content:'';position:absolute;height:20px;width:20px;left:2px;top:2px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
-.tgl input:checked+.tgl-s{background:var(--freeze);border-color:var(--freeze)}
-.tgl input:checked+.tgl-s::before{transform:translateX(22px)}
-.freeze-est{font-size:12px;color:var(--freeze);margin-top:6px;min-height:18px}
-.cat-detected{font-size:11px;color:var(--success);margin-top:4px}
-.btn{display:block;width:100%;padding:13px;border-radius:var(--r);font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;border:none;transition:all .15s;text-align:center;margin-bottom:10px}
-.btn-p{background:var(--accent);color:#fff}
-.btn-p:active{background:#c96e15}
-.btn-s{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
-.divider{height:1px;background:var(--border);margin:14px 0}
+/* Barra azioni inline */
+.iactions { display: none; border-top: 1px solid var(--border); padding: 10px 12px; background: var(--bg3); gap: 7px; flex-wrap: wrap; }
+.iactions.open { display: flex; }
+.abtn {
+  padding: 8px 14px; border-radius: var(--rs); font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid; background: transparent;
+  font-family: 'DM Sans', sans-serif; transition: opacity .15s; white-space: nowrap;
+}
+.abtn:active { opacity: .6; }
+.abtn.ok { color: var(--success); border-color: var(--success); }
+.abtn.fr { color: var(--freeze);  border-color: var(--freeze); }
+.abtn.dn { color: var(--danger);  border-color: var(--danger); }
+.abtn.wn { color: var(--warn);    border-color: var(--warn); }
+.abtn.ac { color: var(--accent);  border-color: var(--accent); }
 
-/* SCANNER OVERLAY */
-#scan-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
-#scan-overlay.show{opacity:1;pointer-events:all}
-#scan-overlay h2{font-family:'Syne',sans-serif;font-size:18px;margin-bottom:14px;color:var(--text)}
-#reader-container{width:100%;max-width:360px;border-radius:var(--r);overflow:hidden;background:#000}
-#reader-container #reader{width:100%}
-#scan-status{color:var(--text2);font-size:13px;margin-top:12px;text-align:center}
-#scan-close{margin-top:18px;padding:11px 30px;border-radius:var(--r);background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+/* ================================================
+   RECIPE CARDS
+================================================ */
+.rcard {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: all .15s;
+}
+.rcard:active { background: var(--bg3); }
+.rname { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+.rcat  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; margin-top: 2px; }
+.rcat.italiana   { color: var(--accent); }
+.rcat.europea    { color: var(--freeze); }
+.rcat.giapponese { color: var(--danger); }
+.rcat.cinese     { color: var(--warn);   }
+.rcat.asiatica   { color: var(--success);}
+.ringr { font-size: 11px; color: var(--text3); margin-top: 5px; }
 
-/* EDIT MODAL */
-.emodal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:150;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;pointer-events:none;transition:opacity .2s}
-.emodal.show{opacity:1;pointer-events:all}
-.ebox{background:var(--bg2);border-radius:var(--r);padding:18px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;border:1px solid var(--border);transform:scale(.96);transition:transform .2s}
-.emodal.show .ebox{transform:scale(1)}
-.etop{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.etop h2{font-family:'Syne',sans-serif;font-size:17px}
+/* ================================================
+   RECIPE MODAL (bottom sheet)
+================================================ */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.78);
+  z-index: 100; display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.overlay.show { opacity: 1; pointer-events: all; }
+.sheet {
+  background: var(--bg2); border-radius: 22px 22px 0 0; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  padding: 18px 18px calc(22px + var(--safe-bottom));
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.32,.72,0,1);
+  border-top: 1px solid var(--border);
+}
+.overlay.show .sheet { transform: translateY(0); }
+.handle { width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 16px; }
+.mclose {
+  position: absolute; top: 18px; right: 18px; width: 32px; height: 32px;
+  border-radius: 50%; background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text2); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
 
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-/* MAMBO TOUCH */
-.mambo-box{background:rgba(91,155,224,.08);border:1px solid rgba(91,155,224,.3);border-radius:var(--rs);padding:12px 14px;margin-top:14px}
-.mambo-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--freeze);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.mambo-step{display:flex;gap:9px;margin-bottom:8px;font-size:13px;line-height:1.5}
-.mambo-step:last-child{margin-bottom:0}
-.mambo-num{width:20px;height:20px;border-radius:50%;background:var(--freeze);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.mambo-param{display:inline-block;background:rgba(91,155,224,.15);color:var(--freeze);border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600;margin:0 2px}
+/* Ingredienti ricetta */
+.ingr-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.ingr-item:last-child { border-bottom: none; }
+.idot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.idot.ok   { background: var(--success); }
+.idot.miss { background: var(--danger); }
+.iqt { margin-left: auto; color: var(--text2); font-size: 12px; flex-shrink: 0; }
+
+/* Passaggi ricetta */
+.step     { display: flex; gap: 11px; margin-bottom: 12px; }
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%; background: var(--accent);
+  color: #fff; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.stxt { font-size: 13px; line-height: 1.65; color: var(--text2); flex: 1; }
+
+.portion-warn {
+  background: rgba(224,184,85,.12); border: 1px solid var(--warn);
+  border-radius: var(--rs); padding: 10px 13px; margin-bottom: 13px; font-size: 12px; color: var(--warn);
+}
+
+/* Box Mambo Touch */
+.mambo-box {
+  background: rgba(91,155,224,.07); border: 1px solid rgba(91,155,224,.3);
+  border-radius: var(--rs); padding: 13px 15px; margin-top: 16px;
+}
+.mambo-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .7px; color: var(--freeze); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ================================================
+   LISTA DELLA SPESA
+================================================ */
+/* Gruppo per categoria */
+.shop-group { margin-bottom: 20px; }
+.shop-cat-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .7px; color: var(--text3); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 2px;
+}
+/* Singolo item spesa */
+.shop-item {
+  display: flex; align-items: center; gap: 11px; padding: 12px 14px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--rs); margin-bottom: 6px; transition: opacity .2s;
+}
+.shop-item.checked { opacity: .45; }
+.shop-item.checked .shop-name { text-decoration: line-through; color: var(--text3); }
+/* Checkbox cerchio */
+.shop-check {
+  width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border2);
+  background: transparent; flex-shrink: 0; cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+}
+.shop-check.checked { background: var(--success); border-color: var(--success); }
+.shop-name { flex: 1; font-size: 14px; font-weight: 500; }
+/* Pulsante elimina */
+.shop-del {
+  width: 30px; height: 30px; border-radius: var(--rs); background: transparent;
+  border: 1px solid var(--border); color: var(--text3); cursor: pointer;
+  font-size: 15px; display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.shop-del:active { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+/* ================================================
+   FORM AGGIUNGI
+================================================ */
+.scan-btn {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  width: 100%; padding: 14px; border-radius: var(--r);
+  background: var(--bg3); border: 1.5px dashed var(--border2);
+  color: var(--text2); font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif; margin-bottom: 16px; transition: all .2s;
+}
+.scan-btn:active  { opacity: .7; }
+.scan-btn.scanning { border-color: var(--accent); color: var(--accent); background: rgba(232,130,30,.08); }
+#scan-feedback {
+  display: none; background: rgba(91,191,126,.1); border: 1px solid var(--success);
+  border-radius: var(--rs); padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--success);
+}
+.fl { font-size: 12px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 5px; }
+.fi {
+  width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--rs);
+  padding: 11px 14px; color: var(--text); font-size: 15px;
+  font-family: 'DM Sans', sans-serif; outline: none; -webkit-appearance: none; transition: border-color .15s;
+}
+.fi:focus { border-color: var(--accent); }
+.fi::placeholder { color: var(--text3); }
+.fg  { margin-bottom: 14px; }
+.fr2 { display: flex; gap: 9px; }
+.fr2 .fg { flex: 1; }
+/* Toggle freezer */
+.sw-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--rs); margin-bottom: 14px;
+}
+.sw-t { font-size: 14px; font-weight: 500; }
+.sw-s { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.tgl  { position: relative; width: 48px; height: 28px; flex-shrink: 0; }
+.tgl input { opacity: 0; width: 0; height: 0; }
+.tgl-s {
+  position: absolute; inset: 0; cursor: pointer; background: var(--bg3);
+  border-radius: 14px; transition: background .2s; border: 1px solid var(--border);
+}
+.tgl-s::before {
+  content: ''; position: absolute; height: 22px; width: 22px; left: 2px; top: 2px;
+  background: #fff; border-radius: 50%; transition: transform .2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.tgl input:checked + .tgl-s { background: var(--freeze); border-color: var(--freeze); }
+.tgl input:checked + .tgl-s::before { transform: translateX(20px); }
+.freeze-est   { font-size: 12px; color: var(--freeze); margin-top: 6px; min-height: 18px; }
+.cat-detected { font-size: 11px; color: var(--success); margin-top: 4px; }
+/* Pulsanti primario / secondario */
+.btn { display: block; width: 100%; padding: 14px; border-radius: var(--r); font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; border: none; transition: all .15s; text-align: center; margin-bottom: 10px; }
+.btn-p { background: var(--accent); color: #fff; }
+.btn-p:active { background: #c96e15; }
+.btn-s { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+
+/* ================================================
+   SCANNER OVERLAY
+================================================ */
+#scan-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.94); z-index: 200;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+#scan-overlay.show { opacity: 1; pointer-events: all; }
+#scan-overlay h2   { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 16px; }
+#reader-container  { width: 100%; max-width: 380px; border-radius: var(--r); overflow: hidden; background: #000; }
+#reader-container #reader { width: 100%; }
+#scan-status { color: var(--text2); font-size: 13px; margin-top: 13px; text-align: center; }
+#scan-close  { margin-top: 20px; padding: 12px 32px; border-radius: var(--r); background: var(--bg3); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+/* ================================================
+   EDIT MODAL
+================================================ */
+.emodal { position: fixed; inset: 0; background: rgba(0,0,0,.78); z-index: 150; display: flex; align-items: center; justify-content: center; padding: 18px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.emodal.show { opacity: 1; pointer-events: all; }
+.ebox { background: var(--bg2); border-radius: var(--r); padding: 20px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); transform: scale(.96); transition: transform .2s; }
+.emodal.show .ebox { transform: scale(1); }
+.etop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.etop h2 { font-family: 'Syne', sans-serif; font-size: 17px; }
+
+/* Scrollbar sottile */
+::-webkit-scrollbar { width: 3px; height: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -205,69 +419,105 @@ body{display:flex;justify-content:center}
 <header id="hdr">
   <h1>🫙 Dispensa</h1>
 </header>
-
 <div id="alert"></div>
 
 <div id="main">
 
-  <!-- ===== DISPENSA ===== -->
+  <!-- ===== TAB: DISPENSA ===== -->
   <div id="pg-dispensa" class="page active">
-    <!--<div class="stats">
-      <div class="scard"><div class="snum" id="st-tot">0</div><div class="slbl">Totale</div></div>
-      <div class="scard"><div class="snum" style="color:var(--warn)" id="st-exp">0</div><div class="slbl">In scadenza</div></div>
-      <div class="scard"><div class="snum" style="color:var(--freeze)" id="st-frz">0</div><div class="slbl">In cella</div></div>
-    </div>-->
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-num" id="stat-total">0</div>
-        <div class="stat-label">Totale</div>
+    <!-- 4 stat cards cliccabili come filtro -->
+    <div class="stats">
+      <div class="scard sf-tutti" id="sc-tutti" onclick="setDF('tutti',this)">
+        <div class="snum" style="color:var(--accent)" id="st-tot">0</div>
+        <div class="slbl">Totale</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--warn)" id="stat-expiring">0</div>
-        <div class="stat-label">In scadenza</div>
+      <div class="scard" id="sc-presto" onclick="setDF('presto',this)">
+        <div class="snum" style="color:var(--warn)" id="st-exp">0</div>
+        <div class="slbl">Scadono</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--freeze)" id="stat-frozen">0</div>
-        <div class="stat-label">In cella</div>
+      <div class="scard" id="sc-frozen" onclick="setDF('frozen',this)">
+        <div class="snum" style="color:var(--freeze)" id="st-frz">0</div>
+        <div class="slbl">In cella</div>
+      </div>
+      <div class="scard" id="sc-scaduti" onclick="setDF('scaduti',this)">
+        <div class="snum" style="color:var(--danger)" id="st-scd">0</div>
+        <div class="slbl">Scaduti</div>
       </div>
     </div>
 
-    
-    <div class="sbox"><span>🔍</span><input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()"></div>
-    <div class="frow">
-      <div class="chip active" onclick="setDF('tutti',this)">Tutti</div>
-      <div class="chip" onclick="setDF('presto',this)">⚠ Scade presto</div>
-      <div class="chip" onclick="setDF('frozen',this)">❄ In cella</div>
-      <div class="chip" onclick="setDF('scaduti',this)">❌ Scaduti</div>
+    <div class="sbox">
+      <span>🔍</span>
+      <input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()">
     </div>
     <div id="dlist"></div>
   </div>
 
-  <!-- ===== RICETTE ===== -->
+  <!-- ===== TAB: RICETTE ===== -->
   <div id="pg-ricette" class="page">
     <div class="sbox"><span>🔍</span><input id="rsearch" placeholder="Cerca ricetta…" oninput="renderR()"></div>
     <div class="frow">
-      <div class="chip active" data-rf="possibili" onclick="setRF('possibili',this)">✅ Possibili</div>
-      <div class="chip" data-rf="tutte" onclick="setRF('tutte',this)">Tutte</div>
-      <div class="chip" data-rf="italiana" onclick="setRF('italiana',this)">🇮🇹 Italiana</div>
-      <div class="chip" data-rf="europea" onclick="setRF('europea',this)">🇪🇺 Europea</div>
-      <div class="chip" data-rf="giapponese" onclick="setRF('giapponese',this)">🇯🇵 Giapponese</div>
-      <div class="chip" data-rf="cinese" onclick="setRF('cinese',this)">🇨🇳 Cinese</div>
-      <div class="chip" data-rf="asiatica" onclick="setRF('asiatica',this)">🌏 Asiatica</div>
+      <div class="chip active" data-rf="possibili"  onclick="setRF('possibili',this)">✅ Possibili</div>
+      <div class="chip" data-rf="tutte"       onclick="setRF('tutte',this)">Tutte</div>
+      <div class="chip" data-rf="italiana"    onclick="setRF('italiana',this)">🇮🇹 Italiana</div>
+      <div class="chip" data-rf="europea"     onclick="setRF('europea',this)">🇪🇺 Europea</div>
+      <div class="chip" data-rf="giapponese"  onclick="setRF('giapponese',this)">🇯🇵 Giapponese</div>
+      <div class="chip" data-rf="cinese"      onclick="setRF('cinese',this)">🇨🇳 Cinese</div>
+      <div class="chip" data-rf="asiatica"    onclick="setRF('asiatica',this)">🌏 Asiatica</div>
     </div>
     <div id="rlist"></div>
   </div>
 
-  <!-- ===== AGGIUNGI ===== -->
+  <!-- ===== TAB: LISTA DELLA SPESA ===== -->
+  <div id="pg-spesa" class="page">
+
+    <!-- Form aggiunta veloce -->
+    <div class="card">
+      <div class="stitle">➕ Aggiungi alla lista</div>
+      <div class="fg">
+        <label class="fl">Alimento</label>
+        <input class="fi" id="sn" placeholder="es. Pasta, Latte, Mele…" oninput="onShopNameInput()" onkeydown="if(event.key==='Enter')addToShopList()">
+        <div class="cat-detected" id="scat-hint"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Categoria</label>
+        <select class="fi" id="sc-shop">
+          <option value="generico">📦 Generico</option>
+          <option value="carne">🥩 Carne</option>
+          <option value="pesce">🐟 Pesce</option>
+          <option value="verdure">🥬 Verdure</option>
+          <option value="frutta">🍎 Frutta</option>
+          <option value="latticini">🧀 Latticini</option>
+          <option value="pasta_cereali">🍝 Pasta / Cereali</option>
+          <option value="pane">🍞 Pane</option>
+          <option value="salumi">🥓 Salumi</option>
+          <option value="condimenti">🫙 Condimenti</option>
+          <option value="surgelati">❄️ Surgelati</option>
+          <option value="bevande">🥤 Bevande</option>
+          <option value="dolci">🍰 Dolci</option>
+          <option value="legumi">🫘 Legumi</option>
+          <option value="uova">🥚 Uova</option>
+        </select>
+      </div>
+      <button class="btn btn-p" onclick="addToShopList()">➕ Aggiungi</button>
+    </div>
+
+    <!-- Azioni di massa -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn btn-s" style="flex:1;margin-bottom:0;font-size:12px;padding:10px" onclick="clearCheckedShop()">✅ Rimuovi acquistati</button>
+      <button class="btn btn-s" style="flex:1;margin-bottom:0;font-size:12px;padding:10px" onclick="clearAllShop()">🗑 Svuota tutto</button>
+    </div>
+
+    <div id="shoplist"></div>
+  </div>
+
+  <!-- ===== TAB: AGGIUNGI ===== -->
   <div id="pg-aggiungi" class="page">
     <button class="scan-btn" id="scanbtn" onclick="openScanner()">
       <span style="font-size:22px">📷</span>
       <span>Scansiona Barcode</span>
     </button>
-
-    <div id="scan-feedback" style="display:none;background:rgba(91,191,126,.1);border:1px solid var(--success);border-radius:var(--rs);padding:10px 13px;margin-bottom:14px;font-size:13px;color:var(--success)"></div>
-
+    <div id="scan-feedback"></div>
     <div class="fg">
       <label class="fl">Nome alimento *</label>
       <input class="fi" id="fn" placeholder="es. Pasta, Pollo, Latte…" oninput="onNameInput()">
@@ -281,8 +531,9 @@ body{display:flex;justify-content:center}
       <div class="fg">
         <label class="fl">Unità</label>
         <select class="fi" id="fu">
-          <option value="pz">pz</option><option value="g">g</option><option value="kg">kg</option>
-          <option value="ml">ml</option><option value="l">l</option><option value="conf">conf.</option>
+          <option value="pz">pz</option><option value="g">g</option>
+          <option value="kg">kg</option><option value="ml">ml</option>
+          <option value="l">l</option><option value="conf">conf.</option>
         </select>
       </div>
     </div>
@@ -299,24 +550,21 @@ body{display:flex;justify-content:center}
         <option value="uova">Uova</option>
       </select>
     </div>
-
     <div class="fg">
       <label class="fl" id="exp-lbl">Scadenza</label>
       <input class="fi" id="fe" type="date">
       <div class="freeze-est" id="fest"></div>
     </div>
-
     <div class="sw-row">
       <div><div class="sw-t">❄️ Metti in cella</div><div class="sw-s">Stima scadenza da congelamento</div></div>
       <label class="tgl"><input type="checkbox" id="ff" onchange="onFreezeChange()"><span class="tgl-s"></span></label>
     </div>
-
     <button class="btn btn-p" onclick="saveItem()">💾 Aggiungi alla Dispensa</button>
   </div>
 
-</div>
+</div><!-- #main -->
 
-<!-- BOTTOM TABS -->
+<!-- ===== BOTTOM TABS ===== -->
 <nav id="tabs">
   <button class="tb active" onclick="goTab('dispensa',this)">
     <span class="ico">🫙</span><span class="lbl">Dispensa</span>
@@ -324,14 +572,18 @@ body{display:flex;justify-content:center}
   <button class="tb" onclick="goTab('ricette',this)">
     <span class="ico">👨‍🍳</span><span class="lbl">Ricette</span>
   </button>
+  <button class="tb" onclick="goTab('spesa',this)" id="tb-spesa">
+    <span class="ico">🛒</span><span class="lbl">Spesa</span>
+    <span class="tb-badge" id="spesa-badge"></span>
+  </button>
   <button class="tb" onclick="goTab('aggiungi',this)">
     <span class="ico">➕</span><span class="lbl">Aggiungi</span>
   </button>
 </nav>
 
-</div><!-- end #wrap -->
+</div><!-- #wrap -->
 
-<!-- SCANNER OVERLAY -->
+<!-- ===== SCANNER OVERLAY ===== -->
 <div id="scan-overlay">
   <h2>📷 Scansiona Barcode</h2>
   <div id="reader-container"><div id="reader"></div></div>
@@ -339,7 +591,7 @@ body{display:flex;justify-content:center}
   <button id="scan-close" onclick="closeScanner()">✕ Chiudi</button>
 </div>
 
-<!-- RECIPE MODAL -->
+<!-- ===== RECIPE MODAL (bottom sheet) ===== -->
 <div id="rmodal" class="overlay" onclick="closeRModal(event)">
   <div class="sheet" id="rsheet">
     <div class="handle"></div>
@@ -348,17 +600,21 @@ body{display:flex;justify-content:center}
   </div>
 </div>
 
-<!-- EDIT MODAL -->
+<!-- ===== EDIT MODAL ===== -->
 <div id="emodal" class="emodal" onclick="closeEdit(event)">
   <div class="ebox">
-    <div class="etop"><h2>✏️ Modifica</h2><button class="mclose" style="position:static" onclick="closeEdit(null,1)">×</button></div>
+    <div class="etop">
+      <h2>✏️ Modifica</h2>
+      <button class="mclose" style="position:static" onclick="closeEdit(null,1)">×</button>
+    </div>
     <div class="fg"><label class="fl">Nome</label><input class="fi" id="en"></div>
     <div class="fr2">
       <div class="fg"><label class="fl">Quantità</label><input class="fi" id="eq" type="number"></div>
       <div class="fg"><label class="fl">Unità</label>
         <select class="fi" id="eu">
-          <option value="pz">pz</option><option value="g">g</option><option value="kg">kg</option>
-          <option value="ml">ml</option><option value="l">l</option><option value="conf">conf.</option>
+          <option value="pz">pz</option><option value="g">g</option>
+          <option value="kg">kg</option><option value="ml">ml</option>
+          <option value="l">l</option><option value="conf">conf.</option>
         </select>
       </div>
     </div>
@@ -370,7 +626,8 @@ body{display:flex;justify-content:center}
         <option value="pasta_cereali">Pasta / Cereali</option><option value="pane">Pane</option>
         <option value="salumi">Salumi</option><option value="condimenti">Condimenti</option>
         <option value="surgelati">Surgelati</option><option value="bevande">Bevande</option>
-        <option value="dolci">Dolci</option><option value="legumi">Legumi</option><option value="uova">Uova</option>
+        <option value="dolci">Dolci</option><option value="legumi">Legumi</option>
+        <option value="uova">Uova</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Scadenza</label><input class="fi" id="ee" type="date"></div>
@@ -381,7 +638,6 @@ body{display:flex;justify-content:center}
 </div>
 
 <script>
-// ================================================
 // RECIPES DATABASE (~150 ricette)
 // ================================================
 const RC={italiana:'italiana',eu:'europea',jp:'giapponese',cn:'cinese',as:'asiatica'};
@@ -634,454 +890,904 @@ r('a11','Dahl di Lenticchie Rosse',RC.as,35,'facile','🍲',
 ['Sciacqua le lenticchie rosse finché l\'acqua è limpida. Non hanno bisogno di ammollo.','TARKA (la base aromatica): in una casseruola scalda 30ml di burro chiarificato a fuoco medio. Aggiungi semi di cumino + semi di senape + foglie di curry (se le hai): aspetta che scoppiettino, 30 secondi. ATTENZIONE agli schizzi.','Aggiungi cipolla tritata finissima: cuoci 8-10 min a fuoco medio finché dorata.','Aggiungi aglio e zenzero grattugiati: 1 min. Aggiungi curry in polvere + curcuma: mescola 1 min per tostare le spezie (non bruciare — aggiunta di liquido subito dopo).','Aggiungi pomodori pelati schiacciati. Cuoci 5 min. Aggiungi lenticchie sciacquate + brodo vegetale + latte di cocco.','Porta a bollore, poi abbassa, cuoci semicoperto 20-25 min mescolando spesso — le lenticchie rosse si disfano completamente creando una zuppa cremosa naturale. Aggiusta di sale e succo di limone.','Servi con riso basmati e naan. Guarnisci con coriandolo fresco, chili verde e un filo di olio al chili.'],
 ['Tarka nel Mambo: burro + cumino + senape + foglie curry: 1 min / 130°C / Vel. 1.','Aggiungi cipolla tritata: 8 min / 120°C / Vel. 1. Aggiungi aglio+zenzero+spezie: 2 min / 120°C / Vel. 1.','Aggiungi pomodori: 5 min / 100°C / Vel. 1. Aggiungi lenticchie + brodo + cocco: 25 min / 100°C / Vel. 2. A fine cottura, frulla parzialmente se vuoi una consistenza più cremosa: 10 sec / Vel. 5.']),
 ];
+// ================================================================
+//  DISPENSA APP v3 — Core JavaScript
+//  ┌─────────────────────────────────────────────────────────────┐
+//  │  1.  Database ricette (RECIPES array)                       │
+//  │  2.  State & Storage (dispensa_v3)                          │
+//  │  3.  Helper functions (date, categorie, freeze/thaw)        │
+//  │  4.  UI helpers (alert, tab switching, filtri)              │
+//  │  5.  Render Dispensa (lista + azioni inline)                │
+//  │  6.  Render Ricette (cards + modal dettaglio)               │
+//  │  7.  Lista Spesa (add/remove/check, gruppata per categoria) │
+//  │  8.  Form Aggiungi (salvataggio, auto-categoria)            │
+//  │  9.  Barcode Scanner (html5-qrcode + OpenFoodFacts)         │
+//  │ 10.  Init                                                   │
+//  └─────────────────────────────────────────────────────────────┘
+// ================================================================
 
-// ================================================
-// APP STATE & STORAGE
-// ================================================
-const SK='dispensa_v2';
-let items=[], df='tutti', rf='possibili', editId=null, scanner=null, scanRunning=false;
+// ----------------------------------------------------------------
+// 2. STATE & STORAGE
+// ----------------------------------------------------------------
 
-function load(){
-  try{const d=JSON.parse(localStorage.getItem(SK)||'{}');items=d.items||[];}catch{items=[];}
-}
-function save(){
-  try{localStorage.setItem(SK,JSON.stringify({items,v:2,at:new Date().toISOString()}));}catch{alert('Errore salvataggio dati');}
-}
+/** Chiave localStorage principale (versione 3) */
+const SK = 'dispensa_v3';
 
-// ================================================
-// HELPERS
-// ================================================
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
-function today(){return new Date().toISOString().slice(0,10);}
-function daysTo(ds){
-  if(!ds)return null;
-  const t=new Date();t.setHours(0,0,0,0);
-  return Math.ceil((new Date(ds)-t)/864e5);
-}
-function addDays(ds,n){const d=new Date(ds);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
-function fmtDate(ds){
-  if(!ds)return '';
-  return new Date(ds).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'});
-}
-const CATS={carne:'🥩',pesce:'🐟',verdure:'🥬',frutta:'🍎',latticini:'🧀',pasta_cereali:'🍝',
-pane:'🍞',salumi:'🥓',condimenti:'🫙',surgelati:'❄️',bevande:'🥤',dolci:'🍰',legumi:'🫘',uova:'🥚',generico:'📦'};
-function ico(cat){return CATS[cat]||'📦';}
+/**
+ * Stato globale dell'app.
+ * - items   : array prodotti in dispensa
+ * - shopping: array lista della spesa
+ * - df      : filtro dispensa attivo ('tutti'|'presto'|'frozen'|'scaduti')
+ * - rf      : filtro ricette attivo ('possibili'|'tutte'|categoria)
+ * - editId  : id item in modifica (null se nessuno)
+ * - scanner : istanza Html5Qrcode
+ * - scanRunning : true se scanner aperto
+ */
+let items = [], shopping = [];
+let df = 'tutti', rf = 'possibili';
+let editId = null, scanner = null, scanRunning = false;
 
-const FREEZE_DAYS={carne:90,pesce:60,verdure:180,frutta:90,pane:90,latticini:60,salumi:60,
-pasta_cereali:180,legumi:180,dolci:60,surgelati:365,generico:60};
-const THAW_DAYS={carne:2,pesce:1,verdure:3,frutta:2,pane:2,latticini:3,salumi:3,
-pasta_cereali:3,legumi:4,dolci:2,surgelati:2,generico:2};
-
-function freezeExp(origExp,cat){return addDays(origExp||today(),FREEZE_DAYS[cat]||60);}
-function thawExp(cat){return addDays(today(),THAW_DAYS[cat]||2);}
-
-// AUTO-CATEGORY
-const CAT_RULES=[
- {c:'uova',w:['uova','uovo']},
- {c:'carne',w:['pollo','manzo','vitello','maiale','agnello','tacchino','bistecca','hamburger','cotoletta','braciola','salsiccia','wurstel','spiedino','arrosto','roast','coniglio','anatra','piccione']},
- {c:'pesce',w:['salmone','tonno','merluzzo','branzino','orata','gamberi','cozze','vongole','calamari','trota','baccalà','acciughe','sardine','polpo','sgombro','dentice','spigola','halibut']},
- {c:'verdure',w:['pomodoro','cipolla','carota','zucchina','melanzana','peperone','spinaci','insalata','cavolo','broccoli','funghi','piselli','fagiolini','carciofo','asparagi','lattuga','rucola','radicchio','cetriolo','finocchio','porro','zucca','cavolfiore','sedano','bietola','rapa','topinambur']},
- {c:'frutta',w:['mela','pera','banana','arancia','limone','fragola','uva','kiwi','ananas','pesca','albicocca','ciliegia','mango','avocado','melograno','pompelmo','mandarino','cocomero','anguria','melone','fico','prugna','lampone','mirtillo']},
- {c:'latticini',w:['latte','yogurt','formaggio','mozzarella','parmigiano','ricotta','burro','panna','mascarpone','gorgonzola','pecorino','grana','brie','camembert','fontina','scamorza','provolone','stracchino','asiago']},
- {c:'pasta_cereali',w:['pasta','spaghetti','rigatoni','penne','fusilli','riso','orzo','farro','couscous','quinoa','farina','cracker','cereali','avena','grissini','gallette','lasagne','tagliatelle','linguine','orecchiette','farfalle','polenta','bulgur']},
- {c:'pane',w:['pane','baguette','panino','piadina','focaccia','ciabatta','tramezzino','toast','grissini','crackers','brioche','cornetto','croissant']},
- {c:'salumi',w:['prosciutto','salame','mortadella','bresaola','pancetta','guanciale','speck','coppa','lardo','wurstel','salsiccia','nduja','ciccioli']},
- {c:'condimenti',w:['olio','aceto','sale','pepe','salsa','ketchup','maionese','senape','soia','miso','wasabi','tahini','harissa','pesto','curry','paprika','zafferano','cannella','curcuma','cumino','coriandolo','timo','rosmarino','salvia','basilico','prezzemolo','menta','origano']},
- {c:'bevande',w:['acqua','succo','birra','vino','coca','tè','caffè','aranciata','limonata','brodo','dashi']},
- {c:'dolci',w:['cioccolato','biscotti','torta','gelato','nutella','marmellata','miele','zucchero','caramella','wafer','meringa','cacao','vaniglia','lievito','savoiardi']},
- {c:'legumi',w:['fagioli','lenticchie','ceci','fave','soia','lupini','cannellini','borlotti','azuki','edamame']},
- {c:'surgelati',w:['surgelat','congelat']},
-];
-function detectCat(name){
-  const n=name.toLowerCase();
-  for(const rule of CAT_RULES){
-    if(rule.w.some(w=>n.includes(w)))return rule.c;
+/** Carica i dati da localStorage — gestisce sia v2 che v3 */
+function load() {
+  try {
+    const raw = localStorage.getItem(SK);
+    if (raw) {
+      const d = JSON.parse(raw);
+      items    = Array.isArray(d.items)    ? d.items    : [];
+      shopping = Array.isArray(d.shopping) ? d.shopping : [];
+    } else {
+      // Tenta migrazione da v2
+      const old = localStorage.getItem('dispensa_v2');
+      if (old) {
+        const d2 = JSON.parse(old);
+        items = Array.isArray(d2.items) ? d2.items : [];
+        shopping = [];
+        save(); // salva subito in formato v3
+        console.log('Migrazione da dispensa_v2 completata');
+      }
+    }
+  } catch(e) {
+    console.error('Errore caricamento dati:', e);
+    items = []; shopping = [];
   }
-  return'generico';
 }
 
-// ================================================
-// UI
-// ================================================
-function showAlert(msg,type='warn',ms=3000){
-  const el=document.getElementById('alert');
-  el.textContent=msg;el.className=`show ${type}`;
-  clearTimeout(el._t);el._t=setTimeout(()=>el.className='',ms);
+/** Salva tutto in localStorage */
+function save() {
+  try {
+    localStorage.setItem(SK, JSON.stringify({
+      items, shopping, v: 3, at: new Date().toISOString()
+    }));
+  } catch(e) {
+    showAlert('⚠ Errore salvataggio dati!', 'err', 4000);
+    console.error('Errore salvataggio:', e);
+  }
 }
-function goTab(name,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('pg-'+name).classList.add('active');
-  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+
+// ----------------------------------------------------------------
+// 3. HELPERS
+// ----------------------------------------------------------------
+
+/** Genera un ID univoco */
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+/** Data di oggi in formato YYYY-MM-DD (ora locale) */
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+/**
+ * Calcola i giorni mancanti alla scadenza.
+ * NOTA: parsifica la data come ora locale (non UTC) per evitare
+ * sfasamenti di +/-1 giorno tipici di new Date('YYYY-MM-DD').
+ * @param {string} ds  Data nel formato "YYYY-MM-DD"
+ * @returns {number|null} giorni rimanenti (negativo = scaduto)
+ */
+function daysTo(ds) {
+  if (!ds) return null;
+  const [y, m, d] = ds.split('-').map(Number);
+  const exp = new Date(y, m - 1, d); // ora locale — nessuno sfasamento UTC
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.round((exp - now) / 86_400_000);
+}
+
+/** Aggiunge n giorni a una data (formato YYYY-MM-DD) */
+function addDays(ds, n) {
+  const [y, m, d] = ds.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + n);
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+}
+
+/** Formatta una data come "15 mar 2025" */
+function fmtDate(ds) {
+  if (!ds) return '';
+  const [y, m, d] = ds.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+/** Mappa categoria → emoji */
+const CATS = {
+  carne:'🥩', pesce:'🐟', verdure:'🥬', frutta:'🍎', latticini:'🧀',
+  pasta_cereali:'🍝', pane:'🍞', salumi:'🥓', condimenti:'🫙',
+  surgelati:'❄️', bevande:'🥤', dolci:'🍰', legumi:'🫘', uova:'🥚',
+  generico:'📦'
+};
+
+/** Ritorna l'emoji per la categoria indicata */
+function ico(cat) { return CATS[cat] || '📦'; }
+
+/** Label leggibile per categoria */
+const CAT_LABELS_FULL = {
+  carne:'🥩 Carne', pesce:'🐟 Pesce', verdure:'🥬 Verdure', frutta:'🍎 Frutta',
+  latticini:'🧀 Latticini', pasta_cereali:'🍝 Pasta/Cereali', pane:'🍞 Pane',
+  salumi:'🥓 Salumi', condimenti:'🫙 Condimenti', surgelati:'❄️ Surgelati',
+  bevande:'🥤 Bevande', dolci:'🍰 Dolci', legumi:'🫘 Legumi', uova:'🥚 Uova',
+  generico:'📦 Generico'
+};
+
+/** Giorni di conservazione in freezer per categoria */
+const FREEZE_DAYS = {
+  carne:90, pesce:60, verdure:180, frutta:90, pane:90, latticini:60,
+  salumi:60, pasta_cereali:180, legumi:180, dolci:60, surgelati:365, generico:60
+};
+
+/** Giorni di consumo dopo scongelamento */
+const THAW_DAYS = {
+  carne:2, pesce:1, verdure:3, frutta:2, pane:2, latticini:3,
+  salumi:3, pasta_cereali:3, legumi:4, dolci:2, surgelati:2, generico:2
+};
+
+/** Calcola la data di scadenza in cella partendo dalla scadenza originale */
+function freezeExp(origExp, cat) {
+  return addDays(origExp || today(), FREEZE_DAYS[cat] || 60);
+}
+
+/** Calcola la data limite di consumo dopo scongelamento */
+function thawExp(cat) {
+  return addDays(today(), THAW_DAYS[cat] || 2);
+}
+
+// ----------------------------------------------------------------
+// Auto-rilevamento categoria dal nome prodotto
+// ----------------------------------------------------------------
+const CAT_RULES = [
+  { c:'uova',         w:['uova','uovo'] },
+  { c:'carne',        w:['pollo','manzo','vitello','maiale','agnello','tacchino','bistecca','hamburger','cotoletta','braciola','salsiccia','wurstel','spiedino','arrosto','coniglio','anatra','piccione','cinghiale','selvaggina'] },
+  { c:'pesce',        w:['salmone','tonno','merluzzo','branzino','orata','gamberi','cozze','vongole','calamari','trota','baccalà','acciughe','sardine','polpo','sgombro','dentice','spigola','halibut','pesce'] },
+  { c:'verdure',      w:['pomodoro','cipolla','carota','zucchina','melanzana','peperone','spinaci','insalata','cavolo','broccoli','funghi','piselli','fagiolini','carciofo','asparagi','lattuga','rucola','radicchio','cetriolo','finocchio','porro','zucca','cavolfiore','sedano','bietola','rapa'] },
+  { c:'frutta',       w:['mela','pera','banana','arancia','limone','fragola','uva','kiwi','ananas','pesca','albicocca','ciliegia','mango','avocado','melograno','pompelmo','mandarino','cocomero','anguria','melone','fico','prugna','lampone','mirtillo'] },
+  { c:'latticini',    w:['latte','yogurt','formaggio','mozzarella','parmigiano','ricotta','burro','panna','mascarpone','gorgonzola','pecorino','grana','brie','camembert','fontina','scamorza','provolone','stracchino','asiago','crescenza'] },
+  { c:'pasta_cereali',w:['pasta','spaghetti','rigatoni','penne','fusilli','riso','orzo','farro','couscous','quinoa','farina','cracker','cereali','avena','gallette','lasagne','tagliatelle','linguine','orecchiette','farfalle','polenta','bulgur','semola'] },
+  { c:'pane',         w:['pane','baguette','panino','piadina','focaccia','ciabatta','tramezzino','toast','brioche','cornetto','croissant','chapati','naan'] },
+  { c:'salumi',       w:['prosciutto','salame','mortadella','bresaola','pancetta','guanciale','speck','coppa','lardo','nduja','salumi','ciccioli','lonza'] },
+  { c:'condimenti',   w:['olio','aceto','sale','pepe','salsa','ketchup','maionese','senape','soia','miso','wasabi','tahini','harissa','pesto','curry','paprika','zafferano','cannella','curcuma','cumino','coriandolo','timo','rosmarino','salvia','basilico','origano','spezie','dado'] },
+  { c:'bevande',      w:['acqua','succo','birra','vino','coca','tè','caffè','aranciata','limonata','brodo','dashi','kombucha','smoothie','latte vegetale'] },
+  { c:'dolci',        w:['cioccolato','biscotti','torta','gelato','nutella','marmellata','miele','zucchero','caramella','wafer','meringa','cacao','vaniglia','lievito','savoiardi','crostate','confettura'] },
+  { c:'legumi',       w:['fagioli','lenticchie','ceci','fave','soia','lupini','cannellini','borlotti','azuki','edamame','legumi'] },
+  { c:'surgelati',    w:['surgelat','congelat'] },
+];
+
+/** Rileva la categoria da un nome prodotto */
+function detectCat(name) {
+  const n = name.toLowerCase();
+  for (const rule of CAT_RULES) {
+    if (rule.w.some(w => n.includes(w))) return rule.c;
+  }
+  return 'generico';
+}
+
+// ----------------------------------------------------------------
+// 4. UI HELPERS
+// ----------------------------------------------------------------
+
+/** Mostra un banner di notifica temporaneo */
+function showAlert(msg, type = 'warn', ms = 3000) {
+  const el = document.getElementById('alert');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = '', ms);
+}
+
+/** Aggiorna il badge numerico sul tab Spesa */
+function updateShopBadge() {
+  const unchecked = shopping.filter(x => !x.checked).length;
+  const badge = document.getElementById('spesa-badge');
+  if (unchecked > 0) {
+    badge.textContent = unchecked;
+    badge.classList.add('show');
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+/** Cambio tab */
+function goTab(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('pg-' + name).classList.add('active');
+  document.querySelectorAll('.tb').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  if(name==='dispensa')renderD();
-  if(name==='ricette')renderR();
-  if(name!=='aggiungi'&&scanRunning)closeScanner();
-}
-function setDF(f,el){
-  df=f;
-  document.querySelectorAll('#pg-dispensa .chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');renderD();
-}
-function setRF(f,el){
-  rf=f;
-  document.querySelectorAll('[data-rf]').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');renderR();
+  // Render specifici per tab
+  if (name === 'dispensa')  renderD();
+  if (name === 'ricette')   renderR();
+  if (name === 'spesa')     renderShop();
+  // Chiudi scanner se si cambia tab
+  if (name !== 'aggiungi' && scanRunning) closeScanner();
 }
 
-// ================================================
-// RENDER DISPENSA
-// ================================================
-function renderD(){
-  const q=document.getElementById('dsearch').value.toLowerCase();
-  let list=items.filter(it=>{
-    if(q&&!it.name.toLowerCase().includes(q))return false;
-    const d=daysTo(it.expiryDate);
-    if(df==='presto')return!it.frozen&&d!==null&&d>=0&&d<=7;
-    if(df==='frozen')return it.frozen;
-    if(df==='scaduti')return d!==null&&d<0;
-    return true;
+/** Imposta filtro dispensa (cliccando su una stat card) */
+function setDF(f, el) {
+  df = f;
+  // Rimuovi classe attiva da tutte le stat card
+  ['sc-tutti','sc-presto','sc-frozen','sc-scaduti'].forEach(id => {
+    const c = document.getElementById(id);
+    c.className = 'scard'; // reset
   });
-  list.sort((a,b)=>{
-    const da=daysTo(a.expiryDate),db=daysTo(b.expiryDate);
-    if(da===null&&db===null)return a.name.localeCompare(b.name);
-    if(da===null)return 1;if(db===null)return-1;return da-db;
-  });
-  document.getElementById('st-tot').textContent=items.length;
-  document.getElementById('st-exp').textContent=items.filter(it=>{const d=daysTo(it.expiryDate);return d!==null&&d>=0&&d<=7&&!it.frozen;}).length;
-  document.getElementById('st-frz').textContent=items.filter(it=>it.frozen).length;
+  // Mappa filtro → classe attiva
+  const cls = { tutti:'sf-tutti', presto:'sf-presto', frozen:'sf-frozen', scaduti:'sf-scaduti' };
+  if (el) el.className = 'scard ' + (cls[f] || '');
+  renderD();
+}
 
-  const el=document.getElementById('dlist');
-  if(!list.length){
-    el.innerHTML=`<div class="empty"><div class="eico">${q?'🔍':'🫙'}</div><div class="etit">${q?'Nessun risultato':'Dispensa vuota'}</div><div class="esub">${q?'Prova altro termine':'Aggiungi il primo alimento!'}</div></div>`;
+/** Imposta filtro ricette */
+function setRF(f, el) {
+  rf = f;
+  document.querySelectorAll('[data-rf]').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderR();
+}
+
+// ----------------------------------------------------------------
+// 5. RENDER DISPENSA
+// ----------------------------------------------------------------
+
+/** Ridisegna lista dispensa applicando ricerca + filtro attivo */
+function renderD() {
+  const q = (document.getElementById('dsearch').value || '').toLowerCase();
+
+  // Calcola conteggi per i 4 counter
+  const tot    = items.length;
+  const scad   = items.filter(it => { const d = daysTo(it.expiryDate); return d !== null && d < 0; }).length;
+  const frz    = items.filter(it => it.frozen).length;
+  // "In scadenza" = non congelati, scadenza entro 7 giorni (non scaduti)
+  const exp    = items.filter(it => { const d = daysTo(it.expiryDate); return !it.frozen && d !== null && d >= 0 && d <= 7; }).length;
+
+  document.getElementById('st-tot').textContent = tot;
+  document.getElementById('st-exp').textContent = exp;
+  document.getElementById('st-frz').textContent = frz;
+  document.getElementById('st-scd').textContent = scad;
+
+  // Filtra lista
+  let list = items.filter(it => {
+    // Filtro testo
+    if (q && !it.name.toLowerCase().includes(q)) return false;
+    // Filtro categoria
+    if (df === 'presto') {
+      const d = daysTo(it.expiryDate);
+      return !it.frozen && d !== null && d >= 0 && d <= 7;
+    }
+    if (df === 'frozen')  return it.frozen;
+    if (df === 'scaduti') { const d = daysTo(it.expiryDate); return d !== null && d < 0; }
+    return true; // df === 'tutti'
+  });
+
+  // Ordina: scaduti/scadenza vicina prima → congelati → senza scadenza
+  list.sort((a, b) => {
+    const da = daysTo(a.expiryDate), db = daysTo(b.expiryDate);
+    if (da === null && db === null) return a.name.localeCompare(b.name);
+    if (da === null) return 1;
+    if (db === null) return -1;
+    return da - db;
+  });
+
+  const el = document.getElementById('dlist');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">
+      <div class="eico">${q ? '🔍' : df === 'tutti' ? '🫙' : '✨'}</div>
+      <div class="etit">${q ? 'Nessun risultato' : df === 'tutti' ? 'Dispensa vuota' : 'Niente qui'}</div>
+      <div class="esub">${q ? 'Prova con un altro termine' : df === 'tutti' ? 'Aggiungi il primo alimento!' : 'Nessun alimento in questa categoria'}</div>
+    </div>`;
     return;
   }
-  el.innerHTML=list.map(it=>{
-    const d=daysTo(it.expiryDate);
-    let ec='',et='';
-    if(it.expiryDate){
-      if(d<0){ec='expired';et=`Scaduto ${-d}g fa`;}
-      else if(d===0){ec='soon';et='Scade oggi!';}
-      else if(d<=3){ec='soon';et=`Scade in ${d}g`;}
-      else if(d<=7){ec='soon';et=`${fmtDate(it.expiryDate)}`;}
-      else{ec='ok';et=fmtDate(it.expiryDate);}
+
+  el.innerHTML = list.map(it => {
+    const d = daysTo(it.expiryDate);
+    let ec = '', et = '';
+    if (it.expiryDate) {
+      if (d < 0)      { ec = 'expired'; et = `Scaduto ${-d}g fa`; }
+      else if (d === 0) { ec = 'soon';  et = 'Scade oggi!'; }
+      else if (d <= 3) { ec = 'soon';   et = `Scade in ${d}g`; }
+      else if (d <= 7) { ec = 'soon';   et = fmtDate(it.expiryDate); }
+      else             { ec = 'ok';     et = fmtDate(it.expiryDate); }
     }
-    let cc='';
-    if(it.frozen)cc='frozen';
-    else if(d!==null&&d<0)cc='expired';
-    else if(d!==null&&d<=3)cc='expiring';
-    const fb=it.frozen?`<span class="badge fr" style="margin-left:5px">❄</span>`:'';
-    const tb=it.thawedDate?`<span class="badge wn" style="margin-left:4px">🌡</span>`:'';
-    const freezeBtn=it.frozen
-      ?`<button class="abtn wn" onclick="thawItem('${it.id}',event)">🌡 Scongela</button>`
-      :`<button class="abtn fr" onclick="freezeItem('${it.id}',event)">❄ Congela</button>`;
-    return`<div class="icard ${cc}" id="ic-${it.id}">
-<div class="irow" onclick="toggleAct('${it.id}')">
-  <div class="iico">${ico(it.category)}</div>
-  <div class="iinfo">
-    <div class="iname">${it.name}${fb}${tb}</div>
-    <div class="imeta">${it.category||'generico'} · ${it.quantity} ${it.unit}</div>
-    ${it.expiryDate?`<div class="iexp ${ec}">${et}</div>`:`<div class="iexp" style="color:var(--text3)">Nessuna scadenza</div>`}
+    // Classe colore bordo sinistro
+    let cc = '';
+    if (it.frozen)              cc = 'frozen';
+    else if (d !== null && d < 0)    cc = 'expired';
+    else if (d !== null && d <= 3)   cc = 'expiring';
+
+    const fbFrozen  = it.frozen     ? `<span class="badge fr" style="margin-left:5px">❄</span>` : '';
+    const fbThawed  = it.thawedDate ? `<span class="badge wn" style="margin-left:4px">🌡</span>` : '';
+
+    // Bottone congela/scongela contestuale
+    const freezeBtn = it.frozen
+      ? `<button class="abtn wn" onclick="thawItem('${it.id}',event)">🌡 Scongela</button>`
+      : `<button class="abtn fr" onclick="freezeItem('${it.id}',event)">❄ Congela</button>`;
+
+    return `<div class="icard ${cc}" id="ic-${it.id}">
+  <div class="irow" onclick="toggleAct('${it.id}')">
+    <div class="iico">${ico(it.category)}</div>
+    <div class="iinfo">
+      <div class="iname">${escHtml(it.name)}${fbFrozen}${fbThawed}</div>
+      <div class="imeta">${it.category || 'generico'} · ${it.quantity} ${it.unit}</div>
+      ${it.expiryDate
+        ? `<div class="iexp ${ec}">${et}</div>`
+        : `<div class="iexp" style="color:var(--text3)">Nessuna scadenza</div>`}
+    </div>
+    <div style="color:var(--text3);font-size:18px;padding-left:4px">›</div>
   </div>
-  <div style="color:var(--text3);font-size:18px">›</div>
-</div>
-<div class="iactions" id="ia-${it.id}">
-  <button class="abtn ok" onclick="consumeItem('${it.id}',event)">🍴 Consumato</button>
-  ${freezeBtn}
-  <button class="abtn ac" onclick="openEdit('${it.id}',event)">✏️ Modifica</button>
-  <button class="abtn dn" onclick="delItem('${it.id}',event)">🗑 Elimina</button>
-</div>
+  <div class="iactions" id="ia-${it.id}">
+    <button class="abtn ok" onclick="consumeItem('${it.id}',event)">🍴 Consumato</button>
+    ${freezeBtn}
+    <button class="abtn ac" onclick="openEdit('${it.id}',event)">✏️ Modifica</button>
+    <button class="abtn dn" onclick="delItem('${it.id}',event)">🗑 Elimina</button>
+  </div>
 </div>`;
   }).join('');
 }
 
-function toggleAct(id){
-  const el=document.getElementById('ia-'+id);
-  // Close others
-  document.querySelectorAll('.iactions.open').forEach(e=>{if(e.id!=='ia-'+id)e.classList.remove('open');});
+/** Apre/chiude la barra azioni di un item (chiude gli altri) */
+function toggleAct(id) {
+  const el = document.getElementById('ia-' + id);
+  // Chiude tutti gli altri aperti
+  document.querySelectorAll('.iactions.open').forEach(e => {
+    if (e.id !== 'ia-' + id) e.classList.remove('open');
+  });
   el.classList.toggle('open');
 }
-function consumeItem(id,e){e&&e.stopPropagation();
-  if(confirm('Segna come consumato ed elimina?')){items=items.filter(i=>i.id!==id);save();renderD();renderR();showAlert('✅ Rimosso','ok');}
-}
-function delItem(id,e){e&&e.stopPropagation();
-  if(confirm('Eliminare definitivamente?')){items=items.filter(i=>i.id!==id);save();renderD();renderR();showAlert('🗑 Eliminato','warn');}
-}
-function freezeItem(id,e){e&&e.stopPropagation();
-  const it=items.find(i=>i.id===id);if(!it)return;
-  const orig=it.expiryDate||today();
-  it.frozen=true;it.frozenDate=today();it.originalExpiry=orig;
-  it.expiryDate=freezeExp(orig,it.category);
-  save();renderD();showAlert(`❄ Congelato! Scadenza stimata: ${fmtDate(it.expiryDate)}`,'ok',4500);
-}
-function thawItem(id,e){e&&e.stopPropagation();
-  const it=items.find(i=>i.id===id);if(!it)return;
-  it.frozen=false;it.thawedDate=today();it.expiryDate=thawExp(it.category);
-  save();renderD();showAlert(`🌡 Scongelato! Consumare entro: ${fmtDate(it.expiryDate)}`,'warn',5000);
+
+/**
+ * Segna un item come consumato:
+ * 1. Lo rimuove dalla dispensa
+ * 2. Lo aggiunge alla lista spesa (se non già presente)
+ */
+function consumeItem(id, e) {
+  e && e.stopPropagation();
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  const name = it.name;
+  const cat  = it.category || 'generico';
+  // Rimuovi dalla dispensa
+  items = items.filter(x => x.id !== id);
+  // Aggiungi alla lista spesa (solo se non c'è già, confronto case-insensitive)
+  const alreadyInList = shopping.some(s => s.name.toLowerCase() === name.toLowerCase());
+  if (!alreadyInList) {
+    shopping.push({ id: uid(), name, category: cat, checked: false, addedDate: today() });
+    showAlert(`🍴 Consumato! "${name}" aggiunto alla lista spesa.`, 'ok', 3500);
+  } else {
+    showAlert(`🍴 "${name}" consumato.`, 'ok', 2500);
+  }
+  save();
+  renderD();
+  renderR();
+  updateShopBadge();
 }
 
-// ================================================
-// RENDER RICETTE
-// ================================================
-function findIng(name,key){
-  if(!items.length)return null;
-  const n=name.toLowerCase(),k=(key||'').toLowerCase();
-  return items.find(it=>{
-    const in2=it.name.toLowerCase();
-    return in2.includes(n)||n.includes(in2)||(k&&(in2.includes(k)||k.split(' ').some(kw=>kw.length>2&&in2.includes(kw))));
-  })||null;
+/** Elimina definitivamente un item (senza aggiungerlo alla spesa) */
+function delItem(id, e) {
+  e && e.stopPropagation();
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  items = items.filter(x => x.id !== id);
+  save(); renderD(); renderR();
+  showAlert('🗑 Eliminato', 'warn');
 }
-function canMake(recipe){
-  return recipe.ingredients.every(ing=>{
-    const m=findIng(ing.name,ing.key);
-    return m&&m.quantity>=ing.amt;
-  });
+
+/** Congela un item: aggiorna scadenza in base alla categoria */
+function freezeItem(id, e) {
+  e && e.stopPropagation();
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  const orig = it.expiryDate || today();
+  it.frozen          = true;
+  it.frozenDate      = today();
+  it.originalExpiry  = orig;
+  it.expiryDate      = freezeExp(orig, it.category);
+  save(); renderD();
+  showAlert(`❄ Congelato! Scadenza stimata: ${fmtDate(it.expiryDate)}`, 'ok', 4500);
 }
-function canMake1(recipe){
-  // Can make for 1 person
-  return recipe.ingredients.every(ing=>{
-    const m=findIng(ing.name,ing.key);
-    return m&&m.quantity>=ing.amt*0.5;
+
+/** Scongela: imposta scadenza di consumo post-scongelamento */
+function thawItem(id, e) {
+  e && e.stopPropagation();
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  it.frozen     = false;
+  it.thawedDate = today();
+  it.expiryDate = thawExp(it.category);
+  save(); renderD();
+  showAlert(`🌡 Scongelato! Consumare entro: ${fmtDate(it.expiryDate)}`, 'warn', 5000);
+}
+
+/** Escape HTML per evitare XSS nei nomi dei prodotti */
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ----------------------------------------------------------------
+// 6. RENDER RICETTE
+// ----------------------------------------------------------------
+
+/** Cerca un ingrediente nella dispensa (match fuzzy su nome/chiave) */
+function findIng(name, key) {
+  if (!items.length) return null;
+  const n = name.toLowerCase(), k = (key || '').toLowerCase();
+  return items.find(it => {
+    const in2 = it.name.toLowerCase();
+    return in2.includes(n) || n.includes(in2) ||
+      (k && (in2.includes(k) || k.split(' ').some(kw => kw.length > 2 && in2.includes(kw))));
+  }) || null;
+}
+
+/** Verifica se ci sono ingredienti per 2 persone */
+function canMake(recipe) {
+  return recipe.ingredients.every(ing => {
+    const m = findIng(ing.name, ing.key);
+    return m && m.quantity >= ing.amt;
   });
 }
 
-function renderR(){
-  const q=document.getElementById('rsearch').value.toLowerCase();
-  let list=RECIPES.filter(r=>{
-    if(q&&!r.name.toLowerCase().includes(q))return false;
-    if(rf==='possibili'){return canMake(r)||canMake1(r);}
-    if(rf!=='tutte'&&r.cat!==rf)return false;
+/** Verifica se ci sono ingredienti per almeno 1 persona (≥50%) */
+function canMake1(recipe) {
+  return recipe.ingredients.every(ing => {
+    const m = findIng(ing.name, ing.key);
+    return m && m.quantity >= ing.amt * 0.5;
+  });
+}
+
+/** Ridisegna lista ricette */
+function renderR() {
+  const q = (document.getElementById('rsearch').value || '').toLowerCase();
+  const CAT_L = { italiana:'🇮🇹 Italiana', europea:'🇪🇺 Europea', giapponese:'🇯🇵 Giapponese', cinese:'🇨🇳 Cinese', asiatica:'🌏 Asiatica' };
+
+  let list = RECIPES.filter(r => {
+    if (q && !r.name.toLowerCase().includes(q)) return false;
+    if (rf === 'possibili') return canMake(r) || canMake1(r);
+    if (rf !== 'tutte' && r.cat !== rf) return false;
     return true;
   });
-  const CAT_LABELS={italiana:'🇮🇹 Italiana',europea:'🇪🇺 Europea',giapponese:'🇯🇵 Giapponese',cinese:'🇨🇳 Cinese',asiatica:'🌏 Asiatica'};
-  const el=document.getElementById('rlist');
-  if(!list.length){
-    el.innerHTML=`<div class="empty"><div class="eico">👨‍🍳</div><div class="etit">${rf==='possibili'?'Nessuna ricetta fattibile':'Nessuna ricetta'}</div><div class="esub">${rf==='possibili'?'Aggiungi più ingredienti per sbloccare ricette':'Prova con un altro filtro'}</div></div>`;
+
+  const el = document.getElementById('rlist');
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">
+      <div class="eico">👨‍🍳</div>
+      <div class="etit">${rf === 'possibili' ? 'Nessuna ricetta fattibile' : 'Nessuna ricetta'}</div>
+      <div class="esub">${rf === 'possibili' ? 'Aggiungi più ingredienti per sbloccare ricette' : 'Prova con un altro filtro'}</div>
+    </div>`;
     return;
   }
-  el.innerHTML=list.map(r=>{
-    const ok=canMake(r),ok1=canMake1(r);
-    const badge=ok?`<span style="color:var(--success);font-size:12px">✓ Tutto ok</span>`:ok1?`<span style="color:var(--warn);font-size:12px">⚡ Per 1 pers.</span>`:'';
-    return`<div class="rcard" onclick="openR('${r.id}')">
-<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-  <div>
-    <div class="rname">${r.icon} ${r.name}</div>
-    <div class="rcat ${r.cat}">${CAT_LABELS[r.cat]||r.cat}</div>
+
+  el.innerHTML = list.map(r => {
+    const ok = canMake(r), ok1 = canMake1(r);
+    const badge = ok
+      ? `<span style="color:var(--success);font-size:12px">✓ Tutto ok</span>`
+      : ok1
+        ? `<span style="color:var(--warn);font-size:12px">⚡ Per 1 pers.</span>`
+        : '';
+    return `<div class="rcard" onclick="openR('${r.id}')">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+    <div>
+      <div class="rname">${r.icon} ${escHtml(r.name)}</div>
+      <div class="rcat ${r.cat}">${CAT_L[r.cat] || r.cat}</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-size:12px;color:var(--text2)">⏱ ${r.time}min · ${r.diff}</div>
+      <div style="margin-top:3px">${badge}</div>
+    </div>
   </div>
-  <div style="text-align:right;flex-shrink:0">
-    <div style="font-size:12px;color:var(--text2)">⏱ ${r.time}min · ${r.diff}</div>
-    <div style="margin-top:3px">${badge}</div>
-  </div>
-</div>
-<div class="ringr">${r.ingredients.slice(0,5).map(i=>i.name).join(', ')}${r.ingredients.length>5?` +${r.ingredients.length-5}`:''}</div>
+  <div class="ringr">${r.ingredients.slice(0,5).map(i => i.name).join(', ')}${r.ingredients.length > 5 ? ` +${r.ingredients.length-5}` : ''}</div>
 </div>`;
   }).join('');
 }
 
-function openR(id){
-  const r=RECIPES.find(x=>x.id===id);if(!r)return;
-  const ok2=canMake(r),ok1=!ok2&&canMake1(r);
-  const portions=ok2?2:1;
-  const portionWarn=(!ok2&&ok1)?`<div class="portion-warn">⚡ Ingredienti sufficienti solo per <strong>1 persona</strong>.</div>`:'';
-  const CAT_LABELS={italiana:'🇮🇹 Italiana',europea:'🇪🇺 Europea',giapponese:'🇯🇵 Giapponese',cinese:'🇨🇳 Cinese',asiatica:'🌏 Asiatica'};
-  const ingrHtml=r.ingredients.map(ing=>{
-    const m=findIng(ing.name,ing.key);
-    const has=m&&m.quantity>=ing.amt*portions;
-    const dot=has?'ok':'miss';
-    const style=has?'':'color:var(--danger)';
-    return`<div class="ingr-item"><div class="idot ${dot}"></div><span style="${style}">${ing.name}</span>${!m?'<span style="font-size:11px;color:var(--danger);margin-left:4px">mancante</span>':''}<span class="iqt">${ing.amt*portions} ${ing.unit}</span></div>`;
+/** Apre il modal dettaglio ricetta */
+function openR(id) {
+  const r = RECIPES.find(x => x.id === id);
+  if (!r) return;
+  const ok2 = canMake(r), ok1 = !ok2 && canMake1(r);
+  const portions = ok2 ? 2 : 1;
+  const portionWarn = (!ok2 && ok1)
+    ? `<div class="portion-warn">⚡ Ingredienti sufficienti solo per <strong>1 persona</strong>.</div>` : '';
+  const CAT_L = { italiana:'🇮🇹 Italiana', europea:'🇪🇺 Europea', giapponese:'🇯🇵 Giapponese', cinese:'🇨🇳 Cinese', asiatica:'🌏 Asiatica' };
+
+  const ingrHtml = r.ingredients.map(ing => {
+    const m   = findIng(ing.name, ing.key);
+    const has = m && m.quantity >= ing.amt * portions;
+    return `<div class="ingr-item">
+  <div class="idot ${has ? 'ok' : 'miss'}"></div>
+  <span style="${has ? '' : 'color:var(--danger)'}">${escHtml(ing.name)}</span>
+  ${!m ? '<span style="font-size:11px;color:var(--danger);margin-left:4px">mancante</span>' : ''}
+  <span class="iqt">${ing.amt * portions} ${ing.unit}</span>
+</div>`;
   }).join('');
-  const stepsHtml=r.steps.map((s,i)=>`<div class="step"><div class="snum-n">${i+1}</div><div class="stxt">${s}</div></div>`).join('');
-  const mamboHtml=r.mambo&&r.mambo.length
-    ?`<div class="mambo-box">
+
+  const stepsHtml = r.steps.map((s, idx) =>
+    `<div class="step"><div class="step-num">${idx+1}</div><div class="stxt">${s}</div></div>`
+  ).join('');
+
+  const mamboHtml = r.mambo && r.mambo.length
+    ? `<div class="mambo-box">
 <div class="mambo-title">🤖 Cecotec Mambo Touch</div>
-${r.mambo.map((s,i)=>`<div class="step" style="margin-bottom:9px"><div class="snum-n" style="background:var(--freeze)">${i+1}</div><div class="stxt">${s}</div></div>`).join('')}
+${r.mambo.map((s,idx) => `<div class="step" style="margin-bottom:9px"><div class="step-num" style="background:var(--freeze)">${idx+1}</div><div class="stxt">${s}</div></div>`).join('')}
 </div>`
-    :`<div class="mambo-box" style="opacity:.5;font-size:13px;color:var(--text2)">🤖 Questa ricetta richiede cottura in padella/wok — non si può replicare nel Mambo.</div>`;
-  document.getElementById('rbody').innerHTML=`
-<div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin-bottom:4px">${r.icon} ${r.name}</div>
-<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--text2)"><span>${CAT_LABELS[r.cat]||r.cat}</span><span>⏱ ${r.time} min</span><span>⚡ ${r.diff}</span><span>👥 ${portions} pers.</span></div>
+    : `<div class="mambo-box" style="opacity:.5;font-size:13px;color:var(--text2)">🤖 Questa ricetta richiede wok/forno — non replicabile nel Mambo.</div>`;
+
+  document.getElementById('rbody').innerHTML = `
+<div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin-bottom:4px">${r.icon} ${escHtml(r.name)}</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--text2)">
+  <span>${CAT_L[r.cat]||r.cat}</span><span>⏱ ${r.time} min</span><span>⚡ ${r.diff}</span><span>👥 ${portions} pers.</span>
+</div>
 ${portionWarn}
 <div class="section-label">Ingredienti per ${portions} pers.</div>
 <div style="margin-bottom:16px">${ingrHtml}</div>
 <div class="section-label" style="margin-bottom:10px">Preparazione tradizionale</div>
-<div style="margin-bottom:16px">${stepsHtml}</div>
+<div style="margin-bottom:4px">${stepsHtml}</div>
 ${mamboHtml}`;
+
   document.getElementById('rmodal').classList.add('show');
 }
-function closeRModal(e,f){if(f||e?.target===document.getElementById('rmodal'))document.getElementById('rmodal').classList.remove('show');}
 
-// ================================================
-// EDIT MODAL
-// ================================================
-function openEdit(id,e){
-  e&&e.stopPropagation();
-  const it=items.find(i=>i.id===id);if(!it)return;
-  editId=id;
-  document.getElementById('en').value=it.name;
-  document.getElementById('eq').value=it.quantity;
-  document.getElementById('eu').value=it.unit;
-  document.getElementById('ee').value=it.expiryDate||'';
-  document.getElementById('ecat').value=it.category||'generico';
+/** Chiude il modal ricetta */
+function closeRModal(e, force) {
+  if (force || e?.target === document.getElementById('rmodal'))
+    document.getElementById('rmodal').classList.remove('show');
+}
+
+// ----------------------------------------------------------------
+// 7. LISTA DELLA SPESA
+// ----------------------------------------------------------------
+
+/**
+ * Ridisegna la lista della spesa, raggruppata per categoria.
+ * Gli item "spuntati" (checked) appaiono in fondo al gruppo.
+ */
+function renderShop() {
+  updateShopBadge();
+  const el = document.getElementById('shoplist');
+  if (!shopping.length) {
+    el.innerHTML = `<div class="empty">
+      <div class="eico">🛒</div>
+      <div class="etit">Lista vuota</div>
+      <div class="esub">Aggiungi alimenti da acquistare o consuma prodotti dalla dispensa!</div>
+    </div>`;
+    return;
+  }
+
+  // Raggruppa per categoria
+  const groups = {};
+  shopping.forEach(s => {
+    const cat = s.category || 'generico';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(s);
+  });
+
+  // Ordine categorie: prima le non-spuntate, poi generico in fondo
+  const catOrder = Object.keys(groups).sort((a, b) => {
+    const aChecked = groups[a].every(x => x.checked);
+    const bChecked = groups[b].every(x => x.checked);
+    if (aChecked !== bChecked) return aChecked ? 1 : -1;
+    if (a === 'generico') return 1;
+    if (b === 'generico') return -1;
+    return a.localeCompare(b);
+  });
+
+  el.innerHTML = catOrder.map(cat => {
+    const groupItems = groups[cat];
+    // Ordina: non-checked prima, checked dopo
+    const sorted = [...groupItems].sort((a, b) => (a.checked ? 1 : -1) - (b.checked ? 1 : -1));
+    const label = CAT_LABELS_FULL[cat] || cat;
+    const itemsHtml = sorted.map(s => `
+<div class="shop-item${s.checked ? ' checked' : ''}" id="si-${s.id}">
+  <div class="shop-check${s.checked ? ' checked' : ''}" onclick="toggleShopItem('${s.id}')">${s.checked ? '✓' : ''}</div>
+  <span class="shop-name">${escHtml(s.name)}</span>
+  <button class="shop-del" onclick="deleteShopItem('${s.id}')" title="Rimuovi">×</button>
+</div>`).join('');
+    return `<div class="shop-group">
+  <div class="shop-cat-label"><span>${label}</span></div>
+  ${itemsHtml}
+</div>`;
+  }).join('');
+}
+
+/** Aggiungi alimento alla lista spesa */
+function addToShopList() {
+  const nameEl = document.getElementById('sn');
+  const name   = (nameEl.value || '').trim();
+  const cat    = document.getElementById('sc-shop').value;
+  if (!name) { showAlert('Inserisci il nome dell\'alimento', 'err'); nameEl.focus(); return; }
+  // Controlla duplicati (case-insensitive)
+  if (shopping.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+    showAlert(`"${name}" è già nella lista!`, 'warn'); return;
+  }
+  shopping.push({ id: uid(), name, category: cat, checked: false, addedDate: today() });
+  save();
+  nameEl.value = '';
+  document.getElementById('sc-shop').value = 'generico';
+  document.getElementById('scat-hint').textContent = '';
+  renderShop();
+  showAlert(`✅ "${name}" aggiunto alla lista`, 'ok');
+}
+
+/** Spunta/de-spunta un item nella lista spesa */
+function toggleShopItem(id) {
+  const s = shopping.find(x => x.id === id);
+  if (!s) return;
+  s.checked = !s.checked;
+  save();
+  renderShop();
+}
+
+/** Rimuove un singolo item dalla lista spesa */
+function deleteShopItem(id) {
+  shopping = shopping.filter(x => x.id !== id);
+  save();
+  renderShop();
+}
+
+/** Rimuove tutti gli item spuntati dalla lista spesa */
+function clearCheckedShop() {
+  const count = shopping.filter(x => x.checked).length;
+  if (!count) { showAlert('Nessun elemento acquistato da rimuovere', 'warn'); return; }
+  shopping = shopping.filter(x => !x.checked);
+  save();
+  renderShop();
+  showAlert(`🗑 ${count} elemento/i rimosso/i`, 'ok');
+}
+
+/** Svuota l'intera lista spesa */
+function clearAllShop() {
+  if (!shopping.length) return;
+  shopping = [];
+  save();
+  renderShop();
+  showAlert('🗑 Lista svuotata', 'warn');
+}
+
+/** Auto-rileva categoria nel form lista spesa */
+function onShopNameInput() {
+  const v = document.getElementById('sn').value.trim();
+  if (v.length >= 2) {
+    const c = detectCat(v);
+    document.getElementById('sc-shop').value = c;
+    const lbl = CAT_LABELS_FULL[c];
+    document.getElementById('scat-hint').textContent = (c !== 'generico' && lbl)
+      ? `Categoria rilevata: ${lbl}` : '';
+  } else {
+    document.getElementById('scat-hint').textContent = '';
+  }
+}
+
+// ----------------------------------------------------------------
+// 8. EDIT MODAL
+// ----------------------------------------------------------------
+
+/** Apre il modal modifica per un item */
+function openEdit(id, e) {
+  e && e.stopPropagation();
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  editId = id;
+  document.getElementById('en').value   = it.name;
+  document.getElementById('eq').value   = it.quantity;
+  document.getElementById('eu').value   = it.unit;
+  document.getElementById('ee').value   = it.expiryDate || '';
+  document.getElementById('ecat').value = it.category || 'generico';
   document.getElementById('emodal').classList.add('show');
 }
-function saveEdit(){
-  const it=items.find(i=>i.id===editId);if(!it)return;
-  const name=document.getElementById('en').value.trim();
-  const qty=parseFloat(document.getElementById('eq').value);
-  if(!name){showAlert('Nome obbligatorio','err');return;}
-  if(isNaN(qty)||qty<0){showAlert('Quantità non valida','err');return;}
-  it.name=name;it.quantity=qty;it.unit=document.getElementById('eu').value;
-  it.expiryDate=document.getElementById('ee').value||null;
-  it.category=document.getElementById('ecat').value;
-  save();closeEdit(null,1);renderD();showAlert('✅ Salvato','ok');
+
+/** Salva le modifiche a un item */
+function saveEdit() {
+  const it = items.find(x => x.id === editId);
+  if (!it) return;
+  const name = document.getElementById('en').value.trim();
+  const qty  = parseFloat(document.getElementById('eq').value);
+  if (!name)          { showAlert('Il nome è obbligatorio', 'err'); return; }
+  if (isNaN(qty)||qty<0) { showAlert('Quantità non valida', 'err'); return; }
+  it.name      = name;
+  it.quantity  = qty;
+  it.unit      = document.getElementById('eu').value;
+  it.expiryDate= document.getElementById('ee').value || null;
+  it.category  = document.getElementById('ecat').value;
+  save(); closeEdit(null, 1); renderD();
+  showAlert('✅ Modifiche salvate', 'ok');
 }
-function closeEdit(e,f){if(f||e?.target===document.getElementById('emodal')){document.getElementById('emodal').classList.remove('show');editId=null;}}
 
-// ================================================
-// ADD FORM
-// ================================================
-let lastScanBarcode=null;
-
-function onNameInput(){
-  const v=document.getElementById('fn').value.trim();
-  if(v.length>=2){
-    const c=detectCat(v);
-    document.getElementById('fc').value=c;
-    const labels={carne:'🥩 Carne',pesce:'🐟 Pesce',verdure:'🥬 Verdure',frutta:'🍎 Frutta',latticini:'🧀 Latticini',pasta_cereali:'🍝 Pasta/Cereali',pane:'🍞 Pane',salumi:'🥓 Salumi',condimenti:'🫙 Condimenti',surgelati:'❄️ Surgelati',bevande:'🥤 Bevande',dolci:'🍰 Dolci',legumi:'🫘 Legumi',uova:'🥚 Uova',generico:''};
-    const lbl=labels[c];
-    document.getElementById('cat-hint').textContent=lbl&&c!=='generico'?`Categoria rilevata: ${lbl}`:'';
-  } else {
-    document.getElementById('cat-hint').textContent='';
+/** Chiude il modal modifica */
+function closeEdit(e, force) {
+  if (force || e?.target === document.getElementById('emodal')) {
+    document.getElementById('emodal').classList.remove('show');
+    editId = null;
   }
 }
 
-function onFreezeChange(){
-  const frozen=document.getElementById('ff').checked;
-  const lbl=document.getElementById('exp-lbl');
-  lbl.textContent=frozen?'Scadenza originale *':'Scadenza';
+// ----------------------------------------------------------------
+// 8b. FORM AGGIUNGI
+// ----------------------------------------------------------------
+
+let lastScanBarcode = null; // barcode letto dallo scanner
+
+/** Auto-rileva categoria dal nome nel form aggiungi */
+function onNameInput() {
+  const v = document.getElementById('fn').value.trim();
+  if (v.length >= 2) {
+    const c = detectCat(v);
+    document.getElementById('fc').value = c;
+    const lbl = CAT_LABELS_FULL[c];
+    document.getElementById('cat-hint').textContent = (c !== 'generico' && lbl)
+      ? `Categoria rilevata: ${lbl}` : '';
+  } else {
+    document.getElementById('cat-hint').textContent = '';
+  }
+}
+
+/** Aggiorna stima scadenza in cella */
+function onFreezeChange() {
+  const frozen = document.getElementById('ff').checked;
+  document.getElementById('exp-lbl').textContent = frozen ? 'Scadenza originale *' : 'Scadenza';
   updateFreezeEst();
 }
-function updateFreezeEst(){
-  const frozen=document.getElementById('ff').checked;
-  const exp=document.getElementById('fe').value;
-  const cat=document.getElementById('fc').value;
-  const el=document.getElementById('fest');
-  if(frozen){
-    if(exp){
-      const est=freezeExp(exp,cat);
-      el.textContent=`❄ Scadenza stimata in cella: ${fmtDate(est)}`;
-    } else {
-      el.textContent='❄ Inserisci la scadenza per stimare quella in cella';
-    }
+
+function updateFreezeEst() {
+  const frozen = document.getElementById('ff').checked;
+  const exp    = document.getElementById('fe').value;
+  const cat    = document.getElementById('fc').value;
+  const el     = document.getElementById('fest');
+  if (frozen) {
+    el.textContent = exp
+      ? `❄ Scadenza stimata in cella: ${fmtDate(freezeExp(exp, cat))}`
+      : '❄ Inserisci la scadenza per stimare quella in cella';
   } else {
-    el.textContent='';
+    el.textContent = '';
   }
 }
-document.getElementById('fe').addEventListener('input',updateFreezeEst);
-document.getElementById('fc').addEventListener('change',updateFreezeEst);
 
-function clearForm(){
-  document.getElementById('fn').value='';
-  document.getElementById('fq').value='';
-  document.getElementById('fu').value='pz';
-  document.getElementById('fc').value='generico';
-  document.getElementById('fe').value='';
-  document.getElementById('ff').checked=false;
-  document.getElementById('fest').textContent='';
-  document.getElementById('exp-lbl').textContent='Scadenza';
-  document.getElementById('cat-hint').textContent='';
-  document.getElementById('scan-feedback').style.display='none';
-  document.getElementById('scanbtn').className='scan-btn';
-  document.getElementById('scanbtn').innerHTML='<span style="font-size:22px">📷</span><span>Scansiona Barcode</span>';
-  lastScanBarcode=null;
+// Listener cambiamenti data/categoria per aggiornare stima freeze
+document.getElementById('fe').addEventListener('input', updateFreezeEst);
+document.getElementById('fc').addEventListener('change', updateFreezeEst);
+
+/** Azzera il form aggiungi */
+function clearForm() {
+  ['fn','fq','fe'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fu').value  = 'pz';
+  document.getElementById('fc').value  = 'generico';
+  document.getElementById('ff').checked = false;
+  document.getElementById('fest').textContent       = '';
+  document.getElementById('exp-lbl').textContent    = 'Scadenza';
+  document.getElementById('cat-hint').textContent   = '';
+  document.getElementById('scan-feedback').style.display = 'none';
+  document.getElementById('scanbtn').className = 'scan-btn';
+  document.getElementById('scanbtn').innerHTML = '<span style="font-size:22px">📷</span><span>Scansiona Barcode</span>';
+  lastScanBarcode = null;
 }
 
-function saveItem(){
-  const name=document.getElementById('fn').value.trim();
-  const qty=parseFloat(document.getElementById('fq').value);
-  const unit=document.getElementById('fu').value;
-  const cat=document.getElementById('fc').value;
-  const frozen=document.getElementById('ff').checked;
-  const exp=document.getElementById('fe').value;
-  if(!name){showAlert('Il nome è obbligatorio','err');return;}
-  if(isNaN(qty)||qty<=0){showAlert('Inserisci una quantità valida','err');return;}
-  if(frozen&&!exp){showAlert('La scadenza originale è obbligatoria per la cella ❄','err');return;}
-  let finalExp=null,origExp=null;
-  if(frozen){origExp=exp;finalExp=freezeExp(exp,cat);}
-  else{finalExp=exp||null;}
-  items.push({id:uid(),name,quantity:qty,unit,category:cat,
-    expiryDate:finalExp,originalExpiry:origExp,
-    frozen,frozenDate:frozen?today():null,thawedDate:null,
-    barcode:lastScanBarcode,addedDate:today()});
-  save();clearForm();renderD();renderR();
-  showAlert(`✅ "${name}" aggiunto!`,'ok');
+/** Salva un nuovo item in dispensa */
+function saveItem() {
+  const name   = document.getElementById('fn').value.trim();
+  const qty    = parseFloat(document.getElementById('fq').value);
+  const unit   = document.getElementById('fu').value;
+  const cat    = document.getElementById('fc').value;
+  const frozen = document.getElementById('ff').checked;
+  const exp    = document.getElementById('fe').value;
+
+  if (!name)            { showAlert('Il nome è obbligatorio', 'err'); return; }
+  if (isNaN(qty)||qty<=0) { showAlert('Inserisci una quantità valida', 'err'); return; }
+  if (frozen && !exp)   { showAlert('La scadenza originale è obbligatoria per la cella ❄', 'err'); return; }
+
+  let finalExp = null, origExp = null;
+  if (frozen) { origExp = exp; finalExp = freezeExp(exp, cat); }
+  else        { finalExp = exp || null; }
+
+  items.push({
+    id: uid(), name, quantity: qty, unit, category: cat,
+    expiryDate: finalExp, originalExpiry: origExp,
+    frozen, frozenDate: frozen ? today() : null,
+    thawedDate: null, barcode: lastScanBarcode, addedDate: today()
+  });
+
+  save(); clearForm(); renderD(); renderR();
+  showAlert(`✅ "${name}" aggiunto alla dispensa!`, 'ok');
 }
 
-// ================================================
-// BARCODE SCANNER
-// ================================================
-function openScanner(){
+// ----------------------------------------------------------------
+// 9. BARCODE SCANNER
+// ----------------------------------------------------------------
+
+/** Apre lo scanner barcode */
+function openScanner() {
   document.getElementById('scan-overlay').classList.add('show');
-  document.getElementById('scan-status').textContent='Avvio fotocamera…';
-  scanner=new Html5Qrcode('reader');
-  scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:140},aspectRatio:1.7},
-    onScanOk, ()=>{})
-    .then(()=>{
-      scanRunning=true;
-      document.getElementById('scan-status').textContent='Punta la fotocamera sul barcode';
-    })
-    .catch(err=>{
-      document.getElementById('scan-status').textContent='❌ Camera non disponibile: '+err;
-    });
+  document.getElementById('scan-status').textContent = 'Avvio fotocamera…';
+  scanner = new Html5Qrcode('reader');
+  scanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 280, height: 140 }, aspectRatio: 1.7 },
+    onScanOk, () => {}
+  ).then(() => {
+    scanRunning = true;
+    document.getElementById('scan-status').textContent = 'Punta la fotocamera sul barcode';
+  }).catch(err => {
+    document.getElementById('scan-status').textContent = '❌ Camera non disponibile: ' + err;
+  });
 }
-function closeScanner(){
-  if(scanner&&scanRunning){
-    scanner.stop().then(()=>{scanner.clear();scanner=null;scanRunning=false;}).catch(()=>{});
+
+/** Chiude lo scanner barcode */
+function closeScanner() {
+  if (scanner && scanRunning) {
+    scanner.stop().then(() => { scanner.clear(); scanner = null; scanRunning = false; }).catch(() => {});
   }
   document.getElementById('scan-overlay').classList.remove('show');
 }
-async function onScanOk(barcode){
-  if(!scanRunning)return;
+
+/**
+ * Callback eseguita quando viene letto un barcode.
+ * Cerca il prodotto su Open Food Facts e precompila il form.
+ */
+async function onScanOk(barcode) {
+  if (!scanRunning) return;
   closeScanner();
-  lastScanBarcode=barcode;
-  const fb=document.getElementById('scan-feedback');
-  const btn=document.getElementById('scanbtn');
-  fb.textContent=`📡 Ricerca prodotto…`;fb.style.display='block';
-  try{
-    const res=await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-    const data=await res.json();
-    if(data.status===1&&data.product){
-      const p=data.product;
-      const name=p.product_name_it||p.product_name||p.generic_name||'';
-      const qStr=p.quantity||'';
-      let pq=1,pu='pz';
-      const m=qStr.match(/(\d+\.?\d*)\s*(g|kg|ml|l)/i);
-      if(m){pq=parseFloat(m[1]);pu=m[2].toLowerCase();}
-      if(name){document.getElementById('fn').value=name;onNameInput();}
-      if(pq)document.getElementById('fq').value=pq;
-      document.getElementById('fu').value=pu;
-      fb.textContent=`✅ Trovato: ${name||barcode} ${qStr?'('+qStr+')':''}`;
-      btn.className='scan-btn scanning';
-      btn.innerHTML=`<span style="font-size:22px">✅</span><span>Scansionato · Scansiona di nuovo</span>`;
+  lastScanBarcode = barcode;
+  const fb  = document.getElementById('scan-feedback');
+  const btn = document.getElementById('scanbtn');
+  fb.textContent = `📡 Ricerca prodotto…`; fb.style.display = 'block';
+  try {
+    const res  = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    const data = await res.json();
+    if (data.status === 1 && data.product) {
+      const p    = data.product;
+      const name = p.product_name_it || p.product_name || p.generic_name || '';
+      const qStr = p.quantity || '';
+      let pq = 1, pu = 'pz';
+      const m = qStr.match(/(\d+\.?\d*)\s*(g|kg|ml|l)/i);
+      if (m) { pq = parseFloat(m[1]); pu = m[2].toLowerCase(); }
+      if (name) { document.getElementById('fn').value = name; onNameInput(); }
+      if (pq)   document.getElementById('fq').value = pq;
+      document.getElementById('fu').value = pu;
+      fb.textContent = `✅ Trovato: ${name || barcode}${qStr ? ' (' + qStr + ')' : ''}`;
+      btn.className = 'scan-btn scanning';
+      btn.innerHTML = `<span style="font-size:22px">✅</span><span>Scansionato · Scansiona di nuovo</span>`;
     } else {
-      fb.textContent=`⚠ Prodotto non trovato (${barcode}). Compila il nome manualmente.`;
-      btn.className='scan-btn scanning';
-      btn.innerHTML=`<span style="font-size:22px">🔄</span><span>Non trovato · Riprova</span>`;
+      fb.textContent = `⚠ Prodotto non trovato (${barcode}). Compila il nome manualmente.`;
+      btn.className = 'scan-btn scanning';
+      btn.innerHTML = `<span style="font-size:22px">🔄</span><span>Non trovato · Riprova</span>`;
     }
-  }catch{
-    fb.textContent=`⚠ Errore di rete. Barcode: ${barcode}`;
+  } catch(err) {
+    fb.textContent = `⚠ Errore di rete. Barcode: ${barcode}`;
+    console.error('Scanner fetch error:', err);
   }
 }
 
-// ================================================
-// INIT
-// ================================================
-load();renderD();renderR();
+// ----------------------------------------------------------------
+// 10. INIT
+// ----------------------------------------------------------------
 
-// Swipe down to close recipe modal
-let ty0=0;
-document.getElementById('rsheet').addEventListener('touchstart',e=>ty0=e.touches[0].clientY);
-document.getElementById('rsheet').addEventListener('touchmove',e=>{if(e.touches[0].clientY-ty0>70)closeRModal(null,1);});
+/** Punto di ingresso: carica dati e renderizza la home */
+load();
+renderD();
+renderR();
+updateShopBadge();
+
+// Swipe down per chiudere il modal ricetta
+let swipeStartY = 0;
+document.getElementById('rsheet').addEventListener('touchstart', e => {
+  swipeStartY = e.touches[0].clientY;
+}, { passive: true });
+document.getElementById('rsheet').addEventListener('touchmove', e => {
+  if (e.touches[0].clientY - swipeStartY > 80) closeRModal(null, 1);
+}, { passive: true });
+
 </script>
 </body>
 </html>
