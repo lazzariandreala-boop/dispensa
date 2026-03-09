@@ -211,6 +211,23 @@ body{display:flex;justify-content:center}
       <div class="scard"><div class="snum" style="color:var(--warn)" id="st-exp">0</div><div class="slbl">In scadenza</div></div>
       <div class="scard"><div class="snum" style="color:var(--freeze)" id="st-frz">0</div><div class="slbl">In cella</div></div>
     </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="st-tot">0</div>
+        <div class="stat-label">Totale</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--warn)" id="st-exp">0</div>
+        <div class="stat-label">In scadenza</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--freeze)" id="st-frz">0</div>
+        <div class="stat-label">In cella</div>
+      </div>
+    </div>
+
+    
     <div class="sbox"><span>🔍</span><input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()"></div>
     <div class="frow">
       <div class="chip active" onclick="setDF('tutti',this)">Tutti</div>
