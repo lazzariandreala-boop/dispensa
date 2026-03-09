@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>🫙 Dispensa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#111;--bg2:#1c1c1c;--bg3:#252525;--border:#2e2e2e;
+  --accent:#e8821e;--accent2:#f0a84e;
+  --text:#f0ede8;--text2:#999;--text3:#555;
+  --danger:#e05555;--success:#5bbf7e;--freeze:#5b9be0;--warn:#e0b855;
+  --r:14px;--rs:8px;--shadow:0 4px 24px rgba(0,0,0,.55);
+  --tabh:66px;--safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;overflow:hidden}
+body{display:flex;justify-content:center}
+
+#wrap{width:100%;max-width:580px;height:100%;display:flex;flex-direction:column;position:relative}
+
+/* HEADER */
+#hdr{padding:max(16px,env(safe-area-inset-top)) 18px 12px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0}
+#hdr h1{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ALERT */
+#alert{display:none;padding:9px 18px;font-size:13px;font-weight:500;text-align:center;flex-shrink:0}
+#alert.show{display:block}
+#alert.warn{background:var(--warn);color:#1a1200}
+#alert.err{background:var(--danger);color:#fff}
+#alert.ok{background:var(--success);color:#fff}
+
+/* MAIN */
+#main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--tabh) + 8px)}
+.page{display:none;padding:14px 14px 0;animation:fi .2s ease}
+.page.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* TABS */
+#tabs{height:var(--tabh);background:var(--bg2);border-top:1px solid var(--border);display:flex;flex-shrink:0;padding-bottom:var(--safe-bottom)}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:color .2s}
+.tb.active{color:var(--accent)}
+.tb .ico{font-size:21px;line-height:1}
+.tb .lbl{font-size:11px;font-weight:600;letter-spacing:.3px}
+
+/* CARD / COMMON */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:9px}
+.stitle{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin-bottom:11px}
+.badge{border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700}
+.badge.fr{background:var(--freeze);color:#fff}
+.badge.wn{background:var(--warn);color:#1a1200}
+.badge.dn{background:var(--danger);color:#fff}
+
+/* SEARCH */
+.sbox{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.sbox input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif}
+.sbox input::placeholder{color:var(--text3)}
+
+/* FILTER CHIPS */
+.frow{display:flex;gap:7px;overflow-x:auto;padding-bottom:9px;margin-bottom:11px;scrollbar-width:none}
+.frow::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);cursor:pointer;background:var(--bg2);color:var(--text2);transition:all .15s;white-space:nowrap}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:13px}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 8px;text-align:center}
+.snum{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--accent)}
+.slbl{font-size:10px;color:var(--text2);margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+
+/* ITEM CARD (dispensa) */
+.icard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;overflow:hidden;transition:border-color .15s}
+.icard.expiring{border-left:3px solid var(--warn)}
+.icard.expired{border-left:3px solid var(--danger);opacity:.8}
+.icard.frozen{border-left:3px solid var(--freeze)}
+.irow{display:flex;align-items:center;gap:11px;padding:12px 13px;cursor:pointer}
+.irow:active{background:var(--bg3)}
+.iico{font-size:26px;flex-shrink:0;width:36px;text-align:center}
+.iinfo{flex:1;min-width:0}
+.iname{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imeta{font-size:11px;color:var(--text2);margin-top:2px}
+.iexp{font-size:11px;font-weight:600;margin-top:2px}
+.iexp.ok{color:var(--success)}
+.iexp.soon{color:var(--warn)}
+.iexp.expired{color:var(--danger)}
+.iqty{font-size:13px;color:var(--text2);flex-shrink:0;white-space:nowrap}
+
+/* ITEM ACTIONS (inline) */
+.iactions{display:none;border-top:1px solid var(--border);padding:10px 12px;background:var(--bg3);gap:7px;flex-wrap:wrap}
+.iactions.open{display:flex}
+.abtn{padding:7px 13px;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;border:1px solid;background:transparent;font-family:'DM Sans',sans-serif;transition:opacity .15s;white-space:nowrap}
+.abtn:active{opacity:.65}
+.abtn.ok{color:var(--success);border-color:var(--success)}
+.abtn.fr{color:var(--freeze);border-color:var(--freeze)}
+.abtn.dn{color:var(--danger);border-color:var(--danger)}
+.abtn.wn{color:var(--warn);border-color:var(--warn)}
+.abtn.ac{color:var(--accent);border-color:var(--accent)}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:var(--text3)}
+.empty .eico{font-size:52px;margin-bottom:10px}
+.empty .etit{font-family:'Syne',sans-serif;font-size:17px;color:var(--text2);margin-bottom:5px}
+.empty .esub{font-size:13px}
+
+/* RECIPE CARD */
+.rcard{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:border-color .15s}
+.rcard:active{background:var(--bg3)}
+.rname{font-family:'Syne',sans-serif;font-weight:700;font-size:15px}
+.rcat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:2px}
+.rcat.italiana{color:var(--accent)}.rcat.europea{color:var(--freeze)}.rcat.giapponese{color:var(--danger)}.rcat.cinese{color:var(--warn)}.rcat.asiatica{color:var(--success)}
+.rmeta{font-size:12px;color:var(--text2);margin-top:5px;display:flex;gap:10px}
+.ringr{font-size:11px;color:var(--text3);margin-top:5px}
+
+/* RECIPE MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:all}
+.sheet{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:18px 18px calc(18px + var(--safe-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);border-top:1px solid var(--border)}
+.overlay.show .sheet{transform:translateY(0)}
+.handle{width:38px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
+.mclose{position:absolute;top:18px;right:18px;width:30px;height:30px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);margin-bottom:7px}
+.ingr-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.ingr-item:last-child{border-bottom:none}
+.idot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.idot.ok{background:var(--success)}.idot.miss{background:var(--danger)}
+.iqt{margin-left:auto;color:var(--text2);font-size:12px;flex-shrink:0}
+.step{display:flex;gap:10px;margin-bottom:10px}
+.snum{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.stxt{font-size:13px;line-height:1.6;color:var(--text2);flex:1}
+.portion-warn{background:rgba(224,184,85,.12);border:1px solid var(--warn);border-radius:var(--rs);padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--warn)}
+.snum-n{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.mambo-box{background:rgba(91,155,224,.08);border:1px solid var(--freeze);border-radius:var(--r);padding:14px;margin-top:4px;margin-bottom:8px}
+.mambo-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--freeze);margin-bottom:12px}
+
+/* ADD FORM */
+.scan-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:13px;border-radius:var(--r);background:var(--bg3);border:1px dashed var(--border);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:16px;transition:all .2s}
+.scan-btn:active{opacity:.7}
+.scan-btn.scanning{border-color:var(--accent);color:var(--accent);background:rgba(232,130,30,.08)}
+.fl{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.fi{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:10px 13px;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;outline:none;-webkit-appearance:none;transition:border-color .15s}
+.fi:focus{border-color:var(--accent)}
+.fi::placeholder{color:var(--text3)}
+.fg{margin-bottom:14px}
+.fr2{display:flex;gap:9px}
+.fr2 .fg{flex:1}
+.sw-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:14px}
+.sw-t{font-size:14px;font-weight:500}
+.sw-s{font-size:11px;color:var(--text2);margin-top:2px}
+.tgl{position:relative;width:48px;height:26px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tgl-s{position:absolute;inset:0;cursor:pointer;background:var(--bg3);border-radius:13px;transition:background .2s;border:1px solid var(--border)}
+.tgl-s::before{content:'';position:absolute;height:20px;width:20px;left:2px;top:2px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.tgl input:checked+.tgl-s{background:var(--freeze);border-color:var(--freeze)}
+.tgl input:checked+.tgl-s::before{transform:translateX(22px)}
+.freeze-est{font-size:12px;color:var(--freeze);margin-top:6px;min-height:18px}
+.cat-detected{font-size:11px;color:var(--success);margin-top:4px}
+.btn{display:block;width:100%;padding:13px;border-radius:var(--r);font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;border:none;transition:all .15s;text-align:center;margin-bottom:10px}
+.btn-p{background:var(--accent);color:#fff}
+.btn-p:active{background:#c96e15}
+.btn-s{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+/* SCANNER OVERLAY */
+#scan-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+#scan-overlay.show{opacity:1;pointer-events:all}
+#scan-overlay h2{font-family:'Syne',sans-serif;font-size:18px;margin-bottom:14px;color:var(--text)}
+#reader-container{width:100%;max-width:360px;border-radius:var(--r);overflow:hidden;background:#000}
+#reader-container #reader{width:100%}
+#scan-status{color:var(--text2);font-size:13px;margin-top:12px;text-align:center}
+#scan-close{margin-top:18px;padding:11px 30px;border-radius:var(--r);background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+
+/* EDIT MODAL */
+.emodal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:150;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;pointer-events:none;transition:opacity .2s}
+.emodal.show{opacity:1;pointer-events:all}
+.ebox{background:var(--bg2);border-radius:var(--r);padding:18px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;border:1px solid var(--border);transform:scale(.96);transition:transform .2s}
+.emodal.show .ebox{transform:scale(1)}
+.etop{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.etop h2{font-family:'Syne',sans-serif;font-size:17px}
+
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* MAMBO TOUCH */
+.mambo-box{background:rgba(91,155,224,.08);border:1px solid rgba(91,155,224,.3);border-radius:var(--rs);padding:12px 14px;margin-top:14px}
+.mambo-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--freeze);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.mambo-step{display:flex;gap:9px;margin-bottom:8px;font-size:13px;line-height:1.5}
+.mambo-step:last-child{margin-bottom:0}
+.mambo-num{width:20px;height:20px;border-radius:50%;background:var(--freeze);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.mambo-param{display:inline-block;background:rgba(91,155,224,.15);color:var(--freeze);border-radius:4px;padding:1px 6px;font-size:11px;font-weight:600;margin:0 2px}
+</style>
+</head>
+<body>
+<div id="wrap">
+
+<header id="hdr">
+  <h1>🫙 Dispensa</h1>
+</header>
+
+<div id="alert"></div>
+
+<div id="main">
+
+  <!-- ===== DISPENSA ===== -->
+  <div id="pg-dispensa" class="page active">
+    <div class="stats">
+      <div class="scard"><div class="snum" id="st-tot">0</div><div class="slbl">Totale</div></div>
+      <div class="scard"><div class="snum" style="color:var(--warn)" id="st-exp">0</div><div class="slbl">In scadenza</div></div>
+      <div class="scard"><div class="snum" style="color:var(--freeze)" id="st-frz">0</div><div class="slbl">In cella</div></div>
+    </div>
+    <div class="sbox"><span>🔍</span><input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()"></div>
+    <div class="frow">
+      <div class="chip active" onclick="setDF('tutti',this)">Tutti</div>
+      <div class="chip" onclick="setDF('presto',this)">⚠ Scade presto</div>
+      <div class="chip" onclick="setDF('frozen',this)">❄ In cella</div>
+      <div class="chip" onclick="setDF('scaduti',this)">❌ Scaduti</div>
+    </div>
+    <div id="dlist"></div>
+  </div>
+
+  <!-- ===== RICETTE ===== -->
+  <div id="pg-ricette" class="page">
+    <div class="sbox"><span>🔍</span><input id="rsearch" placeholder="Cerca ricetta…" oninput="renderR()"></div>
+    <div class="frow">
+      <div class="chip active" data-rf="possibili" onclick="setRF('possibili',this)">✅ Possibili</div>
+      <div class="chip" data-rf="tutte" onclick="setRF('tutte',this)">Tutte</div>
+      <div class="chip" data-rf="italiana" onclick="setRF('italiana',this)">🇮🇹 Italiana</div>
+      <div class="chip" data-rf="europea" onclick="setRF('europea',this)">🇪🇺 Europea</div>
+      <div class="chip" data-rf="giapponese" onclick="setRF('giapponese',this)">🇯🇵 Giapponese</div>
+      <div class="chip" data-rf="cinese" onclick="setRF('cinese',this)">🇨🇳 Cinese</div>
+      <div class="chip" data-rf="asiatica" onclick="setRF('asiatica',this)">🌏 Asiatica</div>
+    </div>
+    <div id="rlist"></div>
+  </div>
+
+  <!-- ===== AGGIUNGI ===== -->
+  <div id="pg-aggiungi" class="page">
+    <button class="scan-btn" id="scanbtn" onclick="openScanner()">
+      <span style="font-size:22px">📷</span>
+      <span>Scansiona Barcode</span>
+    </button>
+
+    <div id="scan-feedback" style="display:none;background:rgba(91,191,126,.1);border:1px solid var(--success);border-radius:var(--rs);padding:10px 13px;margin-bottom:14px;font-size:13px;color:var(--success)"></div>
+
+    <div class="fg">
+      <label class="fl">Nome alimento *</label>
+      <input class="fi" id="fn" placeholder="es. Pasta, Pollo, Latte…" oninput="onNameInput()">
+      <div class="cat-detected" id="cat-hint"></div>
+    </div>
+    <div class="fr2">
+      <div class="fg">
+        <label class="fl">Quantità *</label>
+        <input class="fi" id="fq" type="number" min="0" step="any" placeholder="1">
+      </div>
+      <div class="fg">
+        <label class="fl">Unità</label>
+        <select class="fi" id="fu">
+          <option value="pz">pz</option><option value="g">g</option><option value="kg">kg</option>
+          <option value="ml">ml</option><option value="l">l</option><option value="conf">conf.</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Categoria</label>
+      <select class="fi" id="fc">
+        <option value="generico">Generico</option><option value="carne">Carne</option>
+        <option value="pesce">Pesce</option><option value="verdure">Verdure</option>
+        <option value="frutta">Frutta</option><option value="latticini">Latticini</option>
+        <option value="pasta_cereali">Pasta / Cereali</option><option value="pane">Pane</option>
+        <option value="salumi">Salumi</option><option value="condimenti">Condimenti</option>
+        <option value="surgelati">Surgelati</option><option value="bevande">Bevande</option>
+        <option value="dolci">Dolci</option><option value="legumi">Legumi</option>
+        <option value="uova">Uova</option>
+      </select>
+    </div>
+
+    <div class="fg">
+      <label class="fl" id="exp-lbl">Scadenza</label>
+      <input class="fi" id="fe" type="date">
+      <div class="freeze-est" id="fest"></div>
+    </div>
+
+    <div class="sw-row">
+      <div><div class="sw-t">❄️ Metti in cella</div><div class="sw-s">Stima scadenza da congelamento</div></div>
+      <label class="tgl"><input type="checkbox" id="ff" onchange="onFreezeChange()"><span class="tgl-s"></span></label>
+    </div>
+
+    <button class="btn btn-p" onclick="saveItem()">💾 Aggiungi alla Dispensa</button>
+  </div>
+
+</div>
+
+<!-- BOTTOM TABS -->
+<nav id="tabs">
+  <button class="tb active" onclick="goTab('dispensa',this)">
+    <span class="ico">🫙</span><span class="lbl">Dispensa</span>
+  </button>
+  <button class="tb" onclick="goTab('ricette',this)">
+    <span class="ico">👨‍🍳</span><span class="lbl">Ricette</span>
+  </button>
+  <button class="tb" onclick="goTab('aggiungi',this)">
+    <span class="ico">➕</span><span class="lbl">Aggiungi</span>
+  </button>
+</nav>
+
+</div><!-- end #wrap -->
+
+<!-- SCANNER OVERLAY -->
+<div id="scan-overlay">
+  <h2>📷 Scansiona Barcode</h2>
+  <div id="reader-container"><div id="reader"></div></div>
+  <div id="scan-status">Punta la fotocamera sul barcode</div>
+  <button id="scan-close" onclick="closeScanner()">✕ Chiudi</button>
+</div>
+
+<!-- RECIPE MODAL -->
+<div id="rmodal" class="overlay" onclick="closeRModal(event)">
+  <div class="sheet" id="rsheet">
+    <div class="handle"></div>
+    <button class="mclose" onclick="closeRModal(null,1)">×</button>
+    <div id="rbody"></div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="emodal" class="emodal" onclick="closeEdit(event)">
+  <div class="ebox">
+    <div class="etop"><h2>✏️ Modifica</h2><button class="mclose" style="position:static" onclick="closeEdit(null,1)">×</button></div>
+    <div class="fg"><label class="fl">Nome</label><input class="fi" id="en"></div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Quantità</label><input class="fi" id="eq" type="number"></div>
+      <div class="fg"><label class="fl">Unità</label>
+        <select class="fi" id="eu">
+          <option value="pz">pz</option><option value="g">g</option><option value="kg">kg</option>
+          <option value="ml">ml</option><option value="l">l</option><option value="conf">conf.</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Categoria</label>
+      <select class="fi" id="ecat">
+        <option value="generico">Generico</option><option value="carne">Carne</option>
+        <option value="pesce">Pesce</option><option value="verdure">Verdure</option>
+        <option value="frutta">Frutta</option><option value="latticini">Latticini</option>
+        <option value="pasta_cereali">Pasta / Cereali</option><option value="pane">Pane</option>
+        <option value="salumi">Salumi</option><option value="condimenti">Condimenti</option>
+        <option value="surgelati">Surgelati</option><option value="bevande">Bevande</option>
+        <option value="dolci">Dolci</option><option value="legumi">Legumi</option><option value="uova">Uova</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Scadenza</label><input class="fi" id="ee" type="date"></div>
+    <div class="divider"></div>
+    <button class="btn btn-p" onclick="saveEdit()">💾 Salva</button>
+    <button class="btn btn-s" onclick="closeEdit(null,1)">Annulla</button>
+  </div>
+</div>
+
+<script>
+// ================================================
+// RECIPES DATABASE (~150 ricette)
+// ================================================
+const RC={italiana:'italiana',eu:'europea',jp:'giapponese',cn:'cinese',as:'asiatica'};
+function r(id,name,cat,time,diff,icon,ingr,steps,mambo){return{id,name,cat,time,diff,icon,ingredients:ingr,steps,mambo:mambo||null}}
+function i(name,amt,unit,key){return{name,amt,unit,key}}
+
+const RECIPES=[
+// ===== ITALIANE =====
+r('i1','Spaghetti Carbonara',RC.italiana,25,'media','🍝',
+[i('spaghetti',180,'g','pasta'),i('guanciale',100,'g','guanciale'),i('uova',2,'pz','uova'),i('pecorino romano',50,'g','pecorino'),i('pepe nero',4,'g','pepe')],
+['Porta a ebollizione abbondante acqua (almeno 2 litri) e salala moderatamente — il guanciale è già salato.','Taglia 100g di guanciale a bastoncini spessi ~1 cm. Mettili in una padella fredda (senza olio) e accendi la fiamma a fuoco medio-basso: il grasso deve sciogliersi lentamente. Cuoci 8-10 min finché i pezzetti sono dorati e croccanti ma non bruciati. Togli dalla fiamma e tieni il grasso nella padella.','In una ciotola capiente sbatti 2 tuorli + 1 uovo intero con 50g di pecorino grattugiato finemente e abbondante pepe nero macinato al momento (almeno 1 cucchiaino). Il composto deve essere denso e cremoso.','Cuoci 180g di spaghetti: toglili 1 minuto prima del tempo indicato (devono essere molto al dente). Prima di scolare, preleva 2 mestoli abbondanti di acqua di cottura amidacea e tienila da parte.','Scola la pasta e versala DIRETTAMENTE nella padella col guanciale — SENZA rimettere sul fuoco. Mescola energicamente 30 secondi per mantecarla col grasso.','Aspetta 30 secondi (la padella deve raffreddarsi leggermente, altrimenti le uova si rapprendono). Versa il mix di uova sulla pasta mescolando continuamente e velocemente. Aggiungi acqua di cottura poco per volta — 2-3 cucchiai alla volta — mescolando fino a ottenere una crema lucida e vellutata che avvolge ogni spaghetto. Potrebbe servire anche 100-150ml totali.','Impiatta subito, aggiungi altro pecorino grattugiato e pepe nero. Servi immediatamente.'],
+['Trita finemente il guanciale: mettilo nel boccale e trita 3 sec / Vel. 5. Togli e metti da parte.','Senza lavare il boccale, cuoci il guanciale: 8 min / 120°C / Vel. 1. Il grasso si scioglierà e i pezzetti diventeranno croccanti. Trasferisci in una padella e tieni al caldo.','Nel boccale pulito prepara la crema: inserisci 2 tuorli + 1 uovo intero, 50g pecorino grattugiato, pepe abbondante. Mescola 20 sec / Vel. 4.','Cuoci gli spaghetti in pentola normale (il Mambo non è ideale per la pasta lunga). Scola tenendo abbondante acqua di cottura.','Versa la pasta nella padella col guanciale spento, aggiungi la crema di uova dal boccale e manteca aggiungendo acqua di cottura a filo — il Mambo può riscaldare la crema: 1 min / 60°C / Vel. 2 per scaldarla prima di versarla se la pasta è fredda.']),
+
+r('i2','Risotto ai Porcini',RC.italiana,35,'media','🍄',
+[i('riso carnaroli',180,'g','riso'),i('funghi porcini freschi',150,'g','funghi'),i('cipolla dorata',1,'pz','cipolla'),i('vino bianco secco',80,'ml','vino'),i('burro',50,'g','burro'),i('parmigiano',50,'g','parmigiano'),i('brodo vegetale',700,'ml','brodo'),i('aglio',1,'pz','aglio'),i('prezzemolo',5,'g','prezzemolo')],
+['Scalda il brodo vegetale in una casseruola a parte e tienilo sempre caldo sul fuoco basso — il brodo freddo blocca la cottura del risotto.','Pulisci 150g di porcini con un panno umido (mai lavarli sotto acqua corrente), tagliali a fette spesse. In una padella scalda 1 cucchiaio di olio con 1 spicchio d\'aglio schiacciato, aggiungi i funghi e cuoci a fuoco vivace 5-6 min finché dorati. Sala, aggiungi prezzemolo e tieni da parte.','In una casseruola larga fai sciogliere 25g di burro + 1 filo d\'olio. Aggiungi la cipolla tritata finissima e soffriggi a fuoco medio-basso per 5 min fino a renderla traslucida e dolce — non deve colorirsi.','Aggiungi 180g di riso carnaroli e tostalo a fiamma medio-alta mescolando continuamente per 2-3 min: deve diventare semi-traslucido ai bordi e sentirsi sfrigolare. Questo passaggio è fondamentale per il risotto: sigilla i chicchi.','Sfuma con 80ml di vino bianco freddo e mescola vigorosamente finché l\'alcol evapora completamente (~1 min).','Inizia ad aggiungere il brodo caldo: 1 mestolo per volta. Mescola continuamente a fuoco medio. Aggiungi il mestolo successivo solo quando il precedente è stato quasi completamente assorbito. Prosegui per ~16-18 min totali.','A 3 minuti dal termine, incorpora i funghi saltati e mescola delicatamente.','Spegni il fuoco. Aggiungi 25g di burro freddo a pezzi e 50g di parmigiano grattugiato. Manteca vigorosamente per 1-2 min: il risotto deve essere "all\'onda" — se inclinato deve scivolare lentamente. Copri e lascia riposare 1 min. Impiatta e servi subito.'],
+['Trita la cipolla: 3 sec / Vel. 7. Tieni da parte.','Soffritto: metti 25g burro + cipolla nel boccale. 5 min / 120°C / Vel. 1.','Aggiungi 180g di riso e tosta: 2 min / 120°C / Vel. 1.','Sfuma con 80ml vino bianco: 1 min / Varoma / Vel. 1 senza misurino per far evaporare l\'alcol.','Aggiungi 650ml di brodo caldo, i funghi saltati a parte e i funghi. Cuoci: 14 min / 100°C / Vel. 1. Controlla la consistenza — se troppo sodo aggiungi altro brodo.','Mantecatura: aggiungi 25g burro freddo + 50g parmigiano. 30 sec / Vel. 2 / senza calore. Lascia riposare 2 min con il coperchio. Il risotto continuerà a cuocere con il calore residuo.']),
+
+r('i3','Pasta al Pomodoro',RC.italiana,20,'facile','🍅',
+[i('pasta',180,'g','pasta'),i('pomodori pelati San Marzano',400,'g','pomodori'),i('aglio',2,'pz','aglio'),i('olio EVO',40,'ml','olio'),i('basilico fresco',8,'pz','basilico'),i('sale fino',5,'g','sale'),i('zucchero',2,'g','zucchero')],
+['In una pentola porta 2 litri di acqua a ebollizione. Sala generosamente (l\'acqua deve sapere di mare, circa 10g di sale per litro).','In una padella larga o casseruola versa 40ml di olio EVO e i 2 spicchi d\'aglio interi schiacciati. Accendi a fuoco basso: l\'aglio deve soffriggere lentamente (non bruciare!) per 3-4 min finché diventa dorato e profumato. Poi rimuovi l\'aglio.','Apri la lattina di pomodori pelati (400g San Marzano se possibile) e schiaccia i pomodori con le mani direttamente in padella oppure con un cucchiaio di legno. Aggiungi 2g di zucchero (neutralizza l\'acidità), sala e cuoci a fuoco medio 12-15 min mescolando di tanto in tanto finché la salsa si addensa e il colore diventa più intenso.','Cuoci la pasta in acqua bollente salata seguendo i tempi della confezione meno 1 minuto (deve essere molto al dente). Prima di scolare, preleva 1 mestolo di acqua di cottura.','Scola la pasta e trasferiscila nella padella col sugo. Aggiungi 2-3 cucchiai di acqua di cottura e salta a fuoco vivace per 1-2 min: la pasta finirà di cuocere nel sugo diventando lucida e ben condita.','Spegni, aggiungi le foglie di basilico fresco strappate con le mani (non tagliate, per non ossidarle), un filo di olio a crudo e servi subito.'],
+['Trita aglio: 3 sec / Vel. 7 con 40ml olio. Poi soffriggi: 3 min / 120°C / Vel. 1.','Aggiungi 400g pomodori pelati spezzettati e 2g zucchero. Cuoci: 15 min / 100°C / Vel. 1. A metà cottura assaggia e aggiusta di sale.','Cuoci la pasta in pentola normale. Scola e aggiungi al boccale con la salsa: 1 min / 100°C / Vel. 1 per mantecare. Aggiungi basilico fresco a fine cottura.']),
+
+r('i4','Lasagne al Ragù',RC.italiana,90,'difficile','🧀',
+[i('sfoglie lasagne (fresche o secche)',250,'g','lasagne'),i('carne macinata mista',500,'g','macinato'),i('pomodori pelati',500,'g','pomodori'),i('cipolla',1,'pz','cipolla'),i('carota',1,'pz','carota'),i('sedano',1,'costa','sedano'),i('vino rosso',100,'ml','vino'),i('latte intero',600,'ml','latte'),i('farina 00',60,'g','farina'),i('burro',60,'g','burro'),i('parmigiano',80,'g','parmigiano'),i('olio EVO',30,'ml','olio'),i('noce moscata',2,'g','noce moscata')],
+['RAGÙ: Trita finemente cipolla, carota e sedano (soffritto). In una casseruola larga scalda 30ml olio + 20g burro a fuoco medio. Aggiungi il soffritto e cuoci 8 min fino a renderlo morbido e traslucido.','Aggiungi 500g di carne macinata mista (manzo+maiale) e cuoci a fuoco vivace rompendo i grumi con un cucchiaio finché tutta la carne cambia colore (~8 min). Sfuma con 100ml di vino rosso e lascia evaporare completamente (~3 min).','Aggiungi 500g di pomodori pelati schiacciati, sale, pepe e un cucchiaino di zucchero. Cuoci a fuoco BASSISSIMO con coperchio per almeno 45 min — più cuoce più è buono. Il ragù è pronto quando è denso e il grasso tende a separarsi in superficie.','BESCIAMELLA: In un pentolino fai sciogliere 60g di burro a fuoco medio. Aggiungi 60g di farina tutto in una volta e mescola velocemente con una frusta per 2 min (deve formarsi un "roux" dorato e profumato, senza bruciare). Togli dal fuoco.','Scalda 600ml di latte a parte (quasi a bollore). Aggiungilo al roux caldo poco per volta mescolando continuamente con la frusta per evitare grumi. Rimetti sul fuoco medio, continua a mescolare finché la besciamella si addensa (5-7 min). Sala, aggiungi noce moscata grattugiata. Deve avere la consistenza di una crema fluida.','ASSEMBLAGGIO: Preriscalda il forno a 180°C. In una teglia 30x20cm stendi un cucchiaio di ragù sul fondo (evita che la pasta attacchi). Stendi il primo strato di sfoglie sovrapponendole leggermente. Aggiungi uno strato di ragù, uno di besciamella e parmigiano grattugiato. Ripeti per 4-5 strati totali.','Termina con besciamella abbondante (non ragù, per evitare che si secchi) e tanto parmigiano. Aggiungi qualche fiocchetto di burro in superficie.','Inforna a 180°C per 30-35 min finché la superficie è dorata e gorgoglia ai bordi. Lascia riposare 10 min prima di tagliare.'],
+['RAGÙ NEL MAMBO: Trita cipolla, carota, sedano: 5 sec / Vel. 7. Aggiungi 30ml olio: 5 min / 120°C / Vel. 1.','Aggiungi 500g carne macinata sbriciolata: 8 min / 120°C / Vel. 1 (spingola non montata o usa la farfalla).','Aggiungi 100ml vino: 2 min / Varoma / Vel. 1 senza misurino. Poi 500g pomodori pelati, sale e pepe: 40 min / 100°C / Vel. 1.','BESCIAMELLA NEL MAMBO: Boccale pulito e asciutto. Inserisci 60g burro: 2 min / 100°C / Vel. 1. Aggiungi 60g farina: 2 min / 100°C / Vel. 2.','Aggiungi 600ml latte freddo: 8 min / 100°C / Vel. 4. Aggiungi noce moscata e sale. Pronta!','Assembla e inforna normalmente.']),
+
+r('i5','Pizza Margherita',RC.italiana,60,'media','🍕',
+[i('farina 00',250,'g','farina'),i('farina Manitoba',50,'g','farina'),i('lievito di birra fresco',7,'g','lievito'),i('acqua tiepida',180,'ml','acqua'),i('olio EVO',20,'ml','olio'),i('sale fino',6,'g','sale'),i('pomodori pelati',300,'g','pomodori'),i('mozzarella fior di latte',200,'g','mozzarella'),i('basilico',4,'foglie','basilico'),i('olio EVO per condire',15,'ml','olio')],
+['IMPASTO: Sciogli 7g di lievito fresco in 180ml di acqua tiepida (NON calda: max 35°C) con un cucchiaino di zucchero. Lascia riposare 5-10 min finché appare leggermente schiumosa — segnale che il lievito è attivo.','In una ciotola mescola 250g farina 00 + 50g Manitoba (la Manitoba dà più elasticità). Aggiungi il lievito sciolto e inizia a impastare. Dopo 2 min aggiungi 6g di sale e 20ml di olio. Impasta vigorosamente per 10 min sul piano infarinato finché l\'impasto è liscio, elastico e non appiccica. Fai la "prova dito": premi con il dito — deve tornare su lentamente.','Metti l\'impasto in una ciotola oliata, coprilo con pellicola e lascialo lievitare in un posto caldo (forno spento con lucina accesa, ~28°C) per 1 ora o fino al raddoppio.','SALSA: Schiaccia 300g di pomodori pelati con le mani, condisci con sale, un filo d\'olio e qualche foglia di basilico spezzata. NON cuocere — la cottura in forno è sufficiente.','MOZZARELLA: Taglia la mozzarella a fette e lasciala su un colino 30 min a perdere il siero in eccesso (evita che bagni l\'impasto).','Preriscalda il forno al massimo (250-280°C) con la teglia dentro per almeno 30 min.','Stendi l\'impasto con le mani (non il mattarello) su una teglia oleata: inizia dal centro verso l\'esterno allargandolo fino a 30cm. Deve essere sottile al centro (~3mm) con un bordo leggermente più spesso.','Condisci con la salsa di pomodoro (non troppa: il centro deve rimanere asciutto). Cuoci 7-8 min finché i bordi iniziano a colorire. Estrai, aggiungi la mozzarella, rimetti in forno altri 3-4 min finché fila. Aggiungi basilico fresco e olio a crudo prima di servire.'],
+['IMPASTO CON MAMBO: Sciogli lievito in acqua tiepida 5 min. Nel boccale metti farina, lievito disciolto, olio, sale. Impastar con la farfalla: 3 min / Vel. 4. L\'impasto si formerà attorno alla farfalla. Estrai e lascia lievitare 1h in ciotola coperta.','La salsa e la cottura seguono i passaggi tradizionali — il Mambo non è adatto per la cottura della pizza.']),
+
+r('i6','Pasta Cacio e Pepe',RC.italiana,15,'facile','🧀',
+[i('tonnarelli o spaghetti',180,'g','pasta'),i('pecorino romano',80,'g','pecorino'),i('parmigiano',20,'g','parmigiano'),i('pepe nero in grani',5,'g','pepe')],
+['Porta 2 litri di acqua a bollore con pochissimo sale (il pecorino è già sapidissimo). Cuoci la pasta.','PEPE: Metti 1 cucchiaino colmo di pepe nero in grani in una padella asciutta e tostali a fuoco medio 1-2 min finché profumati. Schiaccia grossolanamente con un mortaio o il fondo di un bicchiere: non devono essere finissimi, ma spezzati in 2-3 pezzi.','CREMA DI FORMAGGIO: Grattugia 80g di pecorino + 20g parmigiano molto finemente. Mettili in una ciotola capiente e aggiungi 4-5 cucchiai di acqua di cottura caldissima mescolando velocemente con una forchetta fino a formare una pasta cremosa densa. Aggiungi altro pepe tostato.','Scola la pasta molto al dente (2 min prima del tempo). Trasferiscila nella padella con il pepe tostato a fuoco medio-basso. Aggiungi 2 mestoli di acqua di cottura e mescola energicamente per 1-2 min.','Togli dal fuoco, aspetta 30 secondi, poi aggiungi la crema di formaggi. Mescola velocemente aggiungendo acqua di cottura poca alla volta finché ottiieni una crema lucida e vellutata che avvolge la pasta. Il segreto è la temperatura: troppo caldo fa grumi, troppo freddo non crea la crema.','Impiatta, aggiungi altro pecorino e pepe macinato al momento.'],
+['Grattugia i formaggi nel boccale: 10 sec / Vel. 10. Metti da parte. Tosta il pepe in padella a parte.','Cuoci la pasta in pentola normale. Tieni da parte 200ml di acqua di cottura.','Nel boccale metti il formaggio grattugiato + 80ml acqua di cottura calda: 1 min / 60°C / Vel. 3 per formare la crema. Versa sulla pasta mantecandola fuori dal fuoco.']),
+
+r('i7','Pasta Aglio Olio Peperoncino',RC.italiana,15,'facile','🌶️',
+[i('spaghetti',180,'g','pasta'),i('aglio',4,'pz','aglio'),i('olio EVO',70,'ml','olio'),i('peperoncino fresco',1,'pz','peperoncino'),i('prezzemolo fresco',15,'g','prezzemolo')],
+['Cuoci gli spaghetti in abbondante acqua salata. Preleva 150ml di acqua di cottura prima di scolare.','Pela i 4 spicchi d\'aglio e affettali sottilissimi (NON tritarli — le fettine rilasciano l\'aroma in modo più delicato). Taglia il peperoncino a rondelle sottili.','In una padella larga versa 70ml di olio EVO e aggiungi l\'aglio a freddo. Metti sul fuoco bassissimo: l\'aglio deve soffriggere lentamente, diventare dorato pallido e morbido in 6-8 min. Se l\'aglio scurisce troppo l\'olio diventa amaro — controlla sempre il colore. Aggiungi il peperoncino a 2 min dalla fine.','Scola la pasta al dente e trasferiscila nella padella. Aggiungi subito 4-5 cucchiai di acqua di cottura amidacea e salta a fuoco vivace per 1-2 min: la pasta si manteche nell\'emulsione di olio e amido creando una salsina lucida.','Aggiungi il prezzemolo tritato finissimo (aggiunto fuori dal fuoco mantiene il colore verde brillante), mescola e servi immediatamente.'],
+['Affetta l\'aglio sottile. Nel boccale con 70ml olio e aglio affettato: 6 min / 120°C / Vel. 1 — monitorare che non bruci. Aggiungi peperoncino a metà cottura.','Cuoci pasta in pentola, scola e aggiungi al boccale: 1 min / 100°C / Vel. 1 con acqua di cottura. Aggiungi prezzemolo tritato a fine cottura.']),
+
+r('i8','Pasta all\'Amatriciana',RC.italiana,25,'facile','🥓',
+[i('rigatoni o spaghetti',180,'g','pasta'),i('guanciale',130,'g','guanciale'),i('pomodori pelati',400,'g','pomodori'),i('pecorino romano',50,'g','pecorino'),i('vino bianco',50,'ml','vino'),i('peperoncino',1,'pz','peperoncino')],
+['Taglia 130g di guanciale a listarelle spesse (non troppo sottili altrimenti si secca troppo). Mettilo in una padella fredda e cuoci a fuoco medio-basso 8-10 min mescolando spesso: deve diventare dorato e leggermente croccante ma rimanere morbido dentro. Togli il guanciale e tieni il fondo di cottura nella padella.','Nella stessa padella (con il grasso del guanciale) aggiungi il peperoncino sbriciolato e sfuma con 50ml di vino bianco a fuoco vivace — fai evaporare 1 min.','Aggiungi 400g di pomodori pelati schiacciati con le mani. Cuoci a fuoco medio 12-15 min finché la salsa si addensa. Aggiusta di sale (assaggia prima: il guanciale è già salato!). Rimetti il guanciale nella salsa.','Cuoci la pasta in abbondante acqua salata. Scola al dente tenendo 1 mestolo di acqua di cottura. Salta nel sugo 1-2 min aggiungendo acqua se serve per mantecare.','Servi con abbondante pecorino romano grattugiato e una macinata di pepe nero.'],
+['Metti guanciale a listarelle nel boccale: 8 min / 120°C / Vel. 1 con la farfalla. Togli il guanciale con la schiumarola.','Nel fondo di cottura rimasto nel boccale aggiungi peperoncino: 1 min / 120°C / Vel. 1. Sfuma con vino: 1 min / Varoma / Vel. 1. Aggiungi pomodori: 15 min / 100°C / Vel. 1. Rimetti il guanciale: 2 min / 100°C / Vel. 1.','Cuoci la pasta normalmente. Salta nel sugo in padella o direttamente nel boccale caldo.']),
+
+r('i9','Pesto alla Genovese',RC.italiana,15,'facile','🌿',
+[i('pasta (trenette o trofie)',180,'g','pasta'),i('basilico genovese DOP',30,'g','basilico'),i('olio EVO ligure',70,'ml','olio'),i('pinoli',20,'g','pinoli'),i('parmigiano Reggiano',30,'g','parmigiano'),i('pecorino sardo',20,'g','pecorino'),i('aglio',1,'pz','aglio'),i('sale grosso',2,'g','sale')],
+['Il segreto del pesto è lavorare VELOCEMENTE e con ingredienti freddi per evitare l\'ossidazione del basilico. Metti le foglie di basilico lavate e asciugate in frigo 30 min prima.','Tosta leggermente 20g di pinoli in una padella asciutta a fuoco basso 2-3 min finché dorati. Raffredda subito.','Nel mortaio: pesta l\'aglio con il sale grosso fino a ridurlo in crema. Aggiungi i pinoli e pesta fino a farne una pasta. Aggiungi le foglie di basilico a pochi per volta pestando con movimenti circolari (non su-giù). Quando il basilico è diventato una crema verde intenso, aggiungi i formaggi grattugiati. Incorpora l\'olio a filo mescolando con un cucchiaio. NON cuocere mai il pesto.','Se usi il frullatore: frulla basilico + aglio + pinoli + sale con pochissimo olio a impulsi brevi (surriscaldare ossida il basilico). Aggiungi formaggi e olio a filo a bassa velocità.','Cuoci la pasta in acqua salata. Scola tenendo 2 mestoli di acqua. In una ciotola grande metti il pesto, diluiscilo con 3-4 cucchiai di acqua di cottura tiepida, aggiungi la pasta e mescola delicatamente. Il calore residuo della pasta "cuoce" leggermente il pesto — non aggiungere mai a fuoco acceso.'],
+['PESTO NEL MAMBO: Inserisci aglio, sale grosso, pinoli: 5 sec / Vel. 7.','Aggiungi basilico freddo + formaggi: 5 sec / Vel. 7. Raschia le pareti.','Aggiungi olio: 10 sec / Vel. 5. Non lavorare troppo — il basilico non deve scaldarsi. Il Mambo tende a riscaldare, quindi usa ingredienti molto freddi e fai pause tra le triturazioni.','Cuoci la pasta normalmente e condisci come sopra.']),
+
+r('i10','Pasta e Fagioli',RC.italiana,40,'facile','🫘',
+[i('pasta corta (ditalini)',150,'g','pasta'),i('fagioli borlotti cotti',250,'g','fagioli'),i('pomodori pelati',200,'g','pomodori'),i('cipolla',1,'pz','cipolla'),i('aglio',2,'pz','aglio'),i('rosmarino',2,'rametti','rosmarino'),i('olio EVO',50,'ml','olio'),i('brodo vegetale',600,'ml','brodo'),i('pancetta',60,'g','pancetta')],
+['In una casseruola capiente scalda 40ml di olio a fuoco medio. Aggiungi la pancetta a dadini e cuoci 3-4 min. Unisci cipolla e aglio tritati, rosmarino e soffriggi 6-7 min fino a doratura leggera.','Aggiungi 200g di pomodori pelati schiacciati. Cuoci 5 min. Versa 600ml di brodo vegetale e porta a bollore.','Aggiungi 250g di fagioli borlotti cotti (o precotti in scatola, sciacquati). Cuoci 10 min.','IMPORTANTE: Frulla METÀ dei fagioli con un frullatore a immersione direttamente nella pentola — questo rende il brodo cremoso e denso. Lascia intera l\'altra metà per la consistenza.','Porta a bollore, aggiungi 150g di pasta e cuoci mescolando spesso (la pasta tende ad attaccare in questo tipo di zuppa). A fine cottura la pasta e fagioli deve avere una consistenza "scivolosa", non troppo brodosa né troppo asciutta.','Servi con olio EVO a crudo, pepe nero e opzionalmente una spruzzata di tabasco.'],
+['Nel boccale metti cipolla, aglio, rosmarino: 5 sec / Vel. 7. Aggiungi 40ml olio + pancetta: 6 min / 120°C / Vel. 1.','Aggiungi pomodori: 5 min / 100°C / Vel. 1. Aggiungi 250g fagioli + 600ml brodo: 10 min / 100°C / Vel. 1.','Frulla metà del contenuto: 30 sec / Vel. 7-8 (attento al vapore!). Rimetti nel boccale.','Aggiungi la pasta: cuoci il tempo indicato sulla confezione a 100°C / Vel. 1 mescolando a metà cottura. Aggiusta la densità con brodo.']),
+
+r('i12','Pasta al Tonno',RC.italiana,15,'facile','🐟',
+[i('pasta (mezze maniche o spaghetti)',180,'g','pasta'),i('tonno sott\'olio di qualità',160,'g','tonno'),i('pomodorini ciliegino',200,'g','pomodori'),i('aglio',2,'pz','aglio'),i('capperi sotto sale',15,'g','capperi'),i('olive taggiasche',30,'g','olive'),i('olio EVO',35,'ml','olio'),i('prezzemolo',10,'g','prezzemolo')],
+['Sciacqua i capperi sotto acqua corrente per dissalarli. Taglia i pomodorini a metà. Scola il tonno dall\'olio.','In una padella larga scalda 35ml di olio con 2 spicchi d\'aglio schiacciati: soffriggi a fuoco basso 3 min. Togli l\'aglio.','Alza la fiamma a medio-vivace, aggiungi i pomodorini tagliati a metà: cuoci 4-5 min finché si ammorbidiscono e rilasciano i succhi. Aggiungi i capperi e le olive.','Abbassa la fiamma, aggiungi il tonno sbriciolato grossolanamente e mescola delicatamente per 1-2 min — non stracuocerlo altrimenti si secca.','Scola la pasta al dente, salta nel sugo con 2-3 cucchiai di acqua di cottura. Aggiungi prezzemolo tritato fresco fuori dal fuoco. Servi senza formaggio.'],
+['Soffriggi aglio in 35ml olio: 3 min / 120°C / Vel. 1. Togli aglio.','Aggiungi pomodorini, capperi, olive: 5 min / 100°C / Vel. 1. Aggiungi tonno sbriciolato: 1 min / 80°C / Vel. 1.','Cuoci pasta in pentola. Scola e manteca nella padella con la salsa.']),
+
+r('i15','Risotto alla Milanese',RC.italiana,35,'media','🌟',
+[i('riso carnaroli',180,'g','riso'),i('zafferano in pistilli',0.3,'g','zafferano'),i('midollo di bue',20,'g','midollo'),i('cipolla dorata',1,'pz','cipolla'),i('vino bianco secco',80,'ml','vino'),i('brodo di manzo',700,'ml','brodo'),i('burro',60,'g','burro'),i('parmigiano',50,'g','parmigiano')],
+['Metti in infusione i pistilli di zafferano in 2 cucchiai di brodo caldo da almeno 20 min — il colore deve diventare giallo intenso.','In una casseruola fai sciogliere il midollo di bue (o 30g burro) con la cipolla tritata finissima. Soffriggi a fuoco bassissimo 8 min senza colorire.','Aggiungi il riso, tostalo 2-3 min mescolando. Sfuma con vino bianco, fai evaporare.','Aggiungi brodo caldo mestolo per mestolo per 16-18 min totali.','A 2 min dal termine aggiungi lo zafferano con la sua infusione.','Manteca con 30g burro freddo + parmigiano. Deve essere molto "all\'onda".'],
+['Cipolla tritata + midollo + 20g burro: 8 min / 100°C / Vel. 1.','Aggiungi riso: 2 min / 120°C / Vel. 1. Sfuma vino: 1 min / Varoma / Vel. 1 senza tappo.','Aggiungi 650ml brodo + zafferano in infusione: 14 min / 100°C / Vel. 1.','Manteca con 30g burro freddo + parmigiano: 30 sec / Vel. 2 senza calore.']),
+
+r('i16','Minestrone',RC.italiana,45,'facile','🥗',
+[i('carote',2,'pz','carota'),i('patate',2,'pz','patate'),i('zucchine',2,'pz','zucchine'),i('pomodori pelati',200,'g','pomodori'),i('fagioli borlotti',150,'g','fagioli'),i('cipolla',1,'pz','cipolla'),i('sedano',1,'costa','sedano'),i('pasta corta',80,'g','pasta'),i('parmigiano crosta',1,'pz','parmigiano'),i('olio EVO',50,'ml','olio')],
+['Taglia tutte le verdure a dadini uniformi di circa 1.5cm — la dimensione uniforme assicura una cottura omogenea.','In una pentola grande scalda 50ml di olio a fuoco medio. Soffriggi cipolla e sedano tritati 5 min. Aggiungi carote e cuoci 3 min.','Aggiungi patate, zucchine e pomodori pelati schiacciati. Aggiungi la crosta di parmigiano (dona una profondità di sapore incredibile). Copri con 1.5 litri di acqua fredda o brodo vegetale.','Porta a bollore, abbassa, cuoci semicoperto 25 min. Aggiungi i fagioli e cuoci altri 10 min. Sala a fine cottura.','Aggiungi la pasta: cuoci il tempo indicato. Aggiusta la densità con acqua. Rimuovi la crosta di parmigiano.','Servi con olio EVO a crudo, parmigiano grattugiato e pepe nero.'],
+['Trita cipolla e sedano: 5 sec / Vel. 5. Con 50ml olio: 5 min / 120°C / Vel. 1.','Aggiungi tutte le verdure a dadini, fagioli, pomodori, crosta parmigiano, 1.5L brodo: 30 min / 100°C / Vel. 1.','Aggiungi pasta: cuoci il tempo indicato + 1 min / 100°C / Vel. 1. Aggiusta la densità.']),
+
+r('i22','Piadina Romagnola',RC.italiana,20,'facile','🫓',
+[i('farina 00',200,'g','farina'),i('strutto (o burro)',40,'g','strutto'),i('bicarbonato',3,'g','bicarbonato'),i('sale fino',5,'g','sale'),i('acqua tiepida',80,'ml','acqua')],
+['Mescola 200g di farina 00 con 3g di bicarbonato e 5g di sale. Aggiungi 40g di strutto a temperatura ambiente e lavora con le mani finché la farina assume una consistenza sabbiosa (come per la frolla).','Aggiungi 80ml di acqua tiepida poco per volta e impasta energicamente per 5-7 min finché ottieni una palla liscia e morbida ma non appiccicosa. Copri con un canovaccio e lascia riposare 15 min a temperatura ambiente — il riposo rende l\'impasto più elastico e facile da stendere.','Dividi in 4 palline di peso uguale (~80g ciascuna). Con un mattarello stendi ogni pallina in un disco molto sottile (~2mm) di circa 25cm di diametro. La piadina deve essere quasi trasparente se la si alza in controluce.','Scalda una piastra o padella antiaderente a fuoco medio-alto senza olio né burro finché è bollente. Cuoci la piadina 1.5-2 min per lato: deve fare bolle in superficie e scurirsi leggermente con macchioline brunite — è normale e buono.','Farcisci subito (mentre è calda): squacquerone e rucola, prosciutto crudo e mozzarella, o salsiccia e cipolla caramellata. Piega a metà e servi.'],
+['Nel boccale metti farina, bicarbonato, sale, strutto: 30 sec / Vel. 5.','Aggiungi acqua tiepida: impasta 1 min / Vel. 4 con la farfalla finché si forma l\'impasto. Se troppo asciutto aggiungi 1-2 cucchiai d\'acqua.','Estrai, forma una palla, riposa 15 min. Stendi e cuoci sulla piastra tradizionalmente.']),
+
+r('i26','Frittata di Zucchine',RC.italiana,20,'facile','🥒',
+[i('uova fresche',4,'pz','uova'),i('zucchine medie',2,'pz','zucchine'),i('parmigiano',35,'g','parmigiano'),i('olio EVO',25,'ml','olio'),i('aglio',1,'pz','aglio'),i('menta fresca',3,'foglie','erbe'),i('sale e pepe',3,'g','sale')],
+['Lava le zucchine e tagliale a rondelle di circa 5mm — uniformi per cuocere nello stesso tempo. Asciugale con carta assorbente.','In una padella antiaderente da 24cm scalda 25ml di olio con 1 spicchio d\'aglio schiacciato. Aggiungi le zucchine, sala leggermente e cuoci a fuoco medio 6-7 min mescolando di tanto in tanto finché sono tenere e leggermente dorate. Rimuovi l\'aglio.','In una ciotola sbatti 4 uova con 35g di parmigiano grattugiato, sale, pepe e qualche foglia di menta spezzettata (opzionale ma profumata). Sbatti bene fino a che albumi e tuorli sono completamente amalgamati.','Distribuisci le zucchine uniformemente nella padella ancora sul fuoco medio-basso. Versa il composto di uova sulle zucchine. ABBASSA la fiamma al minimo, copri con un coperchio e cuoci per 4-5 min: le uova devono rapprendersi ai bordi ma rimanere ancora cremose al centro.','GIRA LA FRITTATA: metti un piatto grande (più largo della padella) sul bordo, tieni saldamente con entrambe le mani e capovolgi in un colpo deciso. Fai scivolare la frittata dalla parte cruda nella padella. Cuoci altri 2-3 min scoperta. Deve essere dorata da entrambi i lati.'],
+['Soffriggi zucchine a rondelle con olio e aglio nel boccale con farfalla: 7 min / 120°C / Vel. 1. Togli e metti in padella antiaderente.','Sbatti uova con parmigiano nel boccale: 30 sec / Vel. 4. Versa sulle zucchine in padella e cuoci tradizionalmente. Il Mambo non è adatto per cuocere le frittate.']),
+
+r('i29','Scaloppine al Limone',RC.italiana,15,'facile','🍋',
+[i('fettine di vitello',300,'g','vitello'),i('farina 00',40,'g','farina'),i('burro',50,'g','burro'),i('succo di limone',2,'pz','limone'),i('brodo di carne',80,'ml','brodo'),i('prezzemolo fresco',10,'g','prezzemolo'),i('sale e pepe',3,'g','sale')],
+['Batti le fettine di vitello con un batticarne tra due fogli di carta forno fino a renderle spesse circa 5mm — la carne deve essere uniforme per cuocere in modo omogeneo.','Sala e pepa entrambi i lati. Infarina leggermente e scrolla via la farina in eccesso: deve rimanere solo uno strato sottilissimo.','In una padella larga fai sciogliere 50g di burro a fuoco medio-vivace. Quando il burro fa la schiuma (e prima che scurisca!) aggiungi le scaloppine senza sovrapporle. Cuoci 1.5-2 min per lato — devono essere dorate fuori ma ancora morbide dentro. Togli la carne e tienila al caldo coperta.','Nella stessa padella (senza pulirla) abbassa la fiamma. Aggiungi 80ml di brodo di carne mescolando con una spatola per staccare il fondo caramellato ("deglassare"). Aggiungi il succo di 2 limoni appena spremuti. Cuoci 2-3 min finché la salsa si addensa leggermente e diventa lucida.','Rimetti le scaloppine nella salsa, scalda 30 secondi, aggiungi prezzemolo tritato. Impiatta e versa la salsa al limone sopra.'],
+['Scalda il boccale: aggiungi 40g burro: 1 min / 120°C / Vel. 1. Aggiungi scaloppine infarinate: cuoci 2 min per lato / 120°C / Vel. 1 con farfalla delicata o in padella (preferibile). Il Mambo può rompere le fettine sottili — meglio la padella per la carne.','Per la salsa: nel boccale aggiungi brodo + succo di limone: 3 min / 100°C / Vel. 2. Versa sulla carne scaldata in padella.']),
+
+r('i30','Pollo al Limone',RC.italiana,30,'facile','🍗',
+[i('petti di pollo',400,'g','pollo'),i('limoni non trattati',2,'pz','limone'),i('aglio',3,'pz','aglio'),i('rosmarino fresco',3,'rametti','rosmarino'),i('olio EVO',40,'ml','olio'),i('farina',20,'g','farina'),i('brodo di pollo',100,'ml','brodo'),i('burro',20,'g','burro')],
+['Appiattisci leggermente i petti di pollo con il batticarne. Taglia in 2-3 pezzi per petto. Sala e pepa.','MARINATURA (opzionale ma migliore): metti il pollo in una ciotola con il succo di 1 limone, 1 spicchio d\'aglio schiacciato e rosmarino per 20 min.','Asciuga il pollo dalla marinatura con carta assorbente. Infarinalo leggermente su tutti i lati.','In una padella larga scalda 40ml di olio a fuoco medio-vivace. Aggiungi 2 spicchi d\'aglio schiacciati e il rosmarino: soffriggi 1 min per aromatizzare l\'olio. Aggiungi il pollo e cuoci 5-6 min per lato senza muoverlo — la crosticina si forma solo se la carne rimane ferma. Il pollo è cotto quando, premendo al centro, non cede elasticamente e i succhi escono trasparenti.','Togli il pollo. Nella stessa padella versa il succo del 2° limone, il brodo e la scorza grattugiata di mezzo limone. Porta a bollore e cuoci 3-4 min raschiando il fondo. Aggiungi 20g di burro fuori dal fuoco per lucidare la salsa. Rimetti il pollo, scalda 1 min. Servi con la salsa.'],
+['Scalda olio + aglio + rosmarino nel boccale: 2 min / 120°C / Vel. 1. Aggiungi pollo infarinato con farfalla: 6 min / 120°C / Vel. 1. Gira a metà.','Aggiungi succo limone + brodo + scorza: 5 min / 100°C / Vel. 1. Aggiungi burro: 1 min / 80°C / Vel. 2 per lucidare.']),
+
+r('i31','Pollo alla Cacciatora',RC.italiana,50,'media','🍗',
+[i('pollo a pezzi',800,'g','pollo'),i('pomodori pelati',400,'g','pomodori'),i('cipolla',1,'pz','cipolla'),i('funghi champignon',200,'g','funghi'),i('olive verdi denocciolate',60,'g','olive'),i('vino rosso',150,'ml','vino'),i('rosmarino',2,'rametti','rosmarino'),i('aglio',3,'pz','aglio'),i('olio EVO',40,'ml','olio'),i('acciughe',2,'filetti','acciughe')],
+['Asciuga molto bene i pezzi di pollo con carta assorbente — l\'umidità impedisce la doratura. Sala e pepa abbondantemente.','In una casseruola ampia scalda 40ml di olio a fuoco vivace. Rosola il pollo su tutti i lati per 4-5 min per lato finché è ben dorato (non muoverlo prima che si stacchi da solo). Togli il pollo e metti da parte.','Nella stessa casseruola abbassa la fiamma a media. Aggiungi cipolla tritata grossolana, aglio schiacciato e le acciughe (si scioglieranno nella cottura addensando il fondo). Soffriggi 5 min.','Aggiungi i funghi a fette e cuoci 4 min finché rilasciano il liquido. Sfuma con 150ml di vino rosso e lascia evaporare l\'alcol completamente (~3 min a fuoco vivace).','Aggiungi i pomodori pelati schiacciati, le olive e il rosmarino. Mescola, porta a bollore, poi abbassa. Rimetti il pollo nella casseruola: deve essere semi-immerso nel sugo. Cuoci coperto a fuoco basso per 30-35 min finché il pollo è tenero (la carne si deve staccare dall\'osso con facilità).'],
+['Rosola il pollo in padella (il Mambo non rosola bene la carne intera). Togli e metti da parte.','Nel boccale: cipolla + aglio + acciughe + olio: 5 min / 120°C / Vel. 1. Aggiungi funghi: 5 min / 120°C / Vel. 1.','Sfuma vino: 2 min / Varoma / Vel. 1 senza tappo. Aggiungi pomodori + olive + rosmarino: 5 min / 100°C / Vel. 1.','Aggiungi il pollo rosolato nel boccale (o trasferisci tutto in padella): cuoci 30 min / 100°C / Vel. 1 girando il pollo a metà cottura.']),
+
+r('i33','Melanzane alla Parmigiana',RC.italiana,60,'media','🍆',
+[i('melanzane grandi',800,'g','melanzane'),i('pomodori pelati San Marzano',600,'g','pomodori'),i('mozzarella fior di latte',300,'g','mozzarella'),i('parmigiano grattugiato',80,'g','parmigiano'),i('basilico fresco',15,'foglie','basilico'),i('olio EVO',60,'ml','olio'),i('olio per friggere',400,'ml','olio'),i('aglio',2,'pz','aglio')],
+['Taglia le melanzane a fette spesse 5mm nel senso della lunghezza. Mettile in uno scolapasta, sala ogni strato abbondantemente e lascia 30 min a perdere l\'acqua di vegetazione amara. Poi sciacqua e asciuga bene con carta assorbente.','SUGO: In un pentolino scalda 60ml olio con aglio. Aggiungi i pomodori pelati schiacciati con le mani, 8-10 foglie di basilico e cuoci 15-20 min a fuoco medio finché la salsa si addensa. Aggiusta di sale. Tieni da parte.','MOZZARELLA: Taglia a fette e lascia scolare su carta assorbente almeno 30 min — l\'acqua in eccesso rovinrebbe la parmigiana.','FRITTURA: Scalda abbondante olio di semi a 180°C in una padella profonda. Friggi le melanzane a gruppi di 3-4 fette per volta per 2-3 min per lato finché dorate. Scola su carta assorbente e tampona l\'olio.','ASSEMBLAGGIO: Preriscalda il forno a 180°C. In una teglia 30x25cm versa 2 cucchiai di sugo sul fondo. Primo strato di melanzane, poi sugo, mozzarella, parmigiano e basilico. Ripeti per 3-4 strati. Termina con sugo abbondante, parmigiano e basilico.','Inforna 25-30 min finché gorgoglia e la superficie è dorata. Lascia riposare 15 min prima di tagliare — è ancora migliore il giorno dopo!'],
+['Il sugo: nel boccale aglio + olio: 2 min / 120°C / Vel. 1. Aggiungi pomodori + basilico: 20 min / 100°C / Vel. 1. Aggiusta sale.','Le melanzane fritte vanno preparate in padella tradizionalmente (il Mambo non è adatto per friggere). Assembla e inforna normalmente.']),
+
+r('i35','Tiramisu',RC.italiana,30,'media','🍰',
+[i('mascarpone fresco',500,'g','mascarpone'),i('uova fresche grandi',4,'pz','uova'),i('zucchero fine',100,'g','zucchero'),i('savoiardi',200,'g','savoiardi'),i('caffè espresso freddo',300,'ml','caffè'),i('marsala secco',30,'ml','marsala'),i('cacao amaro in polvere',20,'g','cacao')],
+['Prepara il caffè espresso (almeno 4 tazze) e lascialo raffreddare completamente. Aggiungi 30ml di marsala. IMPORTANTE: il caffè deve essere freddo — caldo scioglie i biscotti troppo velocemente.','Separa i tuorli dagli albumi (sono 4 uova). In una ciotola capiente sbatti 4 tuorli con 100g di zucchero fine con le fruste elettriche per 5-6 min finché il composto è molto chiaro, gonfio, "nastriforme" e lo zucchero completamente sciolto. Aggiungi 500g di mascarpone e mescola con una spatola con movimenti delicati dal basso verso l\'alto finché è una crema liscia senza grumi.','Monta i 4 albumi a neve fermissima in una ciotola perfettamente pulita e asciutta (il grasso impedisce la montatura). Devono fare un picco rigido quando si alza la frusta.','Incorpora gli albumi montati nella crema di mascarpone in 3 riprese, mescolando con una spatola larga con movimenti ampi e delicati dal basso verso l\'alto per non smontarli.','ASSEMBLAGGIO: Immergi velocemente ogni savoiardo nel caffè (2 secondi per lato — non inzupparlo troppo altrimenti si sfascia). Disponi un primo strato nella teglia 25x18cm.','Copri con metà della crema al mascarpone e livella. Fai un secondo strato di savoiardi inzuppati. Copri con il resto della crema. Setaccia abbondante cacao amaro sopra.','Copri con pellicola e REFRIGERA almeno 4-6 ore, meglio tutta la notte. La crema deve rassodarsi completamente.'],
+['Metti tuorli + zucchero nel boccale: 3 min / 50°C / Vel. 4 — questa temperatura pastorizza parzialmente le uova. Poi monta: 2 min / Vel. 4 senza calore finché gonfio e chiaro.','Aggiungi il mascarpone a temperatura ambiente: 30 sec / Vel. 3. Trasferisci in ciotola.','Monta gli albumi nel boccale pulitissimo con la farfalla: 3 min / Vel. 4 senza calore. Incorpora delicatamente a mano.','Assembla e refrigera normalmente.']),
+
+r('i37','Salmone al Forno',RC.italiana,25,'facile','🐟',
+[i('filetti di salmone con pelle',400,'g','salmone'),i('limone non trattato',1,'pz','limone'),i('olio EVO',30,'ml','olio'),i('erbe miste (timo, rosmarino, prezzemolo)',10,'g','erbe'),i('aglio',2,'pz','aglio'),i('capperi',10,'g','capperi'),i('sale e pepe',3,'g','sale')],
+['Preriscalda il forno a 200°C (non ventilato). Asciuga i filetti di salmone con carta assorbente.','Prepara la marinatura: in una ciotola mescola 30ml olio EVO, il succo di mezzo limone, la scorza grattugiata di mezzo limone, aglio schiacciato, erbe aromatiche tritate, sale e pepe. Mescola bene.','Disponi i filetti di salmone (con la pelle in basso) in una teglia foderata con carta forno. Cospargi la marinatura sopra e sui lati. Aggiungi i capperi. Lascia marinare 10 min.','Inforna a 200°C: per filetti spessi 2cm calcola 10-12 min. Il salmone è pronto quando la polpa al centro è diventata opaca (non più traslucida) ma è ancora leggermente umida. NON sovracuocerlo — il centro può rimanere leggermente rosato.','Servi con fette di limone, qualche goccia di olio e un\'insalata verde.'],
+['Prepara la marinatura tradizionalmente in una ciotola.','Per una cottura al vapore: metti il salmone nel Varoma con le erbe. Versa 500ml di acqua + succo di limone nel boccale. Cuoci 20 min / Varoma / Vel. 1. Il salmone resta morbidissimo e molto più leggero rispetto alla versione al forno.']),
+
+r('i39','Spezzatino di Manzo',RC.italiana,90,'media','🥩',
+[i('manzo da spezzatino (cappello del prete)',600,'g','manzo'),i('carote grandi',2,'pz','carota'),i('cipolla dorata',1,'pz','cipolla'),i('sedano',2,'coste','sedano'),i('pomodori pelati',300,'g','pomodori'),i('vino rosso robusto',150,'ml','vino'),i('brodo di carne',300,'ml','brodo'),i('patate',2,'pz','patate'),i('olio EVO',40,'ml','olio'),i('rosmarino',2,'rametti','rosmarino'),i('alloro',2,'foglie','alloro')],
+['Taglia il manzo a bocconi di 4-5 cm. Asciugali benissimo con carta assorbente — l\'umidità impedisce la rosolatura. Sala e pepa abbondantemente.','ROSOLATURA: In una casseruola dal fondo spesso scalda 40ml di olio a fuoco VIVACE. Lavora in piccoli lotti (non sovrapporre la carne nella pentola): rosola i bocconi 2-3 min per lato senza muoverli — deve formarsi una crosticina bruna. Questo passaggio (reazione di Maillard) è fondamentale per il sapore finale. Togli la carne rosolata e metti da parte.','Nella stessa casseruola abbassa la fiamma a media. Aggiungi cipolla tritata grossolana, carote e sedano a pezzi. Soffriggi 5-6 min raschiando il fondo per staccare i succhi caramellati (quelli danno sapore!).','Aggiungi rosmarino e alloro. Rimetti la carne. Alza la fiamma, sfuma con 150ml di vino rosso robusto (Barolo, Chianti) e lascia evaporare completamente l\'alcol (~4 min).','Aggiungi pomodori pelati schiacciati e 300ml di brodo caldo. Porta a bollore, poi abbassa la fiamma al minimo — la superficie deve "fremere" appena. Cuoci coperto per 60-70 min.','A metà cottura aggiungi le patate sbucciate e tagliate a dadoni. Cuoci altri 25-30 min. Lo spezzatino è pronto quando la carne si spezza facilmente con il cucchiaio e le patate sono morbide. Se il sugo è troppo liquido, alza la fiamma e cuoci scoperto 10 min.'],
+['Rosola la carne in padella (il Mambo non raggiunge temperature sufficienti per la vera rosolatura). Trasferisci nel boccale.','Nel boccale soffriggi verdure tritate grossolane: 5 min / 120°C / Vel. 1. Aggiungi carne rosolata, vino (sfuma 2 min / Varoma / Vel. 1 senza tappo), pomodori, brodo, aromi: 60 min / 100°C / Vel. 1. La farfalla non è necessaria — le verdure si romperanno naturalmente.','Aggiungi patate a dadoni: 25 min / 100°C / Vel. 1. Aggiusta di sale.']),
+
+// ===== EUROPEE =====
+r('e1','Boeuf Bourguignon',RC.eu,120,'difficile','🥩',
+[i('manzo da brasato',600,'g','manzo'),i('vino rosso Borgogna',400,'ml','vino'),i('cipollotti borettane',150,'g','cipolla'),i('funghi champignon',200,'g','funghi'),i('pancetta affumicata a cubetti',100,'g','pancetta'),i('carota',2,'pz','carota'),i('brodo di manzo',200,'ml','brodo'),i('burro',40,'g','burro'),i('farina',25,'g','farina'),i('bouquet garni (timo, alloro, prezzemolo)',1,'pz','erbe')],
+['Taglia il manzo a cubi di 4cm, marinali in 400ml di vino rosso con le carote a rondelle e il bouquet garni almeno 4 ore (meglio tutta la notte). Scola e asciuga la carne, tieni la marinatura.','Rosola la pancetta in una casseruola ghisa con poco burro finché croccante. Togli. Nello stesso grasso rosola i bocconi di manzo asciutti a fuoco vivace su tutti i lati. Togli la carne.','Soffriggi le carote della marinatura. Rimetti carne e pancetta. Cospargi con la farina e mescola 2 min per tostarla. Aggiungi la marinatura filtrata, il brodo e il bouquet garni.','Porta a bollore, copri e inforna a 160°C per 90 min.','In una padella soffriggi i cipollotti nel burro fino a dorarli. Aggiungi i funghi tagliati a quarti, cuoci 5 min. Aggiungili alla casseruola negli ultimi 20 min di cottura.','Servi con purè di patate o pane rustico.'],
+['Rosola la carne e pancetta in padella antiaderente — il Mambo non raggiunge temperature sufficienti. Trasferisci nel boccale con le verdure, vino, brodo e aromi: 80 min / 100°C / Vel. 1 con farfalla.','Soffriggi cipollotti e funghi separatamente in padella, aggiungi al boccale negli ultimi 20 min.']),
+
+r('e2','Paella Valenciana',RC.eu,45,'media','🥘',
+[i('riso bomba o carnaroli',200,'g','riso'),i('pollo a pezzi',350,'g','pollo'),i('chorizo',100,'g','salumi'),i('peperoni rossi e gialli',150,'g','peperoni'),i('pomodori maturi',150,'g','pomodori'),i('paprika dolce',8,'g','paprika'),i('paprika affumicata',3,'g','paprika'),i('zafferano',0.3,'g','zafferano'),i('brodo di pollo',500,'ml','brodo'),i('olio EVO',50,'ml','olio'),i('aglio',3,'pz','aglio'),i('prezzemolo',10,'g','prezzemolo')],
+['Metti lo zafferano in 2 cucchiai di brodo caldo in infusione 15 min. Scalda il brodo a parte.','In una paellera (o padella larga antiaderente) da 30cm scalda 50ml di olio a fuoco vivace. Rosola il pollo a pezzi 4-5 min per lato finché dorato. Aggiungi il chorizo a rondelle, cuoci 2 min. Togli tutto.','Nella stessa padella abbassa a fuoco medio. Soffriggi aglio e cipolla tritati 4 min. Aggiungi peperoni tagliati a striscioline e cuoci 5 min.','Aggiungi i pomodori grattugiati (grattugiali su una grattugia a maglie larghe — solo la polpa, senza pelle). Aggiungi paprika dolce e affumicata, mescola e cuoci 3 min.','Aggiungi il riso e tostalo 2 min mescolando. Versa TUTTO il brodo caldo (con lo zafferano) in una volta sola. Distribuisci uniformemente il riso. Rimetti il pollo e il chorizo. NON mescolare più da questo punto.','Cuoci a fuoco medio-vivace 10 min finché il brodo è quasi assorbito, poi abbassa a fuoco basso altri 8-10 min. Il riso deve essere tenero ma con una crosticina dorata sul fondo ("socarrat"). Per controllare: scuoti delicatamente la padella, se il riso "scivola" non c\'è socarrat — alza la fiamma 1-2 min.','Copri con carta stagnola e lascia riposare 5 min. Servi con prezzemolo e limone.'],
+['La paella NON si prepara nel Mambo — richiede una padella larga e la formazione del socarrat (crosticina) che è impossibile nel boccale. Prepara tutto in padella larga tradizionalmente.']),
+
+r('e4','Wiener Schnitzel',RC.eu,20,'facile','🥩',
+[i('fettine di vitello (noce)',400,'g','vitello'),i('farina 00',60,'g','farina'),i('uova',2,'pz','uova'),i('pangrattato fine',100,'g','pangrattato'),i('burro chiarificato',100,'g','burro'),i('limone',2,'pz','limone'),i('sale e pepe',3,'g','sale')],
+['Metti ogni fettina di vitello tra due fogli di pellicola trasparente. Con il batticarne (lato piatto, non dentato) batti fino a ottenere uno spessore di 3-4mm. La carne deve essere MOLTO sottile e uniforme — è la caratteristica dello schnitzel viennese.','Prepara la panatura in 3 piatti: 1° con farina, 2° con 2 uova sbattute leggermente salate, 3° con pangrattato fine. Passa ogni fettina nell\'ordine: prima farina (scrolla l\'eccesso), poi uovo (lascia che goccioli un po\'), poi pangrattato. NON premere il pangrattato — deve rimanere "libero" per creare la caratteristica panatura gonfiolata.','In una padella larga scalda 100g di burro chiarificato a fuoco medio (130-140°C — non deve fumare). Il burro chiarificato ha un punto di fumo più alto del burro normale ed è tradizionalmente usato per lo schnitzel.','Cuoci le cotolette 2-3 min per lato finché sono dorate uniformemente. La panatura deve essere croccante ma non scura. Durante la cottura, inclina la padella e irrorai la superficie con il burro caldo con un cucchiaio.','Scola su carta assorbente, sala leggermente. Servi immediatamente con fette di limone, mirtilli rossi (lingonberries) e insalata di cetrioli.'],
+['Lo schnitzel si prepara esclusivamente in padella — il Mambo non è adatto per questa preparazione.']),
+
+r('e7','Tortilla Española',RC.eu,30,'media','🥚',
+[i('patate a pasta gialla',500,'g','patate'),i('uova fresche grandi',6,'pz','uova'),i('cipolla bianca',1,'pz','cipolla'),i('olio EVO',120,'ml','olio'),i('sale fino',8,'g','sale')],
+['Pela le patate e tagliale a fette sottilissime (2-3mm) con una mandolina o coltello affilato. Taglia la cipolla a fette sottili. MESCOLA patate e cipolla e sala abbondantemente.','In una padella antiaderente da 22cm versa 120ml di olio EVO. Aggiungi patate e cipolla: devono essere quasi sommerse nell\'olio. Cuoci a fuoco medio-basso per 15-20 min mescolando spesso — le patate devono AMMORBIDIRSI ma non friggere. Devono rimanere pallide, non dorate. Scola dalla padella con una schiumarola conservando l\'olio.','In una ciotola capiente sbatti 6 uova con sale fino a che sono ben amalgamate. Aggiungi le patate e cipolla scolate e mescola delicatamente. Lascia riposare 5 min.','Nella padella (con 2 cucchiai dell\'olio di cottura) versa il composto uova-patate a fuoco medio. Con una spatola gira i bordi verso l\'interno e scuoti la padella. Cuoci 3-4 min finché i bordi si rassodano ma il centro è ancora tremolante.','GIRO: metti un piatto grande e piatto sopra la padella. In un movimento deciso, capovolgi tenendo la padella col pollice sopra il piatto. La tortilla è sul piatto. Fai scivolare nella padella dalla parte cruda. Cuoci altri 2-3 min. Al centro deve rimanere cremosa.'],
+['Metti patate + cipolla + olio nel boccale: 20 min / 100°C / Vel. 1 con farfalla. Scola.','Sbatti le uova nel boccale: 20 sec / Vel. 4. Mescola con le patate a mano. Cuoci la tortilla in padella tradizionalmente — il Mambo non è adatto per capovolgerla.']),
+
+// ===== GIAPPONESI =====
+r('j1','Ramen Tonkotsu',RC.jp,60,'media','🍜',
+[i('noodles ramen freschi',200,'g','ramen'),i('pancia di maiale (chashu)',200,'g','pancetta'),i('uova',2,'pz','uova'),i('brodo di ossa di maiale',900,'ml','brodo'),i('pasta di miso bianco',30,'g','miso'),i('salsa di soia',30,'ml','soia'),i('mirin',15,'ml','mirin'),i('aglio',2,'pz','aglio'),i('zenzero fresco',15,'g','zenzero'),i('olio di sesamo',10,'ml','sesamo'),i('cipollotto',3,'pz','cipollotto'),i('nori (alga)',2,'fogli','nori'),i('mais dolce',60,'g','mais')],
+['UOVA MARINATE (il giorno prima): cuoci le uova in acqua bollente esatti 7 minuti. Raffredda in acqua ghiacciata. Sguscia con cura. Metti in un sacchetto con 50ml soia + 50ml mirin + 100ml acqua. Mariana in frigo 8-12 ore: diventeranno di un bel marrone ambrato con tuorlo cremoso.','CHASHU: Marina la pancia di maiale arrotolata e legata in 50ml soia + 30ml mirin + 1 cucchiaino di zucchero per 2 ore. In una padella rosola su tutti i lati a fuoco vivace. Trasferisci in una pentola con la marinatura + 200ml acqua. Cuoci coperto a fuoco basso 45 min. Lascia raffreddare nella sua salsa, poi taglia a fette spesse.','TARE (base sapore): in un pentolino mescola 30ml soia + 15ml mirin + 10ml sake. Scalda 2 min a fuoco basso. Tieni da parte.','BRODO: Scalda 900ml di brodo di ossa. Aggiungi aglio e zenzero grattugiati. Porta quasi a bollore.','ASSEMBLAGGIO: dissolvi 30g di miso nel brodo caldo (mai bollire il miso — distrugge gli enzimi benefici). Aggiungi 2 cucchiai di tare.','Cuoci i noodles in acqua bollente non salata il tempo indicato. Scola e metti nella ciotola. Versa il brodo caldissimo.','Guarnisci con: 2-3 fette di chashu, metà uova marinata tagliata, cipollotto a rondelle, foglio di nori piegato sul bordo, mais, olio di sesamo. Servi immediatamente.'],
+['BRODO nel Mambo: metti brodo, aglio e zenzero grattugiati nel boccale: 10 min / 90°C / Vel. 1 (non bollire il miso!). Dissolvi il miso in 2 mestoli di brodo tiepido a parte, poi riaggiungilo.','Il chashu si prepara in padella/pentola tradizionalmente. I noodles si cuociono in pentola normale.']),
+
+r('j2','Gyoza',RC.jp,40,'media','🥟',
+[i('pasta per gyoza (dischetti pronti)',24,'pz','gyoza'),i('macinato di maiale',200,'g','maiale'),i('cavolo cinese (napa cabbage)',150,'g','cavolo'),i('zenzero fresco grattugiato',15,'g','zenzero'),i('aglio',2,'pz','aglio'),i('salsa di soia',25,'ml','soia'),i('olio di sesamo',15,'ml','sesamo'),i('cipollotto',2,'pz','cipollotto'),i('olio di girasole',20,'ml','olio')],
+['RIPIENO: Trita finemente il cavolo, poi mettilo in un colino, sala e lascia 10 min. Strizza fortemente con le mani per eliminare tutta l\'acqua (passaggio fondamentale — il ripieno troppo bagnato fa rompere i gyoza). Mescola 200g di macinato di maiale + cavolo strizzato + zenzero grattugiato + aglio grattugiato + 25ml soia + 15ml sesamo + cipollotto tritato finissimo. Mescola vigorosamente in un\'unica direzione per 2 min: il ripieno deve diventare appiccicoso e "legato".','FORMATURA: Bagna il bordo di un dischetto con acqua. Metti 1 cucchiaino colmo di ripieno al centro (non esagerare). Piega a mezzaluna e pizzica il bordo superiore facendo 4-5 pieghe sul lato anteriore verso quello posteriore liscio — le pieghe creano la caratteristica forma. Tieni i gyoza dritti, pronti per la cottura.','COTTURA (metodo gyoza): In una padella antiaderente (con coperchio) scalda 20ml di olio a fuoco medio-vivace. Disponi i gyoza sulla parte piatta, ben ravvicinati ma senza toccarsi. Cuoci 2-3 min finché il fondo è dorato.','VAPORE: Aggiungi 80ml di acqua nella padella e COPRI IMMEDIATAMENTE (attenzione agli schizzi). Cuoci a vapore coperto 5-6 min finché tutta l\'acqua evapora. Togli il coperchio e cuoci altri 30 secondi per rendere croccante di nuovo il fondo.','SALSA DIPPING: mescola 30ml soia + 20ml aceto di riso + qualche goccia di olio di sesamo + peperoncino fresco a rondelle. Servi a parte.'],
+['Prepara il ripieno nel boccale: metti cavolo a pezzi + zenzero + aglio: 5 sec / Vel. 7. Togli, strizza bene.','Aggiungi macinato + verdure + condimenti nel boccale: 30 sec / Vel. 3 con farfalla per amalgamare. Non tritare — il ripieno deve avere consistenza.','Forma i gyoza a mano. Cuoci in padella tradizionalmente (il vapore-friggere non si può replicare nel Mambo).']),
+
+r('j3','Teriyaki di Pollo',RC.jp,25,'facile','🍗',
+[i('cosce di pollo disossate con pelle',400,'g','pollo'),i('salsa di soia',50,'ml','soia'),i('mirin',40,'ml','mirin'),i('sake',30,'ml','sake'),i('zucchero di canna',15,'g','zucchero'),i('zenzero fresco',10,'g','zenzero'),i('olio di sesamo',10,'ml','sesamo'),i('riso japonicum',200,'g','riso'),i('semi di sesamo bianchi',5,'g','sesamo')],
+['SALSA TERIYAKI: in una ciotola mescola 50ml soia + 40ml mirin + 30ml sake + 15g zucchero di canna + zenzero grattugiato. Mescola fino a sciogliere lo zucchero.','Taglia le cosce di pollo in 2-3 pezzi. Metti nel sacchetto con la salsa teriyaki e marina 30 min (o fino a 4 ore in frigo).','Cuoci il riso giapponese: sciacqualo più volte fino ad acqua limpida. Copri con acqua fredda in volume 1:1.2 (es. 200g riso = 240ml acqua). Porta a bollore, abbassa al minimo, cuoci coperto esatti 12 min. Togli dal fuoco e lascia riposare 10 min con coperchio — non aprire!','Togli il pollo dalla marinatura asciugandolo leggermente con carta assorbente (tieni la marinatura). In una padella antiaderente scalda olio di sesamo a fuoco medio-vivace. Cuoci il pollo con la PELLE IN GIÙ per 5-6 min senza muoverlo — la pelle deve diventare dorata e croccante. Gira e cuoci altri 4-5 min.','Versa la marinatura nella padella e alza la fiamma a vivace: cuoci 3-4 min finché la salsa si riduce, addensa e diventa una glassa lucida che caramella il pollo. Giralo per ricoprirlo completamente. La glassa è pronta quando "tira" con il cucchiaio.','Affetta il pollo in diagonale. Servi sul riso con la glassa, semi di sesamo tostati e cipollotto affettato.'],
+['RISO nel Mambo: metti riso sciacquato + 250ml acqua nel boccale: 14 min / 100°C / Vel. 1. Riposa 5 min coperto.','SALSA TERIYAKI nel boccale: tutti gli ingredienti della salsa: 5 min / 100°C / Vel. 2 fino ad addensare.','POLLO: cuoci in padella tradizionalmente per ottenere la crosticina croccante. Il Mambo non è adatto per caramellare la glassa sulla carne.']),
+
+r('j4','Tonkatsu',RC.jp,25,'facile','🍱',
+[i('braciole di maiale (lombata)',350,'g','maiale'),i('panko (pangrattato giapponese)',100,'g','pangrattato'),i('farina 00',50,'g','farina'),i('uova',2,'pz','uova'),i('olio per friggere',400,'ml','olio'),i('cavolo cappuccio',150,'g','cavolo'),i('salsa tonkatsu o worcestershire',40,'ml','soia'),i('senape giapponese',10,'g','senape')],
+['Rimuovi il tessuto connettivo bianco dai bordi della carne (si contrae durante la cottura deformando le fettine). Con un coltello fai piccole incisioni lungo i bordi. Batti le braciole a circa 1.5-2cm di spessore — non troppo sottili per il tonkatsu.','Sala e pepa. Prepara la panatura in sequenza: 1° piatto farina, 2° uova sbattute, 3° panko abbondante. Premi bene il panko su tutti i lati — deve aderire uniformemente. Il panko è fondamentale: più grossolano del pangrattato italiano, crea una panatura più croccante e leggera.','Scalda 400ml di olio di arachidi o girasole in una padella profonda a 170°C (usa un termometro — la temperatura precisa è importante). Testa: se immergi un bastoncino di legno, deve fare bollicine attive.','Friggi le braciole 4-5 min per lato. La panatura deve diventare dorata uniforme e croccante. Scola su carta assorbente. Taglia a fette spesse 1.5cm con un coltello affilato senza "segare" (schiaccia verso il basso).','CONDIMENTO: Taglia finissimamente il cavolo (la mandolina aiuta). Metti in acqua ghiacciata 5 min per renderlo croccante. Scola e asciuga. Servi il tonkatsu con cavolo, salsa tonkatsu (mescola 30ml worcestershire + 10ml ketchup + 5ml soia), senape e riso.'],
+['Il Tonkatsu si prepara esclusivamente friggendo in padella — il Mambo non è adatto per friggere la carne impanata.']),
+
+r('j5','Miso Soup',RC.jp,10,'facile','🍵',
+[i('brodo dashi (granulare o fatto in casa)',700,'ml','brodo'),i('pasta di miso rosso o bianco',50,'g','miso'),i('tofu silken (morbido)',150,'g','tofu'),i('alga wakame essiccata',8,'g','nori'),i('cipollotto',2,'pz','cipollotto'),i('olio di sesamo',3,'ml','sesamo')],
+['DASHI: se usi il granulare, sciogli 1 cucchiaino in 700ml di acqua. Se fatto in casa: porta a bollore 700ml acqua con 10g di alga kombu. Prima del bollore togli il kombu, aggiungi 15g di fiocchi di katsuobushi, lascia riposare 5 min, filtra.','Reidrata il wakame: mettilo in acqua fredda 5-10 min. Si espanderà 5x. Scola e strizza delicatamente.','Taglia il tofu silken a dadini di 1.5cm con molta delicatezza — è fragile. Non mescolare aggressivamente una volta in pentola.','Scalda il dashi a fuoco medio finché è quasi bollente (non deve bollire dopo che aggiungi il miso — il calore eccessivo distrugge gli enzimi e altera il sapore). Aggiungi il wakame e il tofu, scalda 2-3 min.','Sciogli il miso in una piccola ciotola con 3-4 cucchiai di brodo caldo prima di aggiungerlo — evita grumi. Versalo nel brodo mescolando delicatamente. Spegni immediatamente la fiamma. Il miso NON deve bollire.','Distribuisci nelle ciotole. Aggiungi cipollotto a rondelle sottili e qualche goccia di olio di sesamo. Servi subito.'],
+['Nel boccale metti dashi + wakame + tofu: 5 min / 80°C / Vel. 1 (la temperatura bassa preserva i sapori delicati).','Scioglie il miso in un mestolo con un po\' di brodo caldo, poi versalo nel boccale: 1 min / 70°C / Vel. 1. Non superare 80°C per preservare il miso.','Servi immediatamente con cipollotto e olio di sesamo.']),
+
+r('j6','Chirashi Sushi',RC.jp,30,'media','🍱',
+[i('riso per sushi (japonica)',200,'g','riso'),i('salmone freschissimo (sushi grade)',150,'g','salmone'),i('tonno freschissimo (sushi grade)',100,'g','tonno'),i('gamberi cotti',80,'g','gamberi'),i('aceto di riso',35,'ml','aceto'),i('zucchero',15,'g','zucchero'),i('sale fino',5,'g','sale'),i('wasabi',8,'g','wasabi'),i('salsa di soia',30,'ml','soia'),i('nori (alga)',2,'fogli','nori'),i('semi di sesamo',5,'g','sesamo'),i('cetriolo',1,'pz','cetriolo')],
+['RISO SUSHI: sciacqua il riso più volte finché l\'acqua è limpida. Metti in pentola con 240ml acqua fredda. Porta a bollore, abbassa al minimo, cuoci ESATTI 12 min coperto. Togli dal fuoco, riposa 10 min senza aprire.','CONDIMENTO RISO: in un pentolino scalda 35ml aceto di riso + 15g zucchero + 5g sale finché si scioglie (non bollire). Versa il riso caldo in una ciotola larga di legno (hangiri). Versaci sopra il condimento e mescola con una spatola in legno con movimenti orizzontali "a taglio" mentre lo eventi con un ventaglio. NON girare — si spiaccica. Il riso deve diventare lucido, leggermente appiccicoso e a temperatura ambiente.','PESCE: usa solo pesce sashimi-grade (garantito per il consumo crudo). Taglia il salmone e il tonno a fette spesse 8mm, leggermente in diagonale rispetto alla fibra — tagliate più sottili se preferisci.','Taglia il cetriolo a julienne fine o a rondelle sottilissime.','ASSEMBLAGGIO: Metti il riso nelle ciotole individuali (una bella porzione compressa leggermente). Disponi il pesce, i gamberi, il cetriolo e il nori tagliato a striscioline in modo decorativo (come un mosaico colorato). Aggiungi sesamo tostato, una pallina di wasabi sul bordo. Servi con la soia in una ciotolina a parte.'],
+['RISO nel Mambo: riso sciacquato + 250ml acqua: 14 min / 100°C / Vel. 1. Trasferisci in ciotola e condisci come sopra.','Il condimento e il pesce si preparano tradizionalmente a mano.']),
+
+r('j8','Karaage (Pollo Fritto Giapponese)',RC.jp,30,'facile','🍗',
+[i('cosce di pollo disossate',400,'g','pollo'),i('salsa di soia',35,'ml','soia'),i('sake',25,'ml','sake'),i('zenzero fresco grattugiato',15,'g','zenzero'),i('aglio grattugiato',2,'pz','aglio'),i('maizena',50,'g','maizena'),i('olio per friggere',500,'ml','olio'),i('maionese kewpie (giapponese)',40,'g','maionese'),i('limone',1,'pz','limone')],
+['Taglia il pollo in bocconi irregolari di 3-4cm — non uniformi è tipico del karaage giapponese. Lascia la pelle se presente.','MARINATURA: in una ciotola mescola 35ml soia + 25ml sake + zenzero grattugiato + aglio grattugiato. Aggiungi il pollo e massaggia bene. Copri e marina in frigo 20-30 min (non di più — la soia inizia a cuocere la carne).','Togli il pollo dalla marinatura e asciugalo leggermente (non troppo — un po\' di umidità aiuta la maizena ad aderire). Metti 50g di maizena in un sacchetto, aggiungi il pollo e agita per ricoprire uniformemente. Scrolla via l\'eccesso: deve esserci uno strato sottile e uniforme.','PRIMA FRITURA: scalda l\'olio a 170°C. Friggi i bocconi in piccoli lotti (non sovraffollare — abbassa la temperatura dell\'olio) per 4 min. Scola su carta assorbente. Lascia riposare 3 min.','SECONDA FRITURA (il segreto del karaage croccante): scalda l\'olio a 190°C. Rifriggi gli stessi bocconi per 1-2 min finché diventano dorati e croccantissimi. La doppia fritura elimina l\'umidità residua e crea una crosta impenetrabile.','Servi immediatamente con maionese kewpie, fette di limone, cavolo tagliato fine e birra ghiacciata.'],
+['Marina il pollo tradizionalmente. La cottura deve avvenire in padella/wok con olio abbondante — il Mambo non è adatto per friggere. Per un\'alternativa più leggera: metti i bocconi marinati (senza maizena) nel Varoma e cuoci a vapore: 20 min / Varoma / Vel. 1. Il risultato sarà più morbido ma senza la croccantezza tipica.']),
+
+r('j9','Tempura di Gamberi e Verdure',RC.jp,25,'media','🍤',
+[i('gamberi grandi (16-20)',200,'g','gamberi'),i('zucchine',1,'pz','zucchine'),i('funghi shiitake',4,'pz','funghi'),i('farina 00 ghiacciata',80,'g','farina'),i('fecola di patate',20,'g','maizena'),i('uovo',1,'pz','uova'),i('acqua ghiacciata gassata',160,'ml','acqua'),i('olio di semi di arachidi',600,'ml','olio'),i('dashi',300,'ml','brodo'),i('mirin',30,'ml','mirin'),i('soia',30,'ml','soia'),i('daikon grattugiato',30,'g','verdure')],
+['SALSA TENTSUYU: in un pentolino scalda 300ml dashi + 30ml mirin + 30ml soia. Porta quasi a bollore, poi togli dal fuoco. Servi tiepida con daikon grattugiato dentro.','GAMBERI: rimuovi il guscio lasciando la codina. Con uno stuzzicadenti rimuovi il filo nero intestinale. Fai 4-5 incisioni superficiali sul ventre (impedisce che si arriccino in cottura). Asciuga benissimo.','PASTELLA (preparala all\'ultimo momento, FREDDA): mescola molto brevemente 80g farina + 20g fecola + 1 uovo + 160ml acqua gassata ghiacciata. Usa una forchetta con pochi colpi — DEVE rimanere grumosa! I grumi sono il segreto della tempura leggera e croccante. Tieni la ciotola su ghiaccio.','Scalda l\'olio a 180°C. IMPORTANTE: la pastella fredda + olio caldo = croccantezza istantanea.','Immergi gamberi e verdure nella pastella e friggi immediatamente per 2-3 min. Il colore deve essere bianco-dorato pallido, non dorato scuro. Scola su carta assorbente. Mangia immediatamente — la tempura perde la croccantezza in pochi minuti.'],
+['La tempura richiede frittura in abbondante olio caldo — il Mambo non è adatto. Puoi preparare la salsa tentsuyu nel Mambo: dashi + mirin + soia: 3 min / 80°C / Vel. 2.']),
+
+r('j10','Onigiri al Tonno',RC.jp,20,'facile','🍙',
+[i('riso per sushi',200,'g','riso'),i('tonno in scatola all\'olio',80,'g','tonno'),i('maionese kewpie',25,'g','maionese'),i('salsa di soia',5,'ml','soia'),i('nori in fogli',2,'fogli','nori'),i('sale fino',4,'g','sale'),i('semi di sesamo',5,'g','sesamo')],
+['Cuoci il riso come per il sushi (sciacqua, 200g riso + 240ml acqua, 12 min coperto + 10 min riposo). Non condire con aceto — gli onigiri si fanno con riso bianco leggermente salato.','RIPIENO: scola il tonno dall\'olio. Mescola 80g tonno + 25g maionese kewpie + 5ml soia + eventualmente un pizzico di pepe bianco.','Prepara una ciotolina con acqua salata per bagnare le mani (impedisce che il riso attacchi). Bagna bene le palme e cospargile di poco sale.','Prendi una porzione di riso (~100g) sul palmo. Fai un\'impronta al centro, metti 1 cucchiaio abbondante di ripieno. Richiudi il riso sopra il ripieno. Forma un triangolo: con entrambe le mani a "V" comprimi delicatamente il riso modellando i 3 lati del triangolo. La pressione deve essere decisa ma non eccessiva — il riso deve compattarsi senza diventare una palla dura.','Ritaglia il nori in strisce di ~4cm di larghezza. Avvolgi la base dell\'onigiri col nori (il nori deve rimanere croccante: avvolgi all\'ultimo momento prima di mangiare, oppure insegna che l\'onigiri classico porta il nori a contatto del riso solo al momento del consumo).','Cospargere con semi di sesamo tostati.'],
+['RISO nel Mambo: riso sciacquato + 250ml acqua: 14 min / 100°C / Vel. 1. Riposa 5 min coperchiato.','Prepara ripieno e forma gli onigiri tradizionalmente a mano — è un processo manuale che richiede sensibilità.']),
+
+r('j12','Oyakodon',RC.jp,20,'facile','🍱',
+[i('petto di pollo',200,'g','pollo'),i('uova fresche',3,'pz','uova'),i('cipolla dorata',1,'pz','cipolla'),i('brodo dashi',200,'ml','brodo'),i('salsa di soia',40,'ml','soia'),i('mirin',30,'ml','mirin'),i('sake',20,'ml','sake'),i('zucchero',5,'g','zucchero'),i('riso giapponese',200,'g','riso'),i('cipollotto',1,'pz','cipollotto')],
+['Cuoci il riso giapponese: sciacqua, copri con acqua 1:1.2, 12 min + 10 min riposo.','Taglia il pollo in bocconi di 2-3cm. Taglia la cipolla a mezzalune spesse.','TSUYU (brodo di cottura): mescola 200ml dashi + 40ml soia + 30ml mirin + 20ml sake + 5g zucchero. Porta a bollore in una padella piccola (o donburi pan 20cm).','Aggiungi cipolla nel tsuyu bollente e cuoci 3-4 min a fuoco medio finché inizia ad ammorbidire. Aggiungi il pollo distribuito uniformemente. Cuoci 4-5 min finché il pollo è cotto (non più rosa).','Sbatti le uova LEGGERMENTE — non devono essere completamente amalgamate, ci devono essere striature di albume e tuorlo separate.','Versa le uova a spirale sul pollo e la cipolla — prima il bordo esterno poi il centro. Copri con il coperchio. Cuoci 30-60 secondi: le uova devono essere ancora CREME, leggermente rapprese in superficie ma fluide al centro. Il calore residuo le finirà di cuocere.','Trasferisci delicatamente sul riso nella ciotola. Guarnisci con cipollotto a rondelle sottili.'],
+['RISO nel Mambo: 14 min / 100°C / Vel. 1 con acqua.','TSUYU nel boccale: brodo + condimenti: 3 min / 100°C / Vel. 1. Aggiungi cipolla + pollo: 6 min / 100°C / Vel. 1 con farfalla.','Trasferisci in padella. Aggiungi le uova sbattute a spirale e copri 1 min — il Mambo non permette il controllo visivo necessario per l\'uovo cremoso tipico dell\'oyakodon.']),
+
+// ===== CINESI =====
+r('c1','Riso alla Cantonese',RC.cn,20,'facile','🍚',
+[i('riso cotto freddo del giorno prima',400,'g','riso'),i('uova',3,'pz','uova'),i('piselli surgelati',80,'g','piselli'),i('prosciutto cotto',100,'g','prosciutto'),i('cipollotto',3,'pz','cipollotto'),i('salsa di soia',25,'ml','soia'),i('olio di sesamo',10,'ml','sesamo'),i('olio di girasole',30,'ml','olio'),i('sale e pepe bianco',3,'g','sale')],
+['USA RISO FREDDO: il riso del giorno prima (refrigerato) è essenziale. Il riso appena cotto ha troppa umidità e si incolla nel wok. Se devi cucinarlo oggi, stendilo su una teglia e mettilo in frigo 1-2 ore.','Separa i chicchi del riso freddo con le mani per togliere i grumi. Taglia prosciutto a dadini piccoli. Taglia cipollotto separando il verde (decorazione) dal bianco (cottura).','UOVA: in una ciotola sbatti le 3 uova con un pizzico di sale. Scalda un wok o padella antiaderente a fuoco VIVACISSIMO finché fuma leggermente. Aggiungi 15ml di olio, versa le uova e strapazzale velocemente con la spatola a pezzi irregolari — devono rimanere morbide e umide (30-45 sec). Togli e metti da parte.','Aggiungi altri 15ml di olio nel wok rovente. Aggiungi il bianco del cipollotto e i piselli scongelati. Salta 1-2 min a fuoco vivace.','Aggiungi il riso freddo: distribuiscilo uniformemente nel wok e lascialo bruciucchiare 30 sec senza muoverlo (crea quel sapore "affumicato" da wok, detto wok hei). Poi mescola energicamente con la spatola schiacciando i grumi.','Aggiungi il prosciutto e le uova strapazzate. Versa 25ml soia sui bordi del wok (non al centro — la soia evaporerà istantaneamente) e mescola rapidamente. Aggiungi olio di sesamo e pepe bianco. Salta 1-2 min finché tutto è ben amalgamato.','Servi decorando con il verde del cipollotto.'],
+['Trita cipollotto bianco nel boccale: 3 sec / Vel. 5. Con 30ml olio: 2 min / 120°C / Vel. 1.','Aggiungi piselli + prosciutto + riso freddo: 5 min / 120°C / Vel. 1 con farfalla.','Sbatti le uova a parte in padella, aggiungile al boccale con soia e sesamo: 2 min / 100°C / Vel. 1. Attenzione: il Mambo non raggiunge la temperatura del wok — il riso sarà buono ma mancherà il "wok hei" tipico del piatto.']),
+
+r('c2','Kung Pao Pollo',RC.cn,25,'media','🌶️',
+[i('petto di pollo',350,'g','pollo'),i('arachidi tostate',70,'g','arachidi'),i('peperoncino secco cinese',5,'pz','peperoncino'),i('pepe del Sichuan',1,'g','pepe'),i('aglio',3,'pz','aglio'),i('zenzero fresco',15,'g','zenzero'),i('cipollotto',2,'pz','cipollotto'),i('salsa di soia',30,'ml','soia'),i('aceto di riso nero (chinkiang)',15,'ml','aceto'),i('zucchero di canna',10,'g','zucchero'),i('maizena',15,'g','maizena'),i('olio di sesamo',10,'ml','sesamo'),i('olio di girasole',30,'ml','olio')],
+['MARINATURA POLLO: taglia il pollo a dadini di 2cm. Mescola con 10ml soia + 10ml acqua + 8g maizena + un pizzico di bicarbonato (rende la carne più tenera). Marina 15 min.','SALSA KUNG PAO: mescola 20ml soia + 15ml aceto di riso nero + 10g zucchero + 50ml brodo di pollo + 7g maizena. Mescola bene finché lo zucchero è sciolto. Tieni vicino al fuoco.','Scala il wok a fuoco MASSIMO finché fuma. Aggiungi 30ml olio. Aggiungi i peperoncini secchi INTERI e il pepe del Sichuan: soffriggi 20-30 secondi finché l\'olio si aromatizza (non devono bruciare — devono diventare un po\' più scuri). Togli i peperoncini se non vuoi troppo piccante.','Aggiungi il pollo marinato in un unico strato: non muovere per 1 minuto per farlo dorare. Poi salta 2-3 min finché cotto. Togli.','Nel wok aggiungi un filo d\'olio, poi aglio tritato + zenzero: soffriggi 30 sec a fuoco vivace. Aggiungi il bianco del cipollotto 30 sec.','Rimetti il pollo. Versa la salsa kung pao dal bordo del wok. Mescola velocemente: la salsa si addenserà in 30-60 sec. Aggiungi le arachidi. Olio di sesamo. Cipollotto verde. Servi immediatamente sul riso.'],
+['Marina il pollo e prepara la salsa tradizionalmente.','Nel boccale: olio + peperoncini + pepe sichuan: 1 min / 130°C / Vel. 1. Aggiungi aglio + zenzero: 1 min / 120°C / Vel. 1.','Aggiungi pollo marinato: 5 min / 120°C / Vel. 1 con farfalla. Aggiungi salsa: 2 min / 100°C / Vel. 1. Aggiungi arachidi e cipollotto fuori dal fuoco.']),
+
+r('c3','Mapo Tofu',RC.cn,20,'media','🍲',
+[i('tofu morbido (silken)',400,'g','tofu'),i('macinato di maiale',150,'g','maiale'),i('pasta doubanjiang (peperoncino fermentato)',30,'g','peperoncino'),i('pasta di fagioli neri fermentati',15,'g','peperoncino'),i('aglio',4,'pz','aglio'),i('zenzero fresco',15,'g','zenzero'),i('brodo di pollo',200,'ml','brodo'),i('salsa di soia',20,'ml','soia'),i('olio di pepe del Sichuan',5,'ml','sesamo'),i('maizena',15,'g','maizena'),i('cipollotto',2,'pz','cipollotto')],
+['Taglia il tofu in dadini di 2cm. Mettilo in acqua leggermente salata tiepida 10 min: lo compatta e impedisce che si sbricioli durante la cottura. Scola delicatamente.','Mescola la maizena con 30ml di acqua fredda — questo è l\'addensante.','In un wok scalda 30ml di olio a fuoco vivace. Aggiungi il doubanjiang (pasta di peperoncino fermentato, base del mapo tofu) e soffriggi 1-2 min a fuoco medio finché l\'olio diventa rosso brillante e profumato. Aggiungi aglio e zenzero tritati: 30 sec.','Aggiungi il macinato di maiale sbriciolato: cuoci a fuoco vivace 3-4 min finché cotto. Aggiungi pasta di fagioli neri, soia.','Versa il brodo di pollo e porta a bollore. Aggiungi il tofu scolato con una spatola piatta, delicatissimamente per non romperlo. Cuoci 3-4 min lasciandolo sobbollire.','Aggiungi la maizena sciolta e mescola delicatamente: la salsa si addenserà in 1-2 min. Il mapo tofu deve avere una salsa "abbracciante" che avvolge ogni pezzo di tofu.','Versa nelle ciotole. Aggiungi olio di pepe del Sichuan (dà il caratteristico senso di formicolio sulla lingua) e cipollotto a rondelle. Servi con riso bianco.'],
+['Soffriggi doubanjiang + aglio + zenzero con 30ml olio nel boccale: 3 min / 120°C / Vel. 1.','Aggiungi macinato: 4 min / 120°C / Vel. 1 con farfalla. Aggiungi pasta fagioli neri + soia + brodo: 3 min / 100°C / Vel. 1.','Aggiungi tofu delicatamente a dadini: 3 min / 90°C / Vel. 1 (temperatura bassa per non rompere il tofu). Aggiungi maizena sciolta: 1 min / 100°C / Vel. 2.']),
+
+r('c5','Pollo in Agrodolce',RC.cn,30,'media','🍗',
+[i('petto di pollo',350,'g','pollo'),i('peperone rosso',1,'pz','peperoni'),i('peperone giallo',1,'pz','peperoni'),i('ananas fresco o in scatola',150,'g','ananas'),i('cipolla',1,'pz','cipolla'),i('uovo',1,'pz','uova'),i('maizena',60,'g','maizena'),i('farina 00',30,'g','farina'),i('olio per friggere',500,'ml','olio'),i('ketchup',50,'g','ketchup'),i('aceto di riso bianco',40,'ml','aceto'),i('zucchero',40,'g','zucchero'),i('salsa di soia',15,'ml','soia'),i('succo di ananas',50,'ml','succo'),i('maizena per salsa',15,'g','maizena')],
+['POLLO: taglia a bocconi di 3cm. Marina 10 min con 1 cucchiaio di soia.','PASTELLA CROCCANTE: sbatti 1 uovo. Mescola 50g maizena + 30g farina. Prima passa i bocconi nella maizena asciutta, poi nell\'uovo, poi nel mix farina-maizena. La doppia panatura crea una crosta più croccante che resiste alla salsa.','SALSA AGRODOLCE: in una ciotola mescola 50g ketchup + 40ml aceto di riso bianco + 40g zucchero + 15ml soia + 50ml succo di ananas + 10g maizena sciolta in 30ml acqua. Assaggia: deve bilanciare perfettamente dolce (ananas+zucchero), acido (aceto), sapido (soia+ketchup). Aggiusta a gusto.','Friggi il pollo in olio a 175°C per 4-5 min finché dorato e croccante. Scola su carta assorbente. Per una croccantezza extra: rifriggi 90 secondi a 190°C.','In un wok scalda 15ml olio a fuoco vivace. Aggiungi cipolla tagliata a quadrati + peperoni tagliati a quadrati 2-3 cm: salta 2-3 min — devono rimanere croccanti e colorati. Aggiungi l\'ananas a pezzi: 1 min.','Versa la salsa agrodolce nel wok e mescola: si addenserà in 30-60 sec. Quando bolle e diventa lucida e consistente, aggiungi il pollo fritto. Mescola velocemente per ricoprirlo uniformemente senza che perda la croccantezza. Servi IMMEDIATAMENTE con riso bianco.'],
+['Prepara la salsa agrodolce nel Mambo: tutti gli ingredienti della salsa nel boccale: 5 min / 90°C / Vel. 3. La salsa si addenserà diventando lucida.','Soffriggi verdure in padella nel wok tradizionalmente.','Friggi il pollo in padella (il Mambo non è adatto). Combina tutto in padella con la salsa dal boccale.']),
+
+r('c8','Wonton Soup',RC.cn,35,'media','🍵',
+[i('pasta per wonton (dischetti o quadrati)',24,'pz','gyoza'),i('macinato di maiale',180,'g','maiale'),i('gamberi crudi sgusciati',80,'g','gamberi'),i('zenzero fresco grattugiato',12,'g','zenzero'),i('salsa di soia',20,'ml','soia'),i('olio di sesamo',12,'ml','sesamo'),i('cipollotto',2,'pz','cipollotto'),i('brodo di pollo',1000,'ml','brodo'),i('bok choy',150,'g','verdure'),i('pepe bianco',2,'g','pepe')],
+['RIPIENO: trita finemente i gamberi (non frullare — devono avere consistenza). Mescola maiale + gamberi + zenzero + soia + sesamo + bianco del cipollotto tritato + pepe bianco. Impasta in una direzione finché il ripieno è appiccicoso e compatto.','FORMATURA WONTON: metti 1 cucchiaino di ripieno al centro di un quadrato di pasta. Bagna i bordi con acqua. Piega a triangolo schiacciando bene i bordi. Poi unisci i due angoli alla base portandoli verso di te attorno al ripieno e sovrapponi, fissando con una goccia d\'acqua. Questa è la forma classica del wonton.','Cuoci il bok choy in acqua bollente 1-2 min. Raffredda in acqua ghiacciata per mantenere il verde. Taglia a metà.','Scalda il brodo di pollo con zenzero a fettine. Aggiusta di sale e soia. Porta a bollore.','Cuoci i wonton nel brodo bollente: immergi delicatamente 3-4 alla volta. Sono pronti quando vengono a galla e la pasta è traslucida (~4-5 min). Scola con una schiumarola.','Distribuisci nelle ciotole: brodo caldo, wonton, bok choy. Aggiungi cipollotto verde, olio di sesamo e pepe bianco.'],
+['Prepara ripieno nel boccale: maiale + gamberi grossolanamente tritati: 10 sec / Vel. 5. Aggiungi condimenti: 30 sec / Vel. 3 per amalgamare.','Forma i wonton a mano.','BRODO nel Mambo: brodo + zenzero: 10 min / 90°C / Vel. 1. Cuoci i wonton direttamente nel brodo nel boccale: 6 min / 100°C / Vel. 1 delicatamente. Poi trasferisci nelle ciotole.']),
+
+// ===== ASIATICA =====
+r('a1','Pad Thai',RC.as,25,'media','🍜',
+[i('spaghetti di riso (3mm)',200,'g','riso'),i('gamberi medi sgusciati',200,'g','gamberi'),i('uova',2,'pz','uova'),i('germogli di soia freschi',100,'g','soia'),i('tofu sodo',100,'g','tofu'),i('salsa di pesce (nam pla)',40,'ml','salsa'),i('pasta di tamarindo sciolta in acqua',30,'g','tamarindo'),i('zucchero di palma o di canna',20,'g','zucchero'),i('aglio',3,'pz','aglio'),i('cipollotto',3,'pz','cipollotto'),i('arachidi tostate',50,'g','arachidi'),i('lime',1,'pz','lime'),i('olio di girasole',30,'ml','olio')],
+['Immergi gli spaghetti di riso in acqua FREDDA per 30 min (non calda — diventeranno molli). Devono essere ancora leggermente duri al morso. Scola.','SALSA PAD THAI: mescola 40ml salsa di pesce + 30g pasta di tamarindo sciolta in 3 cucchiai d\'acqua calda + 20g zucchero. Assaggia: deve essere sapido-acido-dolce in equilibrio. Questa è la base del pad thai autentico.','Taglia il tofu sodo a dadini di 1.5cm. Friggi in 1 cucchiaio d\'olio finché dorato su tutti i lati. Togli.','Scalda il wok a fuoco MASSIMO finché fuma. Aggiungi 20ml olio. Soffriggi l\'aglio tritato 30 sec. Aggiungi i gamberi: cuoci 1-2 min finché rosa. Togli gamberi.','Aggiungi le noodles scolate nel wok caldo: mescola velocemente 1 min. Versa la salsa pad thai: mescola per 1-2 min finché le noodles la assorbono.','Sposta le noodles su un lato del wok. Nell\'altro lato rompi le 2 uova: strapazza velocemente 30 sec poi incorpora alle noodles.','Aggiungi gamberi, tofu e metà dei germogli. Mescola tutto a fuoco vivace 1 min. Spegni, aggiungi cipollotto verde e sesamo.','Impiatta. Guarnisci con germogli freschi, arachidi tritate grossolanamente, lime, peperoncino in polvere.'],
+['Prepara la salsa nel Mambo: salsa di pesce + tamarindo + zucchero: 2 min / 60°C / Vel. 2 per sciogliere lo zucchero.','La cottura del pad thai richiede un wok a fuoco alto — è impossibile replicare nel Mambo. La "wok hei" (sapore del fuoco alto) è caratteristica fondamentale.']),
+
+r('a2','Curry Verde Tailandese',RC.as,30,'media','🍛',
+[i('petto o cosce di pollo',350,'g','pollo'),i('latte di cocco intero',400,'ml','cocco'),i('pasta di curry verde thai',35,'g','curry'),i('melanzane thai',150,'g','melanzane'),i('fagiolini',80,'g','fagiolini'),i('foglie di lime kaffir',4,'pz','lime'),i('lemongrass (citronella)',2,'steli','erbe'),i('salsa di pesce',25,'ml','salsa'),i('zucchero di palma',10,'g','zucchero'),i('olio di cocco',20,'ml','olio'),i('foglie di basilico thai',10,'g','basilico'),i('riso jasmine',200,'g','riso')],
+['Cuoci il riso jasmine: sciacqua, copri con acqua (1:1.5), porta a bollore, abbassa al minimo, cuoci coperto 12 min + 5 min riposo.','In un wok o padella profonda scalda 20ml olio di cocco a fuoco medio. Aggiungi la pasta di curry verde e soffriggi 2-3 min mescolando continuamente: la pasta deve "aprirsi" diventando molto profumata e l\'olio deve colorirsi di verde.','Aggiungi 100ml di latte di cocco (il latte in cima alla lattina, più denso). Cuoci a fuoco medio-vivace 3-4 min mescolando finché si separa in olio e liquido — questo passaggio si chiama "fry in the coconut milk" ed è la base del curry thai.','Aggiungi il pollo tagliato a bocconi: cuoci 5 min a fuoco medio. Aggiungi il latte di cocco rimanente, lemongrass schiacciato, foglie di lime kaffir (strappa la nervatura centrale per liberare l\'aroma). Porta a bollore.','Abbassa la fiamma, aggiungi melanzane a quarti e fagiolini. Cuoci 8-10 min finché le verdure sono tenere.','Aggiusta di sapore con salsa di pesce (salato), zucchero di palma (dolce). Il curry verde deve avere un equilibrio di dolce-salato-speziato-cremoso.','Fuori dal fuoco aggiungi foglie di basilico thai (non cuocere — perdono colore e aroma). Rimuovi lemongrass prima di servire. Servi con riso.'],
+['CURRY nel Mambo: scalda olio di cocco: 1 min / 120°C / Vel. 1. Aggiungi pasta curry: 3 min / 120°C / Vel. 1 per farla aprire.','Aggiungi 100ml cocco denso: 4 min / 100°C / Vel. 1 finché il cocco si separa.','Aggiungi pollo + resto cocco + lemongrass + foglie lime + melanzane: 15 min / 100°C / Vel. 1. Aggiungi fagiolini: 8 min / 100°C / Vel. 1.','Aggiusta con salsa di pesce + zucchero. Basilico thai a fine cottura.']),
+
+r('a6','Butter Chicken (Murgh Makhani)',RC.as,45,'media','🍛',
+[i('cosce di pollo disossate',400,'g','pollo'),i('yogurt greco intero',120,'g','yogurt'),i('passata di pomodoro',300,'g','pomodori'),i('panna da cucina',120,'ml','panna'),i('burro',40,'g','burro'),i('cipolla',1,'pz','cipolla'),i('aglio',4,'pz','aglio'),i('zenzero fresco',20,'g','zenzero'),i('garam masala',8,'g','garam masala'),i('curcuma',3,'g','curcuma'),i('paprika dolce',5,'g','paprika'),i('peperoncino di Cayenna',2,'g','peperoncino'),i('cumino in semi',4,'g','cumino'),i('cardamomo in semi',2,'g','spezie'),i('olio',20,'ml','olio'),i('riso basmati',200,'g','riso')],
+['MARINATURA POLLO: mescola yogurt + 3g garam masala + 3g curcuma + 3g paprika + sale. Aggiungi il pollo a pezzi e massaggia bene. Marina in frigo almeno 2 ore (meglio tutta la notte).','Cuoci il pollo marinato in forno a 220°C per 18-20 min finché leggermente bruciucchiato in superficie — questo conferisce il tipico sapore tandoori. In alternativa: griglia in padella ghisa.','SALSA MAKHANI: In una casseruola fai sciogliere 40g burro con 20ml olio a fuoco medio. Aggiungi cumino + cardamomo e soffriggi 30 sec finché scoppiettano. Aggiungi cipolla tritata finissima e cuoci 12-15 min a fuoco medio-basso finché caramellizzata e dorata (questo è fondamentale per il sapore dolce della salsa).','Aggiungi aglio e zenzero grattugiati: cuoci 2 min. Aggiungi 5g garam masala + paprika rimanente + cayenna. Tosta le spezie 1 min.','Aggiungi la passata di pomodoro. Cuoci 15-20 min a fuoco medio finché la salsa si addensa molto e il grasso si separa (vuol dire che le spezie sono ben cotte). Frulla con frullatore a immersione per una salsa liscia e vellutata.','Filtra opzionalmente la salsa al colino per una texture setosa professionale. Rimetti sul fuoco basso, aggiungi la panna e il pollo. Cuoci 10 min. Aggiusta di sale. Aggiungi un cucchiaino di miele per equilibrare.','Servi con riso basmati cotto (sciacqua, copri con acqua, cuoci 10 min + 5 riposo) e naan.'],
+['Cuoci il pollo marinato in forno tradizionalmente.','SALSA nel Mambo: soffritto cipolla con burro+olio+spezie: 15 min / 120°C / Vel. 1.','Aggiungi aglio+zenzero+spezie restanti: 2 min / 120°C / Vel. 1. Aggiungi passata: 20 min / 100°C / Vel. 1.','Frulla: 1 min / Vel. 10 (attenzione vapore — rimuovi il misurino e metti un panno). Rimetti sul fuoco con pollo e panna: 10 min / 90°C / Vel. 1.']),
+
+r('a3','Bibimbap',RC.as,40,'media','🍱',
+[i('riso a chicco corto',200,'g','riso'),i('manzo macinato',150,'g','manzo'),i('carota',1,'pz','carota'),i('spinaci freschi',100,'g','spinaci'),i('funghi shiitake',80,'g','funghi'),i('cetriolo',1,'pz','cetriolo'),i('uova',2,'pz','uova'),i('pasta di peperoncino gochujang',30,'g','gochujang'),i('olio di sesamo',20,'ml','sesamo'),i('salsa di soia',30,'ml','soia'),i('aglio',2,'pz','aglio'),i('zucchero',5,'g','zucchero'),i('semi di sesamo',5,'g','sesamo')],
+['Cuoci il riso giapponese/coreano nel Mambo o in pentola.','MANZO: mescola 150g manzo macinato + 15ml soia + 5g zucchero + 1 spicchio aglio grattugiato + 5ml sesamo. Cuoci in padella a fuoco vivace 3-4 min. Metti da parte.','NAMUL (verdure condite): ogni verdura si prepara separatamente. Carota: julienne fine, salta 2 min in 5ml sesamo + pizzico sale. Spinaci: lessali 30 sec, strizza benissimo, condisci con soia + sesamo + aglio. Funghi: a fette, salta in padella 3 min con soia. Cetriolo: julienne, condisci con sale + sesamo + aceto di riso.','SALSA GOCHUJANG: mescola 30g gochujang + 10ml sesamo + 5g zucchero + 5ml soia + 1 cucchiaio acqua. Deve essere cremosa e bilanciata.','Scalda la ciotola di pietra (dolsot) o usa una ciotola normale. Metti il riso. Disponi le verdure a "spicchi" colorati attorno al riso come petali di fiore — carota arancione, spinaci verdi, funghi marrone, cetriolo verde chiaro. Metti il manzo al centro.','Fai un uovo al tegamino (tuorlo morbido) e mettilo sul manzo al centro. Aggiungi salsa gochujang sul bordo.','Servi immediatamente. Prima di mangiare, mescola tutto vigorosamente con i cucchiai — questo è il gesto caratteristico del bibimbap!'],
+['RISO nel Mambo: 14 min / 100°C / Vel. 1.','MANZO nel Mambo con farfalla: 4 min / 120°C / Vel. 1 con condimenti.','Ogni verdura namul si prepara più velocemente in padella separatamente — il Mambo richiederebbe troppe fasi. Per le salse: prepara il gochujang nel Mambo: 1 min / 60°C / Vel. 3.']),
+
+r('a4','Pho Bo (Zuppa Vietnamita)',RC.as,70,'media','🍜',
+[i('noodles di riso piatti (banh pho)',200,'g','riso'),i('controfiletto di manzo',200,'g','manzo'),i('brodo di manzo fatto in casa o di qualità',1200,'ml','brodo'),i('cipolla grande',1,'pz','cipolla'),i('zenzero fresco',30,'g','zenzero'),i('anice stellato',4,'pz','spezie'),i('chiodi di garofano',3,'pz','spezie'),i('cannella in stecca',1,'pz','cannella'),i('coriandolo in semi',1,'g','spezie'),i('salsa di pesce',40,'ml','salsa'),i('zucchero di roccia',10,'g','zucchero'),i('germogli di soia',80,'g','soia'),i('lime',1,'pz','lime'),i('erbe fresche (coriandolo, menta, basilico thai)',15,'g','erbe'),i('peperoncino fresco',1,'pz','peperoncino')],
+['BRODO (il segreto del pho): Brucia la cipolla dimezzata e il zenzero direttamente sulla fiamma del gas o sotto il grill del forno finché anneriti in superficie. Questo processo (char) dà al brodo il caratteristico sapore affumicato.','In una padella asciutta tosta 4 anice stellato + 3 chiodi di garofano + 1 stecca di cannella + 1g coriandolo in semi per 1-2 min finché profumati. Non bruciare.','In una grande pentola porta il brodo a bollore. Aggiungi cipolla e zenzero bruciati (lavati dall\'annerito esterno) + le spezie tostate + 40ml salsa di pesce + 10g zucchero di roccia. Cuoci a fuoco medio 30-45 min. Filtra il brodo. Assaggia: deve essere profondo, speziato, leggermente dolce e sapido. Aggiusta con salsa di pesce.','Immergi le noodles di riso in acqua fredda 20 min. Poi cuocile in acqua bollente non salata 3-4 min. Scola e dividi nelle ciotole.','Taglia il manzo a fette SOTTILISSIME (1-2mm) contro la fibra — è più facile se la carne è semi-congelata. Devono essere quasi trasparenti.','Disponi le fettine di manzo crude sulla superficie delle noodles. Versa il brodo BOLLENTISSIMO sopra il manzo direttamente dalla pentola: il calore del brodo cuocerà le fettine in 30-60 secondi.','Servi immediatamente con un piatto di condimenti: germogli di soia crudi, fette di lime, erbe fresche, peperoncino a rondelle, hoisin e sriracha.'],
+['BRODO nel Mambo: cipolla e zenzero bruciati (prepara in padella). Metti brodo + cipolla bruciata + zenzero + spezie tostate + salsa di pesce + zucchero nel boccale: 40 min / 100°C / Vel. 1. Filtra il brodo.','Le noodles si cuociono in pentola normale. Il manzo si affetta sottilissimo e si "cuoce" col brodo bollente versato direttamente.']),
+
+r('a12','Korean BBQ Bulgogi',RC.as,30,'media','🥩',
+[i('controfiletto di manzo',350,'g','manzo'),i('pera asiatica o mela',1,'pz','frutta'),i('aglio',4,'pz','aglio'),i('zenzero fresco',12,'g','zenzero'),i('salsa di soia',50,'ml','soia'),i('olio di sesamo',20,'ml','sesamo'),i('zucchero di canna',20,'g','zucchero'),i('cipollotto',3,'pz','cipollotto'),i('semi di sesamo bianchi',8,'g','sesamo'),i('olio di girasole',15,'ml','olio'),i('foglie di lattuga',8,'foglie','verdure'),i('pasta gochujang',15,'g','gochujang'),i('riso',200,'g','riso')],
+['MARINATURA: frulla la pera asiatica (o mela + 2 cucchiai succo di ananas): gli enzimi della frutta rompono le proteine della carne rendendola incredibilmente tenera. Aggiungi a questa purea: 50ml soia + 20ml sesamo + aglio grattugiato + zenzero grattugiato + 20g zucchero + cipollotto bianco tritato. Mescola bene.','Taglia il manzo a fettine SOTTILISSIME (1-2mm) contro la fibra — semi-congela la carne 30 min per tagliare più facilmente. Metti nella marinatura e massaggia con le mani. Marina 30 min a temperatura ambiente o 2-4 ore in frigo.','Cuoci il riso.','Scalda una piastra ghisa o padella spessa a fuoco VIVACISSIMO finché fuma. Aggiungi poco olio. Cuoci il bulgogi in piccoli lotti (senza sovrapporre) per 1-2 min: deve caramellare e brunirsi velocemente. La marinatura contiene zucchero — bruciacchierà leggermente ed è normale.','Servi immediatamente: metti una foglia di lattuga sul palmo, aggiungi un cucchiaio di riso, una porzione di bulgogi, un tocco di gochujang e cipollotto verde. Avvolgi e mangia in un boccone.'],
+['MARINATURA nel Mambo: frulla pera + ingredienti salsa: 20 sec / Vel. 8. Lascia marinare la carne tradizionalmente.','COTTURA: il bulgogi richiede la piastra ghisa rovente per la caramellizzazione — il Mambo non può replicare questo. In alternativa: cuoci il bulgogi nel Mambo con farfalla: 5 min / 130°C / Vel. 1, ma perderà la caratteristica crosticina caramellata.']),
+
+r('a11','Dahl di Lenticchie Rosse',RC.as,35,'facile','🍲',
+[i('lenticchie rosse decorticate',200,'g','lenticchie'),i('pomodori pelati',250,'g','pomodori'),i('cipolla',1,'pz','cipolla'),i('aglio',3,'pz','aglio'),i('zenzero fresco',15,'g','zenzero'),i('latte di cocco',200,'ml','cocco'),i('brodo vegetale',300,'ml','brodo'),i('curry in polvere',8,'g','curry'),i('curcuma',3,'g','curcuma'),i('cumino in semi',4,'g','cumino'),i('semi di senape',3,'g','senape'),i('foglie di curry',6,'pz','erbe'),i('burro chiarificato o olio',30,'ml','olio'),i('riso basmati',200,'g','riso')],
+['Sciacqua le lenticchie rosse finché l\'acqua è limpida. Non hanno bisogno di ammollo.','TARKA (la base aromatica): in una casseruola scalda 30ml di burro chiarificato a fuoco medio. Aggiungi semi di cumino + semi di senape + foglie di curry (se le hai): aspetta che scoppiettino, 30 secondi. ATTENZIONE agli schizzi.','Aggiungi cipolla tritata finissima: cuoci 8-10 min a fuoco medio finché dorata.','Aggiungi aglio e zenzero grattugiati: 1 min. Aggiungi curry in polvere + curcuma: mescola 1 min per tostare le spezie (non bruciare — aggiunta di liquido subito dopo).','Aggiungi pomodori pelati schiacciati. Cuoci 5 min. Aggiungi lenticchie sciacquate + brodo vegetale + latte di cocco.','Porta a bollore, poi abbassa, cuoci semicoperto 20-25 min mescolando spesso — le lenticchie rosse si disfano completamente creando una zuppa cremosa naturale. Aggiusta di sale e succo di limone.','Servi con riso basmati e naan. Guarnisci con coriandolo fresco, chili verde e un filo di olio al chili.'],
+['Tarka nel Mambo: burro + cumino + senape + foglie curry: 1 min / 130°C / Vel. 1.','Aggiungi cipolla tritata: 8 min / 120°C / Vel. 1. Aggiungi aglio+zenzero+spezie: 2 min / 120°C / Vel. 1.','Aggiungi pomodori: 5 min / 100°C / Vel. 1. Aggiungi lenticchie + brodo + cocco: 25 min / 100°C / Vel. 2. A fine cottura, frulla parzialmente se vuoi una consistenza più cremosa: 10 sec / Vel. 5.']),
+];
+
+// ================================================
+// APP STATE & STORAGE
+// ================================================
+const SK='dispensa_v2';
+let items=[], df='tutti', rf='possibili', editId=null, scanner=null, scanRunning=false;
+
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(SK)||'{}');items=d.items||[];}catch{items=[];}
+}
+function save(){
+  try{localStorage.setItem(SK,JSON.stringify({items,v:2,at:new Date().toISOString()}));}catch{alert('Errore salvataggio dati');}
+}
+
+// ================================================
+// HELPERS
+// ================================================
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function today(){return new Date().toISOString().slice(0,10);}
+function daysTo(ds){
+  if(!ds)return null;
+  const t=new Date();t.setHours(0,0,0,0);
+  return Math.ceil((new Date(ds)-t)/864e5);
+}
+function addDays(ds,n){const d=new Date(ds);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function fmtDate(ds){
+  if(!ds)return '';
+  return new Date(ds).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'});
+}
+const CATS={carne:'🥩',pesce:'🐟',verdure:'🥬',frutta:'🍎',latticini:'🧀',pasta_cereali:'🍝',
+pane:'🍞',salumi:'🥓',condimenti:'🫙',surgelati:'❄️',bevande:'🥤',dolci:'🍰',legumi:'🫘',uova:'🥚',generico:'📦'};
+function ico(cat){return CATS[cat]||'📦';}
+
+const FREEZE_DAYS={carne:90,pesce:60,verdure:180,frutta:90,pane:90,latticini:60,salumi:60,
+pasta_cereali:180,legumi:180,dolci:60,surgelati:365,generico:60};
+const THAW_DAYS={carne:2,pesce:1,verdure:3,frutta:2,pane:2,latticini:3,salumi:3,
+pasta_cereali:3,legumi:4,dolci:2,surgelati:2,generico:2};
+
+function freezeExp(origExp,cat){return addDays(origExp||today(),FREEZE_DAYS[cat]||60);}
+function thawExp(cat){return addDays(today(),THAW_DAYS[cat]||2);}
+
+// AUTO-CATEGORY
+const CAT_RULES=[
+ {c:'uova',w:['uova','uovo']},
+ {c:'carne',w:['pollo','manzo','vitello','maiale','agnello','tacchino','bistecca','hamburger','cotoletta','braciola','salsiccia','wurstel','spiedino','arrosto','roast','coniglio','anatra','piccione']},
+ {c:'pesce',w:['salmone','tonno','merluzzo','branzino','orata','gamberi','cozze','vongole','calamari','trota','baccalà','acciughe','sardine','polpo','sgombro','dentice','spigola','halibut']},
+ {c:'verdure',w:['pomodoro','cipolla','carota','zucchina','melanzana','peperone','spinaci','insalata','cavolo','broccoli','funghi','piselli','fagiolini','carciofo','asparagi','lattuga','rucola','radicchio','cetriolo','finocchio','porro','zucca','cavolfiore','sedano','bietola','rapa','topinambur']},
+ {c:'frutta',w:['mela','pera','banana','arancia','limone','fragola','uva','kiwi','ananas','pesca','albicocca','ciliegia','mango','avocado','melograno','pompelmo','mandarino','cocomero','anguria','melone','fico','prugna','lampone','mirtillo']},
+ {c:'latticini',w:['latte','yogurt','formaggio','mozzarella','parmigiano','ricotta','burro','panna','mascarpone','gorgonzola','pecorino','grana','brie','camembert','fontina','scamorza','provolone','stracchino','asiago']},
+ {c:'pasta_cereali',w:['pasta','spaghetti','rigatoni','penne','fusilli','riso','orzo','farro','couscous','quinoa','farina','cracker','cereali','avena','grissini','gallette','lasagne','tagliatelle','linguine','orecchiette','farfalle','polenta','bulgur']},
+ {c:'pane',w:['pane','baguette','panino','piadina','focaccia','ciabatta','tramezzino','toast','grissini','crackers','brioche','cornetto','croissant']},
+ {c:'salumi',w:['prosciutto','salame','mortadella','bresaola','pancetta','guanciale','speck','coppa','lardo','wurstel','salsiccia','nduja','ciccioli']},
+ {c:'condimenti',w:['olio','aceto','sale','pepe','salsa','ketchup','maionese','senape','soia','miso','wasabi','tahini','harissa','pesto','curry','paprika','zafferano','cannella','curcuma','cumino','coriandolo','timo','rosmarino','salvia','basilico','prezzemolo','menta','origano']},
+ {c:'bevande',w:['acqua','succo','birra','vino','coca','tè','caffè','aranciata','limonata','brodo','dashi']},
+ {c:'dolci',w:['cioccolato','biscotti','torta','gelato','nutella','marmellata','miele','zucchero','caramella','wafer','meringa','cacao','vaniglia','lievito','savoiardi']},
+ {c:'legumi',w:['fagioli','lenticchie','ceci','fave','soia','lupini','cannellini','borlotti','azuki','edamame']},
+ {c:'surgelati',w:['surgelat','congelat']},
+];
+function detectCat(name){
+  const n=name.toLowerCase();
+  for(const rule of CAT_RULES){
+    if(rule.w.some(w=>n.includes(w)))return rule.c;
+  }
+  return'generico';
+}
+
+// ================================================
+// UI
+// ================================================
+function showAlert(msg,type='warn',ms=3000){
+  const el=document.getElementById('alert');
+  el.textContent=msg;el.className=`show ${type}`;
+  clearTimeout(el._t);el._t=setTimeout(()=>el.className='',ms);
+}
+function goTab(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-'+name).classList.add('active');
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  if(name==='dispensa')renderD();
+  if(name==='ricette')renderR();
+  if(name!=='aggiungi'&&scanRunning)closeScanner();
+}
+function setDF(f,el){
+  df=f;
+  document.querySelectorAll('#pg-dispensa .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');renderD();
+}
+function setRF(f,el){
+  rf=f;
+  document.querySelectorAll('[data-rf]').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');renderR();
+}
+
+// ================================================
+// RENDER DISPENSA
+// ================================================
+function renderD(){
+  const q=document.getElementById('dsearch').value.toLowerCase();
+  let list=items.filter(it=>{
+    if(q&&!it.name.toLowerCase().includes(q))return false;
+    const d=daysTo(it.expiryDate);
+    if(df==='presto')return!it.frozen&&d!==null&&d>=0&&d<=7;
+    if(df==='frozen')return it.frozen;
+    if(df==='scaduti')return d!==null&&d<0;
+    return true;
+  });
+  list.sort((a,b)=>{
+    const da=daysTo(a.expiryDate),db=daysTo(b.expiryDate);
+    if(da===null&&db===null)return a.name.localeCompare(b.name);
+    if(da===null)return 1;if(db===null)return-1;return da-db;
+  });
+  document.getElementById('st-tot').textContent=items.length;
+  document.getElementById('st-exp').textContent=items.filter(it=>{const d=daysTo(it.expiryDate);return d!==null&&d>=0&&d<=7&&!it.frozen;}).length;
+  document.getElementById('st-frz').textContent=items.filter(it=>it.frozen).length;
+
+  const el=document.getElementById('dlist');
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="eico">${q?'🔍':'🫙'}</div><div class="etit">${q?'Nessun risultato':'Dispensa vuota'}</div><div class="esub">${q?'Prova altro termine':'Aggiungi il primo alimento!'}</div></div>`;
+    return;
+  }
+  el.innerHTML=list.map(it=>{
+    const d=daysTo(it.expiryDate);
+    let ec='',et='';
+    if(it.expiryDate){
+      if(d<0){ec='expired';et=`Scaduto ${-d}g fa`;}
+      else if(d===0){ec='soon';et='Scade oggi!';}
+      else if(d<=3){ec='soon';et=`Scade in ${d}g`;}
+      else if(d<=7){ec='soon';et=`${fmtDate(it.expiryDate)}`;}
+      else{ec='ok';et=fmtDate(it.expiryDate);}
+    }
+    let cc='';
+    if(it.frozen)cc='frozen';
+    else if(d!==null&&d<0)cc='expired';
+    else if(d!==null&&d<=3)cc='expiring';
+    const fb=it.frozen?`<span class="badge fr" style="margin-left:5px">❄</span>`:'';
+    const tb=it.thawedDate?`<span class="badge wn" style="margin-left:4px">🌡</span>`:'';
+    const freezeBtn=it.frozen
+      ?`<button class="abtn wn" onclick="thawItem('${it.id}',event)">🌡 Scongela</button>`
+      :`<button class="abtn fr" onclick="freezeItem('${it.id}',event)">❄ Congela</button>`;
+    return`<div class="icard ${cc}" id="ic-${it.id}">
+<div class="irow" onclick="toggleAct('${it.id}')">
+  <div class="iico">${ico(it.category)}</div>
+  <div class="iinfo">
+    <div class="iname">${it.name}${fb}${tb}</div>
+    <div class="imeta">${it.category||'generico'} · ${it.quantity} ${it.unit}</div>
+    ${it.expiryDate?`<div class="iexp ${ec}">${et}</div>`:`<div class="iexp" style="color:var(--text3)">Nessuna scadenza</div>`}
+  </div>
+  <div style="color:var(--text3);font-size:18px">›</div>
+</div>
+<div class="iactions" id="ia-${it.id}">
+  <button class="abtn ok" onclick="consumeItem('${it.id}',event)">🍴 Consumato</button>
+  ${freezeBtn}
+  <button class="abtn ac" onclick="openEdit('${it.id}',event)">✏️ Modifica</button>
+  <button class="abtn dn" onclick="delItem('${it.id}',event)">🗑 Elimina</button>
+</div>
+</div>`;
+  }).join('');
+}
+
+function toggleAct(id){
+  const el=document.getElementById('ia-'+id);
+  // Close others
+  document.querySelectorAll('.iactions.open').forEach(e=>{if(e.id!=='ia-'+id)e.classList.remove('open');});
+  el.classList.toggle('open');
+}
+function consumeItem(id,e){e&&e.stopPropagation();
+  if(confirm('Segna come consumato ed elimina?')){items=items.filter(i=>i.id!==id);save();renderD();renderR();showAlert('✅ Rimosso','ok');}
+}
+function delItem(id,e){e&&e.stopPropagation();
+  if(confirm('Eliminare definitivamente?')){items=items.filter(i=>i.id!==id);save();renderD();renderR();showAlert('🗑 Eliminato','warn');}
+}
+function freezeItem(id,e){e&&e.stopPropagation();
+  const it=items.find(i=>i.id===id);if(!it)return;
+  const orig=it.expiryDate||today();
+  it.frozen=true;it.frozenDate=today();it.originalExpiry=orig;
+  it.expiryDate=freezeExp(orig,it.category);
+  save();renderD();showAlert(`❄ Congelato! Scadenza stimata: ${fmtDate(it.expiryDate)}`,'ok',4500);
+}
+function thawItem(id,e){e&&e.stopPropagation();
+  const it=items.find(i=>i.id===id);if(!it)return;
+  it.frozen=false;it.thawedDate=today();it.expiryDate=thawExp(it.category);
+  save();renderD();showAlert(`🌡 Scongelato! Consumare entro: ${fmtDate(it.expiryDate)}`,'warn',5000);
+}
+
+// ================================================
+// RENDER RICETTE
+// ================================================
+function findIng(name,key){
+  if(!items.length)return null;
+  const n=name.toLowerCase(),k=(key||'').toLowerCase();
+  return items.find(it=>{
+    const in2=it.name.toLowerCase();
+    return in2.includes(n)||n.includes(in2)||(k&&(in2.includes(k)||k.split(' ').some(kw=>kw.length>2&&in2.includes(kw))));
+  })||null;
+}
+function canMake(recipe){
+  return recipe.ingredients.every(ing=>{
+    const m=findIng(ing.name,ing.key);
+    return m&&m.quantity>=ing.amt;
+  });
+}
+function canMake1(recipe){
+  // Can make for 1 person
+  return recipe.ingredients.every(ing=>{
+    const m=findIng(ing.name,ing.key);
+    return m&&m.quantity>=ing.amt*0.5;
+  });
+}
+
+function renderR(){
+  const q=document.getElementById('rsearch').value.toLowerCase();
+  let list=RECIPES.filter(r=>{
+    if(q&&!r.name.toLowerCase().includes(q))return false;
+    if(rf==='possibili'){return canMake(r)||canMake1(r);}
+    if(rf!=='tutte'&&r.cat!==rf)return false;
+    return true;
+  });
+  const CAT_LABELS={italiana:'🇮🇹 Italiana',europea:'🇪🇺 Europea',giapponese:'🇯🇵 Giapponese',cinese:'🇨🇳 Cinese',asiatica:'🌏 Asiatica'};
+  const el=document.getElementById('rlist');
+  if(!list.length){
+    el.innerHTML=`<div class="empty"><div class="eico">👨‍🍳</div><div class="etit">${rf==='possibili'?'Nessuna ricetta fattibile':'Nessuna ricetta'}</div><div class="esub">${rf==='possibili'?'Aggiungi più ingredienti per sbloccare ricette':'Prova con un altro filtro'}</div></div>`;
+    return;
+  }
+  el.innerHTML=list.map(r=>{
+    const ok=canMake(r),ok1=canMake1(r);
+    const badge=ok?`<span style="color:var(--success);font-size:12px">✓ Tutto ok</span>`:ok1?`<span style="color:var(--warn);font-size:12px">⚡ Per 1 pers.</span>`:'';
+    return`<div class="rcard" onclick="openR('${r.id}')">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+  <div>
+    <div class="rname">${r.icon} ${r.name}</div>
+    <div class="rcat ${r.cat}">${CAT_LABELS[r.cat]||r.cat}</div>
+  </div>
+  <div style="text-align:right;flex-shrink:0">
+    <div style="font-size:12px;color:var(--text2)">⏱ ${r.time}min · ${r.diff}</div>
+    <div style="margin-top:3px">${badge}</div>
+  </div>
+</div>
+<div class="ringr">${r.ingredients.slice(0,5).map(i=>i.name).join(', ')}${r.ingredients.length>5?` +${r.ingredients.length-5}`:''}</div>
+</div>`;
+  }).join('');
+}
+
+function openR(id){
+  const r=RECIPES.find(x=>x.id===id);if(!r)return;
+  const ok2=canMake(r),ok1=!ok2&&canMake1(r);
+  const portions=ok2?2:1;
+  const portionWarn=(!ok2&&ok1)?`<div class="portion-warn">⚡ Ingredienti sufficienti solo per <strong>1 persona</strong>.</div>`:'';
+  const CAT_LABELS={italiana:'🇮🇹 Italiana',europea:'🇪🇺 Europea',giapponese:'🇯🇵 Giapponese',cinese:'🇨🇳 Cinese',asiatica:'🌏 Asiatica'};
+  const ingrHtml=r.ingredients.map(ing=>{
+    const m=findIng(ing.name,ing.key);
+    const has=m&&m.quantity>=ing.amt*portions;
+    const dot=has?'ok':'miss';
+    const style=has?'':'color:var(--danger)';
+    return`<div class="ingr-item"><div class="idot ${dot}"></div><span style="${style}">${ing.name}</span>${!m?'<span style="font-size:11px;color:var(--danger);margin-left:4px">mancante</span>':''}<span class="iqt">${ing.amt*portions} ${ing.unit}</span></div>`;
+  }).join('');
+  const stepsHtml=r.steps.map((s,i)=>`<div class="step"><div class="snum-n">${i+1}</div><div class="stxt">${s}</div></div>`).join('');
+  const mamboHtml=r.mambo&&r.mambo.length
+    ?`<div class="mambo-box">
+<div class="mambo-title">🤖 Cecotec Mambo Touch</div>
+${r.mambo.map((s,i)=>`<div class="step" style="margin-bottom:9px"><div class="snum-n" style="background:var(--freeze)">${i+1}</div><div class="stxt">${s}</div></div>`).join('')}
+</div>`
+    :`<div class="mambo-box" style="opacity:.5;font-size:13px;color:var(--text2)">🤖 Questa ricetta richiede cottura in padella/wok — non si può replicare nel Mambo.</div>`;
+  document.getElementById('rbody').innerHTML=`
+<div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;margin-bottom:4px">${r.icon} ${r.name}</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--text2)"><span>${CAT_LABELS[r.cat]||r.cat}</span><span>⏱ ${r.time} min</span><span>⚡ ${r.diff}</span><span>👥 ${portions} pers.</span></div>
+${portionWarn}
+<div class="section-label">Ingredienti per ${portions} pers.</div>
+<div style="margin-bottom:16px">${ingrHtml}</div>
+<div class="section-label" style="margin-bottom:10px">Preparazione tradizionale</div>
+<div style="margin-bottom:16px">${stepsHtml}</div>
+${mamboHtml}`;
+  document.getElementById('rmodal').classList.add('show');
+}
+function closeRModal(e,f){if(f||e?.target===document.getElementById('rmodal'))document.getElementById('rmodal').classList.remove('show');}
+
+// ================================================
+// EDIT MODAL
+// ================================================
+function openEdit(id,e){
+  e&&e.stopPropagation();
+  const it=items.find(i=>i.id===id);if(!it)return;
+  editId=id;
+  document.getElementById('en').value=it.name;
+  document.getElementById('eq').value=it.quantity;
+  document.getElementById('eu').value=it.unit;
+  document.getElementById('ee').value=it.expiryDate||'';
+  document.getElementById('ecat').value=it.category||'generico';
+  document.getElementById('emodal').classList.add('show');
+}
+function saveEdit(){
+  const it=items.find(i=>i.id===editId);if(!it)return;
+  const name=document.getElementById('en').value.trim();
+  const qty=parseFloat(document.getElementById('eq').value);
+  if(!name){showAlert('Nome obbligatorio','err');return;}
+  if(isNaN(qty)||qty<0){showAlert('Quantità non valida','err');return;}
+  it.name=name;it.quantity=qty;it.unit=document.getElementById('eu').value;
+  it.expiryDate=document.getElementById('ee').value||null;
+  it.category=document.getElementById('ecat').value;
+  save();closeEdit(null,1);renderD();showAlert('✅ Salvato','ok');
+}
+function closeEdit(e,f){if(f||e?.target===document.getElementById('emodal')){document.getElementById('emodal').classList.remove('show');editId=null;}}
+
+// ================================================
+// ADD FORM
+// ================================================
+let lastScanBarcode=null;
+
+function onNameInput(){
+  const v=document.getElementById('fn').value.trim();
+  if(v.length>=2){
+    const c=detectCat(v);
+    document.getElementById('fc').value=c;
+    const labels={carne:'🥩 Carne',pesce:'🐟 Pesce',verdure:'🥬 Verdure',frutta:'🍎 Frutta',latticini:'🧀 Latticini',pasta_cereali:'🍝 Pasta/Cereali',pane:'🍞 Pane',salumi:'🥓 Salumi',condimenti:'🫙 Condimenti',surgelati:'❄️ Surgelati',bevande:'🥤 Bevande',dolci:'🍰 Dolci',legumi:'🫘 Legumi',uova:'🥚 Uova',generico:''};
+    const lbl=labels[c];
+    document.getElementById('cat-hint').textContent=lbl&&c!=='generico'?`Categoria rilevata: ${lbl}`:'';
+  } else {
+    document.getElementById('cat-hint').textContent='';
+  }
+}
+
+function onFreezeChange(){
+  const frozen=document.getElementById('ff').checked;
+  const lbl=document.getElementById('exp-lbl');
+  lbl.textContent=frozen?'Scadenza originale *':'Scadenza';
+  updateFreezeEst();
+}
+function updateFreezeEst(){
+  const frozen=document.getElementById('ff').checked;
+  const exp=document.getElementById('fe').value;
+  const cat=document.getElementById('fc').value;
+  const el=document.getElementById('fest');
+  if(frozen){
+    if(exp){
+      const est=freezeExp(exp,cat);
+      el.textContent=`❄ Scadenza stimata in cella: ${fmtDate(est)}`;
+    } else {
+      el.textContent='❄ Inserisci la scadenza per stimare quella in cella';
+    }
+  } else {
+    el.textContent='';
+  }
+}
+document.getElementById('fe').addEventListener('input',updateFreezeEst);
+document.getElementById('fc').addEventListener('change',updateFreezeEst);
+
+function clearForm(){
+  document.getElementById('fn').value='';
+  document.getElementById('fq').value='';
+  document.getElementById('fu').value='pz';
+  document.getElementById('fc').value='generico';
+  document.getElementById('fe').value='';
+  document.getElementById('ff').checked=false;
+  document.getElementById('fest').textContent='';
+  document.getElementById('exp-lbl').textContent='Scadenza';
+  document.getElementById('cat-hint').textContent='';
+  document.getElementById('scan-feedback').style.display='none';
+  document.getElementById('scanbtn').className='scan-btn';
+  document.getElementById('scanbtn').innerHTML='<span style="font-size:22px">📷</span><span>Scansiona Barcode</span>';
+  lastScanBarcode=null;
+}
+
+function saveItem(){
+  const name=document.getElementById('fn').value.trim();
+  const qty=parseFloat(document.getElementById('fq').value);
+  const unit=document.getElementById('fu').value;
+  const cat=document.getElementById('fc').value;
+  const frozen=document.getElementById('ff').checked;
+  const exp=document.getElementById('fe').value;
+  if(!name){showAlert('Il nome è obbligatorio','err');return;}
+  if(isNaN(qty)||qty<=0){showAlert('Inserisci una quantità valida','err');return;}
+  if(frozen&&!exp){showAlert('La scadenza originale è obbligatoria per la cella ❄','err');return;}
+  let finalExp=null,origExp=null;
+  if(frozen){origExp=exp;finalExp=freezeExp(exp,cat);}
+  else{finalExp=exp||null;}
+  items.push({id:uid(),name,quantity:qty,unit,category:cat,
+    expiryDate:finalExp,originalExpiry:origExp,
+    frozen,frozenDate:frozen?today():null,thawedDate:null,
+    barcode:lastScanBarcode,addedDate:today()});
+  save();clearForm();renderD();renderR();
+  showAlert(`✅ "${name}" aggiunto!`,'ok');
+}
+
+// ================================================
+// BARCODE SCANNER
+// ================================================
+function openScanner(){
+  document.getElementById('scan-overlay').classList.add('show');
+  document.getElementById('scan-status').textContent='Avvio fotocamera…';
+  scanner=new Html5Qrcode('reader');
+  scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:140},aspectRatio:1.7},
+    onScanOk, ()=>{})
+    .then(()=>{
+      scanRunning=true;
+      document.getElementById('scan-status').textContent='Punta la fotocamera sul barcode';
+    })
+    .catch(err=>{
+      document.getElementById('scan-status').textContent='❌ Camera non disponibile: '+err;
+    });
+}
+function closeScanner(){
+  if(scanner&&scanRunning){
+    scanner.stop().then(()=>{scanner.clear();scanner=null;scanRunning=false;}).catch(()=>{});
+  }
+  document.getElementById('scan-overlay').classList.remove('show');
+}
+async function onScanOk(barcode){
+  if(!scanRunning)return;
+  closeScanner();
+  lastScanBarcode=barcode;
+  const fb=document.getElementById('scan-feedback');
+  const btn=document.getElementById('scanbtn');
+  fb.textContent=`📡 Ricerca prodotto…`;fb.style.display='block';
+  try{
+    const res=await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    const data=await res.json();
+    if(data.status===1&&data.product){
+      const p=data.product;
+      const name=p.product_name_it||p.product_name||p.generic_name||'';
+      const qStr=p.quantity||'';
+      let pq=1,pu='pz';
+      const m=qStr.match(/(\d+\.?\d*)\s*(g|kg|ml|l)/i);
+      if(m){pq=parseFloat(m[1]);pu=m[2].toLowerCase();}
+      if(name){document.getElementById('fn').value=name;onNameInput();}
+      if(pq)document.getElementById('fq').value=pq;
+      document.getElementById('fu').value=pu;
+      fb.textContent=`✅ Trovato: ${name||barcode} ${qStr?'('+qStr+')':''}`;
+      btn.className='scan-btn scanning';
+      btn.innerHTML=`<span style="font-size:22px">✅</span><span>Scansionato · Scansiona di nuovo</span>`;
+    } else {
+      fb.textContent=`⚠ Prodotto non trovato (${barcode}). Compila il nome manualmente.`;
+      btn.className='scan-btn scanning';
+      btn.innerHTML=`<span style="font-size:22px">🔄</span><span>Non trovato · Riprova</span>`;
+    }
+  }catch{
+    fb.textContent=`⚠ Errore di rete. Barcode: ${barcode}`;
+  }
+}
+
+// ================================================
+// INIT
+// ================================================
+load();renderD();renderR();
+
+// Swipe down to close recipe modal
+let ty0=0;
+document.getElementById('rsheet').addEventListener('touchstart',e=>ty0=e.touches[0].clientY);
+document.getElementById('rsheet').addEventListener('touchmove',e=>{if(e.touches[0].clientY-ty0>70)closeRModal(null,1);});
+</script>
+</body>
+</html>
