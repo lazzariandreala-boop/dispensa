@@ -94,6 +94,7 @@ body { display: flex; justify-content: center; }
 #hdr {
   padding: calc(var(--safe-top) + 14px) 18px 12px;
   background: var(--bg); border-bottom: 1px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
 }
 #hdr h1 {
   font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px;
@@ -397,7 +398,7 @@ body { display: flex; justify-content: center; }
 /* Toggle freezer */
 .sw-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 14px; background: var(--bg2); margin-top: 10px !important;
+  padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border);
   border-radius: var(--rs); margin-bottom: 14px;
 }
 .sw-t { font-size: 14px; font-weight: 500; }
@@ -577,6 +578,36 @@ body { display: flex; justify-content: center; }
   .sb-stat .n { font-size:22px; }
 }
 
+
+/* ── Sync Gist ─────────────────────────────────────────────────── */
+#sync-btn {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 20px;
+  padding: 6px 11px; cursor: pointer; color: var(--text2); font-size: 12px;
+  font-family: 'DM Sans', sans-serif; font-weight: 600; flex-shrink: 0;
+  transition: all .2s; white-space: nowrap;
+}
+#sync-btn:hover { border-color: var(--accent); color: var(--accent); }
+#sync-btn.syncing { color: var(--warn); border-color: var(--warn); animation: spin-dot 1s linear infinite; }
+#sync-btn.ok      { color: var(--success); border-color: var(--success); }
+#sync-btn.err     { color: var(--danger); border-color: var(--danger); }
+@keyframes spin-dot { 0%{opacity:1} 50%{opacity:.3} 100%{opacity:1} }
+#sync-dot { font-size: 9px; }
+.sync-modal { position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:200;display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;pointer-events:none;transition:opacity .2s; }
+.sync-modal.show { opacity:1;pointer-events:all; }
+.sync-box { background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:22px 20px;width:100%;max-width:420px; }
+.sync-title { font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:4px; }
+.sync-sub { font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.5; }
+.sync-step { display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6; }
+.sync-step-n { background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px; }
+.sync-status { margin:14px 0;padding:10px 12px;border-radius:var(--rs);font-size:12px;font-weight:600;display:none; }
+.sync-status.show { display:block; }
+.sync-status.ok  { background:rgba(80,200,120,.12);border:1px solid var(--success);color:var(--success); }
+.sync-status.err { background:rgba(224,85,85,.12);border:1px solid var(--danger);color:var(--danger); }
+.sync-status.info { background:rgba(232,130,30,.1);border:1px solid var(--accent);color:var(--accent); }
+.sync-actions { display:flex;gap:8px;margin-top:14px;flex-wrap:wrap; }
+.sync-link { font-size:11px;color:var(--accent);text-decoration:underline;cursor:pointer;margin-top:6px;display:inline-block; }
+
 </style>
 </head>
 <body>
@@ -585,6 +616,9 @@ body { display: flex; justify-content: center; }
 
 <header id="hdr">
   <h1>🫙 Dispensa</h1>
+  <button id="sync-btn" onclick="openSyncModal()" title="Sincronizzazione Gist">
+    <span id="sync-dot">⚪</span><span id="sync-label">Sync</span>
+  </button>
 </header>
 <div id="alert"></div>
 
@@ -883,6 +917,51 @@ body { display: flex; justify-content: center; }
 </aside>
 
 </div><!-- #app-shell -->
+
+<!-- ===== SYNC GIST MODAL ===== -->
+<div id="sync-modal" class="sync-modal" onclick="closeSyncModal(event)">
+  <div class="sync-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="sync-title">☁️ Sincronizzazione</div>
+      <button class="mclose" style="position:static" onclick="closeSyncModal(null,1)">×</button>
+    </div>
+    <div class="sync-sub">I tuoi dati vengono salvati su GitHub Gist — accessibili da qualsiasi dispositivo, gratis per sempre.</div>
+
+    <div class="sync-step">
+      <div class="sync-step-n">1</div>
+      <div>Vai su <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong> e crea un token con scope <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">gist</code></div>
+    </div>
+    <div class="sync-step">
+      <div class="sync-step-n">2</div>
+      <div>Incolla il token qui sotto. Rimane solo su questo dispositivo (localStorage), non viene mai inviato a nessuno se non a GitHub.</div>
+    </div>
+
+    <div class="fg" style="margin-bottom:10px">
+      <label class="fl">GitHub Personal Access Token</label>
+      <input class="fi" id="gist-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      <span class="sync-link" onclick="toggleTokenVis()">👁 Mostra/nascondi</span>
+    </div>
+    <div class="fg" style="margin-bottom:4px">
+      <label class="fl">Gist ID <span style="color:var(--text3);font-weight:400">(lascia vuoto la prima volta — verrà creato)</span></label>
+      <input class="fi" id="gist-id" placeholder="es. a1b2c3d4e5f6..." autocomplete="off">
+    </div>
+
+    <div id="sync-status" class="sync-status"></div>
+
+    <div class="sync-actions">
+      <button class="btn btn-p" onclick="syncSave()" style="flex:1">☁️ Salva sul Gist</button>
+      <button class="btn btn-s" onclick="syncLoad()" style="flex:1">⬇️ Carica dal Gist</button>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveGistConfig()" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border)">💾 Salva configurazione</button>
+      <button class="btn btn-s" onclick="clearGistConfig()" style="padding:10px 14px;color:var(--danger)">🗑</button>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.5">
+      ⚠ Il token viene salvato solo in questo browser (localStorage). Non viene mai inviato ad altri server.<br>
+      Su ogni nuovo dispositivo dovrai inserire token + Gist ID una volta sola.
+    </div>
+  </div>
+</div>
 
 <!-- ===== LISTINO EDIT MODAL ===== -->
 <div id="listino-modal" class="restock-modal" onclick="closeListinoModal(event)">
@@ -3201,12 +3280,256 @@ function closeListinoModal(e, force) {
 }
 
 /** Punto di ingresso: carica dati e renderizza la home */
+// ================================================================
+// GIST SYNC — sincronizzazione cloud via GitHub Gist
+// ================================================================
+
+const GIST_SK_TOKEN = 'dispensa_gist_token';
+const GIST_SK_ID    = 'dispensa_gist_id';
+const GIST_FILE     = 'dispensa_data.json';
+const GIST_API      = 'https://api.github.com/gists';
+
+let gistToken  = localStorage.getItem(GIST_SK_TOKEN) || '';
+let gistId     = localStorage.getItem(GIST_SK_ID)    || '';
+let syncTimer  = null;   // debounce handle
+
+/** Aggiorna l'icona del pulsante sync nell'header */
+function setSyncStatus(state) {
+  // state: 'idle' | 'ok' | 'err' | 'syncing' | 'off'
+  const btn = document.getElementById('sync-btn');
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if (!btn) return;
+  btn.className = 'sync-btn-' + state; // reset
+  btn.classList.add('sync-btn'); // keep base if needed
+  btn.id = 'sync-btn'; // restore id
+  const map = {
+    off:     { dot:'⚫', lbl:'Sync off',   cls:'' },
+    idle:    { dot:'🔵', lbl:'Sync',       cls:'' },
+    syncing: { dot:'🟡', lbl:'Salvo…',     cls:'syncing' },
+    ok:      { dot:'🟢', lbl:'Salvato',    cls:'ok' },
+    err:     { dot:'🔴', lbl:'Errore',     cls:'err' },
+  };
+  const s = map[state] || map.idle;
+  dot.textContent = s.dot;
+  lbl.textContent = s.lbl;
+  btn.className   = s.cls;
+  btn.id = 'sync-btn';
+}
+
+/** Costruisce il payload dati da salvare */
+function buildPayload() {
+  return JSON.stringify({
+    items, shopping, consumptionLog, additionLog, monthlyReports, priceBook,
+    v: 3, at: new Date().toISOString()
+  }, null, 2);
+}
+
+/** Applica un payload JSON scaricato dal Gist */
+function applyPayload(raw) {
+  const d = JSON.parse(raw);
+  items          = Array.isArray(d.items)          ? d.items          : items;
+  shopping       = Array.isArray(d.shopping)       ? d.shopping       : shopping;
+  consumptionLog = Array.isArray(d.consumptionLog) ? d.consumptionLog : consumptionLog;
+  additionLog    = Array.isArray(d.additionLog)    ? d.additionLog    : additionLog;
+  monthlyReports = Array.isArray(d.monthlyReports) ? d.monthlyReports : monthlyReports;
+  priceBook      = (typeof d.priceBook === 'object' && d.priceBook && !Array.isArray(d.priceBook)) ? d.priceBook : priceBook;
+  // Salva anche in localStorage
+  localStorage.setItem(SK, JSON.stringify({ items, shopping, consumptionLog, additionLog, monthlyReports, priceBook, v:3, at: d.at }));
+}
+
+/**
+ * Salva i dati sul Gist.
+ * Se gistId è vuoto, crea un nuovo Gist privato e salva l'ID.
+ */
+async function gistPush() {
+  if (!gistToken) return;
+  setSyncStatus('syncing');
+  try {
+    const payload = buildPayload();
+    const body = { description: 'Dispensa — dati sincronizzati', public: false,
+                   files: { [GIST_FILE]: { content: payload } } };
+    let url = GIST_API, method = 'POST';
+    if (gistId) { url = `${GIST_API}/${gistId}`; method = 'PATCH'; }
+    const res = await fetch(url, {
+      method,
+      headers: { 'Authorization': `Bearer ${gistToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.message || res.status); }
+    const data = await res.json();
+    if (!gistId) {
+      gistId = data.id;
+      localStorage.setItem(GIST_SK_ID, gistId);
+      // Aggiorna il campo nel modal se aperto
+      const el = document.getElementById('gist-id');
+      if (el) el.value = gistId;
+    }
+    setSyncStatus('ok');
+    setTimeout(() => setSyncStatus('idle'), 4000);
+    return true;
+  } catch(e) {
+    console.error('Gist push error:', e);
+    setSyncStatus('err');
+    return false;
+  }
+}
+
+/**
+ * Scarica i dati dal Gist e li applica (merge: il Gist vince).
+ */
+async function gistPull() {
+  if (!gistToken || !gistId) return null;
+  try {
+    const res = await fetch(`${GIST_API}/${gistId}`, {
+      headers: { 'Authorization': `Bearer ${gistToken}` }
+    });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const file = data.files[GIST_FILE];
+    if (!file) throw new Error('File non trovato nel Gist');
+    return file.content;
+  } catch(e) {
+    console.error('Gist pull error:', e);
+    return null;
+  }
+}
+
+/**
+ * Auto-sync debounced: chiamato dopo ogni save().
+ * Aspetta 2 secondi di inattività prima di pushare.
+ */
+function scheduleSync() {
+  if (!gistToken) return;
+  clearTimeout(syncTimer);
+  setSyncStatus('syncing');
+  syncTimer = setTimeout(() => gistPush(), 2000);
+}
+
+// ── UI del modal sync ────────────────────────────────────────────
+
+function openSyncModal() {
+  document.getElementById('gist-token').value = gistToken;
+  document.getElementById('gist-id').value    = gistId;
+  setSyncModalStatus('', '');
+  document.getElementById('sync-modal').classList.add('show');
+}
+function closeSyncModal(e, force) {
+  if (force || e?.target === document.getElementById('sync-modal'))
+    document.getElementById('sync-modal').classList.remove('show');
+}
+function toggleTokenVis() {
+  const el = document.getElementById('gist-token');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+function setSyncModalStatus(type, msg) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  el.className = 'sync-status' + (type ? ' show ' + type : '');
+  el.textContent = msg;
+}
+function saveGistConfig() {
+  gistToken = document.getElementById('gist-token').value.trim();
+  gistId    = document.getElementById('gist-id').value.trim();
+  localStorage.setItem(GIST_SK_TOKEN, gistToken);
+  localStorage.setItem(GIST_SK_ID,    gistId);
+  setSyncModalStatus('ok', '✅ Configurazione salvata! Puoi ora usare Salva/Carica.');
+  setSyncStatus(gistToken ? 'idle' : 'off');
+}
+function clearGistConfig() {
+  if (!confirm('Rimuovere la configurazione sync da questo dispositivo?')) return;
+  gistToken = ''; gistId = '';
+  localStorage.removeItem(GIST_SK_TOKEN);
+  localStorage.removeItem(GIST_SK_ID);
+  document.getElementById('gist-token').value = '';
+  document.getElementById('gist-id').value    = '';
+  setSyncModalStatus('info', 'ℹ Configurazione rimossa da questo dispositivo.');
+  setSyncStatus('off');
+}
+
+/** Bottone "Salva sul Gist" nel modal */
+async function syncSave() {
+  gistToken = document.getElementById('gist-token').value.trim();
+  gistId    = document.getElementById('gist-id').value.trim();
+  if (!gistToken) { setSyncModalStatus('err', '❌ Inserisci il token GitHub'); return; }
+  setSyncModalStatus('info', '🔄 Salvataggio in corso…');
+  const ok = await gistPush();
+  if (ok) {
+    localStorage.setItem(GIST_SK_TOKEN, gistToken);
+    localStorage.setItem(GIST_SK_ID,    gistId);
+    document.getElementById('gist-id').value = gistId;
+    setSyncModalStatus('ok', `✅ Dati salvati sul Gist!\nID: ${gistId}`);
+  } else {
+    setSyncModalStatus('err', '❌ Errore — controlla il token e riprova.');
+  }
+}
+
+/** Bottone "Carica dal Gist" nel modal */
+async function syncLoad() {
+  gistToken = document.getElementById('gist-token').value.trim();
+  gistId    = document.getElementById('gist-id').value.trim();
+  if (!gistToken || !gistId) { setSyncModalStatus('err', '❌ Inserisci token e Gist ID'); return; }
+  setSyncModalStatus('info', '🔄 Download in corso…');
+  const raw = await gistPull();
+  if (!raw) { setSyncModalStatus('err', '❌ Impossibile scaricare — controlla token e ID.'); return; }
+  try {
+    const remote = JSON.parse(raw);
+    const localAt  = (() => { try { return new Date(JSON.parse(localStorage.getItem(SK)||'{}').at||0); } catch(e){return new Date(0);} })();
+    const remoteAt = new Date(remote.at || 0);
+    // Se il remoto è più vecchio, chiedi conferma
+    if (localAt > remoteAt) {
+      if (!confirm(`I dati locali (${localAt.toLocaleString('it-IT')}) sembrano più recenti di quelli sul Gist (${remoteAt.toLocaleString('it-IT')}).\n\nSovrascrivere i dati locali con quelli del Gist?`)) {
+        setSyncModalStatus('info', 'ℹ Operazione annullata.'); return;
+      }
+    }
+    applyPayload(raw);
+    localStorage.setItem(GIST_SK_TOKEN, gistToken);
+    localStorage.setItem(GIST_SK_ID,    gistId);
+    setSyncModalStatus('ok', `✅ Dati caricati dal Gist (${remoteAt.toLocaleString('it-IT')})`);
+    setSyncStatus('ok');
+    // Re-render tutto
+    renderD(); renderR(); renderShop(); updateShopBadge(); updateSidebar(); refreshReportIfVisible();
+    setTimeout(() => setSyncStatus('idle'), 4000);
+  } catch(e) {
+    setSyncModalStatus('err', '❌ Dati non validi nel Gist.');
+  }
+}
+
+// ── Patch save() per triggherare auto-sync ───────────────────────
+const _origSave = save;
+save = function() {
+  _origSave();
+  scheduleSync();
+};
+
 load();
 renderD();
 renderR();
 updateShopBadge();
 updateSidebar();
 maybeGenerateMonthlyReport();
+// Init sync status
+gistToken = localStorage.getItem(GIST_SK_TOKEN)||'';
+gistId    = localStorage.getItem(GIST_SK_ID)||'';
+setSyncStatus(gistToken ? 'idle' : 'off');
+// Se configurato, scarica subito i dati aggiornati in background
+if (gistToken && gistId) {
+  gistPull().then(raw => {
+    if (!raw) return;
+    try {
+      const remote = JSON.parse(raw);
+      const localAt  = new Date(JSON.parse(localStorage.getItem(SK)||'{}').at||0);
+      const remoteAt = new Date(remote.at||0);
+      if (remoteAt > localAt) {
+        applyPayload(raw);
+        renderD(); renderR(); renderShop(); updateShopBadge(); updateSidebar();
+        showAlert('☁️ Dati aggiornati dal cloud', 'ok', 3500);
+        setSyncStatus('ok');
+        setTimeout(() => setSyncStatus('idle'), 4000);
+      }
+    } catch(e) { console.error('Auto-sync error:', e); }
+  });
+}
 // Listino prezzi: migra eventuali prezzi già noti dagli item
 items.forEach(it => { if (it.price > 0) pbUpdate(it.name, it.price, it.quantity, it.unit, it.category); });
 // Init calendario (anno/mese corrente già impostati come default)
