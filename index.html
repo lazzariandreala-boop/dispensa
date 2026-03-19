@@ -189,15 +189,35 @@ body { display: flex; justify-content: center; }
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
-/* ═══════════════════════ Alert ═══════════════════════ */
-#alert {
-  display: none; padding: 9px 18px; font-size: 13px; font-weight: 500;
-  text-align: center; flex-shrink: 0; letter-spacing: .1px;
+/* ═══════════════════════ Toast notifications ═══════════════════════ */
+#toast-container {
+  position: fixed; bottom: calc(var(--tabh) + 16px); left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column-reverse; align-items: center;
+  gap: 8px; z-index: 400; pointer-events: none; width: 90%; max-width: 400px;
 }
-#alert.show { display: block; }
-#alert.warn { background: var(--warn); color: #1a1200; }
-#alert.err  { background: var(--danger); color: #fff; }
-#alert.ok   { background: var(--success); color: #fff; }
+.toast {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg4); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 11px 16px;
+  font-size: 13px; font-weight: 500; color: var(--text);
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  pointer-events: all; white-space: nowrap; max-width: 100%;
+  animation: toast-in .28s cubic-bezier(.2,1,.4,1);
+  width: fit-content;
+}
+.toast.removing { animation: toast-out .22s ease forwards; }
+.toast-icon { font-size: 16px; flex-shrink: 0; }
+.toast-msg  { overflow: hidden; text-overflow: ellipsis; }
+.toast.ok   { border-color: rgba(78,201,124,.4);  color: var(--success); background: rgba(78,201,124,.1); }
+.toast.err  { border-color: rgba(224,85,85,.4);   color: var(--danger);  background: rgba(224,85,85,.1); }
+.toast.warn { border-color: rgba(232,192,64,.4);  color: var(--warn);    background: rgba(232,192,64,.1); }
+.toast.info { border-color: rgba(240,125,30,.4);  color: var(--accent);  background: rgba(240,125,30,.1); }
+@keyframes toast-in  { from { opacity:0; transform:translateY(12px) scale(.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes toast-out { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(.9); } }
+/* Legacy #alert hidden, kept for compatibility */
+#alert { display: none !important; }
 
 /* ═══════════════════════ Main scroll area ═══════════════════════ */
 #main {
@@ -220,9 +240,9 @@ body { display: flex; justify-content: center; }
 }
 .tb {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 3px; border: none; background: none;
+  justify-content: center; gap: 4px; border: none; background: none;
   color: var(--text3); cursor: pointer; font-family: 'Inter', sans-serif;
-  transition: color .18s; position: relative;
+  transition: color .18s; position: relative; min-height: 48px;
 }
 .tb::after {
   content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
@@ -231,8 +251,8 @@ body { display: flex; justify-content: center; }
 }
 .tb.active { color: var(--accent); }
 .tb.active::after { width: 24px; }
-.tb .ico { font-size: 19px; line-height: 1; }
-.tb .lbl { font-size: 9px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; }
+.tb .ico { font-size: 21px; line-height: 1; }
+.tb .lbl { font-size: 10px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; }
 .tb-badge {
   position: absolute; top: 8px; right: calc(50% - 20px);
   background: var(--danger); color: #fff; border-radius: 10px;
@@ -258,7 +278,7 @@ body { display: flex; justify-content: center; }
 .frow { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 12px; scrollbar-width: none; }
 .frow::-webkit-scrollbar { display: none; }
 .chip {
-  flex-shrink: 0; padding: 6px 13px; border-radius: 20px; font-size: 12px;
+  flex-shrink: 0; padding: 8px 15px; border-radius: 20px; font-size: 13px;
   font-weight: 600; border: 1px solid var(--border); cursor: pointer;
   background: var(--bg2); color: var(--text2); transition: all .15s; white-space: nowrap;
 }
@@ -291,7 +311,7 @@ body { display: flex; justify-content: center; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 14px; }
 .scard {
   background: var(--bg2); border: 1px solid var(--border); border-radius: var(--rc);
-  padding: 10px 6px; text-align: center; cursor: pointer; transition: all .18s;
+  padding: 13px 6px; text-align: center; cursor: pointer; transition: all .18s;
   -webkit-tap-highlight-color: transparent; user-select: none;
 }
 .scard:hover  { border-color: var(--border2); }
@@ -510,7 +530,9 @@ body { display: flex; justify-content: center; }
   background: #fff; border-radius: 50%; transition: transform .2s;
   box-shadow: 0 1px 4px rgba(0,0,0,.4);
 }
-.tgl input:checked + .tgl-s { background: var(--freeze); border-color: var(--freeze); }
+.tgl input:checked + .tgl-s { background: var(--accent); border-color: var(--accent); }
+.freeze-card .tgl input:checked + .tgl-s,
+.sb-form-freeze .tgl input:checked + .tgl-s { background: var(--freeze); border-color: var(--freeze); }
 .tgl input:checked + .tgl-s::before { transform: translateX(20px); }
 .freeze-est   { font-size: 12px; color: var(--freeze); margin-top: 6px; min-height: 18px; }
 .cat-detected { font-size: 11px; color: var(--success); margin-top: 4px; }
@@ -548,8 +570,8 @@ body { display: flex; justify-content: center; }
 
 /* Undo check button nella lista spesa */
 .shop-undo {
-  padding: 5px 8px; border-radius: var(--rs); background: rgba(91,155,224,.12);
-  border: 1px solid var(--freeze); color: var(--freeze); font-size: 12px;
+  padding: 8px 12px; border-radius: var(--rs); background: rgba(91,155,224,.12);
+  border: 1px solid var(--freeze); color: var(--freeze); font-size: 13px;
   font-weight: 700; cursor: pointer; transition: all .15s; flex-shrink: 0;
 }
 .shop-undo:active { background: var(--freeze); color: #fff; }
@@ -736,11 +758,11 @@ body { display: flex; justify-content: center; }
 
 /* ── FAB button ─────────────────────────────────────────────────── */
 #fab-add {
-  position: fixed; bottom: calc(var(--tabs-h) + 16px); right: 18px;
-  width: 52px; height: 52px; border-radius: 50%;
+  position: fixed; bottom: calc(var(--tabh) + 14px); right: 18px;
+  width: 56px; height: 56px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: #fff; font-size: 26px; font-weight: 300; border: none;
-  box-shadow: 0 4px 20px rgba(232,130,30,.45);
+  color: #fff; font-size: 28px; font-weight: 300; border: none;
+  box-shadow: 0 4px 24px rgba(240,125,30,.5);
   cursor: pointer; z-index: 120; display: flex; align-items: center; justify-content: center;
   transition: transform .15s, box-shadow .15s;
 }
@@ -787,9 +809,10 @@ body { display: flex; justify-content: center; }
 .freeze-sub-label { font-size: 13px; font-weight: 600; color: var(--text1); }
 .freeze-sub-hint  { font-size: 11px; color: var(--text3); margin-top: 2px; line-height: 1.4; }
 .freeze-est { font-size: 12px; color: var(--freeze); margin-top: 6px; min-height: 16px; }
-.tgl-sm .tgl-s { width: 38px; height: 22px; }
-.tgl-sm .tgl-s::after { width: 16px; height: 16px; top: 3px; }
-.tgl-sm input:checked + .tgl-s::after { transform: translateX(16px); }
+.tgl-sm { width: 40px; height: 24px; }
+.tgl-sm .tgl-s { border-radius: 12px; }
+.tgl-sm .tgl-s::before { width: 18px; height: 18px; left: 2px; top: 2px; }
+.tgl-sm input:checked + .tgl-s::before { transform: translateX(16px); }
 
 /* ── Shopping list budget bar ───────────────────────────────────── */
 .shop-budget-bar {
@@ -829,9 +852,9 @@ body { display: flex; justify-content: center; }
 }
 .iactions.open { display: flex; }
 .abtn {
-  padding: 6px 10px; border-radius: var(--rs);
+  padding: 9px 13px; border-radius: var(--rs);
   background: var(--bg4); border: 1px solid var(--border2);
-  color: var(--text2); font-size: 12px; font-weight: 600;
+  color: var(--text2); font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all .15s;
   font-family: 'Inter', sans-serif; white-space: nowrap;
 }
@@ -846,13 +869,38 @@ body { display: flex; justify-content: center; }
 
 /* ── Recipe modal: add-to-shop button ──────────────────────────── */
 .ingr-shop-btn {
-  margin-left: auto; padding: 4px 9px; border-radius: var(--rs);
+  margin-left: auto; padding: 7px 12px; border-radius: var(--rs);
   background: transparent; border: 1px solid var(--border2);
-  color: var(--text3); font-size: 11px; font-weight: 600;
+  color: var(--text3); font-size: 12px; font-weight: 600;
   cursor: pointer; transition: all .15s; white-space: nowrap; flex-shrink: 0;
 }
 .ingr-shop-btn:hover  { border-color: var(--accent); color: var(--accent); }
 .ingr-shop-btn.added  { border-color: var(--success); color: var(--success); pointer-events: none; }
+
+
+/* ── Item progress bar ──────────────────────────────────────────── */
+.iprog-wrap {
+  padding: 0 14px 11px; display: flex; align-items: center; gap: 8px;
+}
+.iprog-btn {
+  width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border2);
+  background: var(--bg4); color: var(--text2); font-size: 18px; font-weight: 400;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .15s; line-height: 1; user-select: none;
+}
+.iprog-btn:hover  { border-color: var(--accent); color: var(--accent); }
+.iprog-btn:active { transform: scale(.88); }
+.iprog-bar-bg {
+  flex: 1; height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden;
+}
+.iprog-bar-fill {
+  height: 100%; border-radius: 3px; transition: width .3s ease;
+  background: linear-gradient(90deg, var(--success), var(--accent2));
+}
+.iprog-pct {
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  min-width: 28px; text-align: right; flex-shrink: 0;
+}
 
 </style>
 </head>
@@ -995,6 +1043,7 @@ body { display: flex; justify-content: center; }
 </div><!-- #main -->
 
 <!-- ===== BOTTOM TABS ===== -->
+<div id="toast-container"></div>
 <nav id="tabs">
   <button class="tb active" onclick="goTab('dispensa',this)">
     <span class="ico">🫙</span><span class="lbl">Dispensa</span>
@@ -1959,6 +2008,35 @@ const CAT_RULES = [
   { c:'surgelati',    w:['surgelat','congelat'] },
 ];
 
+
+/** Default qty+unit per categoria rilevata */
+const CAT_QTY_DEFAULTS = {
+  uova:         { qty: 6,    unit: 'pz'   },
+  carne:        { qty: 500,  unit: 'g'    },
+  pesce:        { qty: 300,  unit: 'g'    },
+  verdure:      { qty: 500,  unit: 'g'    },
+  frutta:       { qty: 1,    unit: 'kg'   },
+  latticini:    { qty: 1,    unit: 'pz'   },
+  pasta_cereali:{ qty: 500,  unit: 'g'    },
+  pane:         { qty: 1,    unit: 'pz'   },
+  salumi:       { qty: 150,  unit: 'g'    },
+  condimenti:   { qty: 1,    unit: 'pz'   },
+  surgelati:    { qty: 1,    unit: 'pz'   },
+  bevande:      { qty: 1,    unit: 'l'    },
+  dolci:        { qty: 1,    unit: 'pz'   },
+  legumi:       { qty: 400,  unit: 'g'    },
+  generico:     { qty: 1,    unit: 'pz'   },
+};
+
+/** Applica i default di qty/unit se i campi sono ancora vuoti */
+function applyQtyDefault(cat, qtyId, unitId) {
+  const d = CAT_QTY_DEFAULTS[cat] || CAT_QTY_DEFAULTS.generico;
+  const qEl = document.getElementById(qtyId);
+  const uEl = document.getElementById(unitId);
+  if (qEl && !qEl.value) qEl.value = d.qty;
+  if (uEl && !uEl.value) uEl.value = d.unit;
+}
+
 /** Rileva la categoria da un nome prodotto */
 function detectCat(name) {
   const n = name.toLowerCase();
@@ -1972,13 +2050,23 @@ function detectCat(name) {
 // 4. UI HELPERS
 // ----------------------------------------------------------------
 
-/** Mostra un banner di notifica temporaneo */
+/** Toast system — non blocca la UI */
+const _toastIcons = { ok:'✅', err:'❌', warn:'⚠️', info:'ℹ️' };
 function showAlert(msg, type = 'warn', ms = 3000) {
-  const el = document.getElementById('alert');
-  el.textContent = msg;
-  el.className = `show ${type}`;
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.className = '', ms);
+  const c = document.getElementById('toast-container');
+  if (!c) return;
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="toast-icon">${_toastIcons[type]||'•'}</span><span class="toast-msg">${msg}</span>`;
+  c.prepend(t);
+  // rimuovi dopo ms
+  const remove = () => {
+    t.classList.add('removing');
+    t.addEventListener('animationend', () => t.remove(), { once: true });
+  };
+  t._timer = setTimeout(remove, ms);
+  // tap per chiudere subito
+  t.addEventListener('click', () => { clearTimeout(t._timer); remove(); });
 }
 
 /** Aggiorna il badge numerico sul tab Spesa */
@@ -2107,6 +2195,8 @@ function renderD() {
       ? `<button class="abtn wn" onclick="thawItem('${it.id}',event)">🌡 Scongela</button>`
       : `<button class="abtn fr" onclick="freezeItem('${it.id}',event)">❄ Congela</button>`;
 
+    const prog = it.consumed || 0; // 0-100
+    const progColor = prog >= 75 ? 'var(--danger)' : prog >= 40 ? 'var(--warn)' : 'var(--success)';
     return `<div class="icard ${cc}" id="ic-${it.id}">
   <div class="irow" onclick="toggleAct('${it.id}')">
     <div class="iico">${ico(it.category)}</div>
@@ -2117,15 +2207,23 @@ function renderD() {
         ? `<div class="iexp ${ec}">${et}</div>`
         : `<div class="iexp" style="color:var(--text3)">Nessuna scadenza</div>`}
     </div>
-    <div style="color:var(--text3);font-size:18px;padding-left:4px">›</div>
+    <div class="ichevron">›</div>
+  </div>
+  <div class="iprog-wrap">
+    <button class="iprog-btn" onclick="changeConsumed('${it.id}',-10,event)" title="Meno consumato">−</button>
+    <div class="iprog-bar-bg">
+      <div class="iprog-bar-fill" style="width:${prog}%;background:${prog>=75?'var(--danger)':prog>=40?'var(--warn)':'var(--success)'}"></div>
+    </div>
+    <span class="iprog-pct">${prog}%</span>
+    <button class="iprog-btn" onclick="changeConsumed('${it.id}',10,event)" title="Più consumato">+</button>
   </div>
   <div class="iactions" id="ia-${it.id}">
-    <button class="abtn ok" onclick="consumeItem('${it.id}',event)">🍴 Consumato</button>
+    <button class="abtn ok" onclick="consumeItem('${it.id}',event)">🍴 Finito</button>
+    <button class="abtn ac" onclick="addToShopFromItem('${it.id}',event)">🛒 Spesa</button>
     ${freezeBtn}
     <button class="abtn wn" onclick="openPriceModal('${it.id}',event)">€ Prezzo</button>
     <button class="abtn pur" onclick="openPiattoModal()">🍳 Piatto</button>
     <button class="abtn ac" onclick="openEdit('${it.id}',event)">✏️ Modifica</button>
-    <button class="abtn ac" onclick="copyItem('${it.id}',event)" style="color:var(--accent2);border-color:var(--accent2)">📋 Copia</button>
     <button class="abtn dn" onclick="delItem('${it.id}',event)">🗑 Elimina</button>
   </div>
 </div>`;
@@ -2177,6 +2275,46 @@ function consumeItem(id, e) {
 }
 
 /** Elimina definitivamente un item (senza aggiungerlo alla spesa) */
+/** Cambia il livello di consumo (progress bar) di un item */
+function changeConsumed(id, delta, e) {
+  e && e.stopPropagation();
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  it.consumed = Math.max(0, Math.min(100, (it.consumed || 0) + delta));
+  save();
+  // Aggiorna solo la UI della progress bar senza re-render completo
+  const card = document.getElementById('ic-' + id);
+  if (!card) return;
+  const fill = card.querySelector('.iprog-bar-fill');
+  const pct  = card.querySelector('.iprog-pct');
+  if (fill) {
+    fill.style.width = it.consumed + '%';
+    fill.style.background = it.consumed >= 75 ? 'var(--danger)' : it.consumed >= 40 ? 'var(--warn)' : 'var(--success)';
+  }
+  if (pct) pct.textContent = it.consumed + '%';
+  if (it.consumed >= 100) setTimeout(() => { consumeItem(id, null); }, 300);
+}
+
+
+/** Aggiunge un item dalla dispensa alla lista della spesa */
+function addToShopFromItem(id, e) {
+  e && e.stopPropagation();
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  const already = shopping.some(s => s.name.toLowerCase() === it.name.toLowerCase());
+  if (already) { showAlert(`"${it.name}" già in lista spesa`, 'warn', 2000); return; }
+  const pb = pbGet(it.name);
+  shopping.push({
+    id: uid(), name: it.name, category: it.category || 'generico',
+    checked: false, addedDate: today(),
+    hintPrice: it.price || pb?.price || null,
+    hintQty:   it.quantity || pb?.qty  || null,
+    hintUnit:  it.unit     || pb?.unit || null
+  });
+  save(); updateShopBadge(); renderShopBudget();
+  showAlert(`🛒 "${it.name}" aggiunto alla lista spesa`, 'ok', 2500);
+}
+
 function delItem(id, e) {
   e && e.stopPropagation();
   const it = items.find(x => x.id === id);
@@ -2624,15 +2762,17 @@ function confirmRestock() {
   const priceRaw = parseFloat(document.getElementById('rprice')?.value);
   const price = isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw;
   // Aggiungi alla dispensa
+  const priceRaw_r = parseFloat(document.getElementById('rprice')?.value);
+  const price_r = isNaN(priceRaw_r) || priceRaw_r <= 0 ? null : priceRaw_r;
   items.push({
     id: uid(), name: s.name, quantity: qty, unit, category: cat,
     expiryDate: exp, originalExpiry: null,
     frozen: false, frozenDate: null, thawedDate: null,
-    barcode: null, addedDate: today()
+    barcode: null, addedDate: today(), price: price_r
   });
   // Traccia nel log aggiunte con eventuale prezzo
-  additionLog.push({ id: uid(), name: s.name, category: cat, qty, unit, price, date: today() });
-  pbUpdate(s.name, price, qty, unit, cat);
+  additionLog.push({ id: uid(), name: s.name, category: cat, qty, unit, price: price_r, date: today() });
+  pbUpdate(s.name, price_r, qty, unit, cat);
   // Rimuovi dalla lista spesa
   shopping = shopping.filter(x => x.id !== restockId);
   save();
@@ -2823,6 +2963,7 @@ function onNameInput() {
       ? `Categoria rilevata: ${lbl}` : '';
     // Precompila prezzo, qtà e unità dal priceBook
     pbAutofill('fn', 'fprice', 'fq', 'fu', 'pb-hint-add');
+    applyQtyDefault(c, 'fq', 'fu'); // default qty se campo vuoto
   } else {
     document.getElementById('cat-hint').textContent = '';
     const h = document.getElementById('pb-hint-add'); if(h) h.textContent='';
@@ -2913,16 +3054,18 @@ function saveItem() {
     finalExp = exp || null;
   }
 
+  const priceRaw = parseFloat(document.getElementById('fprice')?.value);
+  const price = isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw;
+
   items.push({
     id: uid(), name, quantity: qty, unit, category: cat,
     expiryDate: finalExp, originalExpiry: origExp,
     frozen, frozenDate: frozen ? today() : null,
     thawedDate: null, barcode: lastScanBarcode, addedDate: today(),
-    isSurgelato: frozen && already
+    isSurgelato: frozen && already,
+    price: price
   });
 
-  const priceRaw = parseFloat(document.getElementById('fprice')?.value);
-  const price = isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw;
   additionLog.push({ id: uid(), name, category: cat, qty, unit, price, date: today() });
   pbUpdate(name, price, qty, unit, cat);
   save(); clearForm(); closeAddModal(null,1); renderD(); renderR();
