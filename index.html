@@ -4300,13 +4300,34 @@ function jarvisSpeak(text, onEnd) {
   if (!('speechSynthesis' in window)) { onEnd && onEnd(); return; }
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = JARVIS_LANG; u.rate = 1.05; u.pitch = 1;
-  // Scegli voce italiana se disponibile
-  const voices = window.speechSynthesis.getVoices();
-  const itVoice = voices.find(v => v.lang.startsWith('it'));
-  if (itVoice) u.voice = itVoice;
-  u.onend = () => { onEnd && onEnd(); };
-  window.speechSynthesis.speak(u);
+  u.lang = JARVIS_LANG; u.rate = 1.0; u.pitch = 0.85;
+
+  const pickVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    const itVoices = voices.filter(v => v.lang.startsWith('it'));
+    if (!itVoices.length) return null;
+    // Nomi noti maschili italiani (Google, Apple, Microsoft)
+    const maleNames = ['luca','matteo','cosimo','giorgio','reed','daniel','diego','carlos','microsoft luca','google italiano maschio'];
+    const male = itVoices.find(v => maleNames.some(n => v.name.toLowerCase().includes(n)));
+    if (male) return male;
+    // Fallback: voce agli indici dispari (spesso maschili) o l'ultima disponibile
+    const odd = itVoices.filter((_, i) => i % 2 !== 0);
+    return odd.length ? odd[0] : itVoices[itVoices.length - 1];
+  };
+
+  const assignAndSpeak = () => {
+    const v = pickVoice();
+    if (v) u.voice = v;
+    u.onend = () => { onEnd && onEnd(); };
+    window.speechSynthesis.speak(u);
+  };
+
+  // Le voci potrebbero non essere ancora caricate
+  if (window.speechSynthesis.getVoices().length) {
+    assignAndSpeak();
+  } else {
+    window.speechSynthesis.onvoiceschanged = () => { assignAndSpeak(); };
+  }
 }
 
 // ── Parser comandi italiani ───────────────────────────────────
