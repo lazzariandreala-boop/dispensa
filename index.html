@@ -934,6 +934,23 @@ select.fi                        { padding-right: 32px !important; }
   padding-right: 16px;
 }
 
+
+/* ── Dispensa fixed header — fuori da #main, non scorre ── */
+#disp-fixed-header {
+  flex-shrink: 0;
+  background: var(--bg);
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--border);
+  display: none; /* nascosto di default */
+}
+#disp-fixed-header.visible { display: block; }
+#disp-fixed-header .disp-stats { margin-bottom: 8px; }
+#disp-fixed-header .sbox { margin-bottom: 0; }
+
+/* Rimuovi il vecchio sticky (non funzionava) */
+#pg-dispensa .disp-sticky { all: unset; }
+.disp-sticky { position: static !important; }
+
 </style>
 </head>
 <body>
@@ -954,23 +971,24 @@ select.fi                        { padding-right: 32px !important; }
 <div id="ptr-indicator"><span id="ptr-spinner">↻</span><span id="ptr-text">Trascina per aggiornare</span></div>
 <div id="toast-container"></div>
 <div id="alert"></div>
+<div id="disp-fixed-header">
+  <div class="disp-stats">
+    <div class="scard" id="sc-tutti"   onclick="setDF('tutti',this)"><span class="snum" style="color:var(--accent)" id="sb-tot">0</span><div class="slbl">Prodotti</div></div>
+    <div class="scard" id="sc-scaduti" onclick="setDF('scaduti',this)"><span class="snum" style="color:var(--danger)" id="sb-scd">0</span><div class="slbl">Scaduti</div></div>
+    <div class="scard" id="sc-presto"  onclick="setDF('presto',this)"><span class="snum" style="color:var(--warn)" id="sb-scad-exp">0</span><div class="slbl">In scadenza</div></div>
+    <div class="scard" id="sc-frozen"  onclick="setDF('frozen',this)"><span class="snum" style="color:var(--freeze)" id="sb-frz">0</span><div class="slbl">In cella</div></div>
+  </div>
+  <div class="sbox" style="margin-bottom:0">
+    <span>🔍</span>
+    <input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()">
+  </div>
+</div>
 
 <div id="main">
 
   <!-- ===== TAB: DISPENSA ===== -->
   <div id="pg-dispensa" class="page active">
 
-    <div class="disp-stats">
-      <div class="scard" id="sc-tutti"   onclick="setDF('tutti',this)"><span class="snum" style="color:var(--accent)" id="sb-tot">0</span><div class="slbl">Prodotti</div></div>
-      <div class="scard" id="sc-scaduti" onclick="setDF('scaduti',this)"><span class="snum" style="color:var(--danger)" id="sb-scd">0</span><div class="slbl">Scaduti</div></div>
-      <div class="scard" id="sc-presto"  onclick="setDF('presto',this)"><span class="snum" style="color:var(--warn)" id="sb-scad-exp">0</span><div class="slbl">In scadenza</div></div>
-      <div class="scard" id="sc-frozen"  onclick="setDF('frozen',this)"><span class="snum" style="color:var(--freeze)" id="sb-frz">0</span><div class="slbl">In cella</div></div>
-    </div>
-
-    <div class="sbox">
-      <span>🔍</span>
-      <input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()">
-    </div>
     <div id="dlist"></div>
   </div>
 
@@ -2057,6 +2075,9 @@ function goTab(name, el) {
   if (name === 'calendario') { setTimeout(()=>{renderCalendar&&renderCalendar();},0); }
   el.classList.add('active');
   // Render specifici per tab
+  // Mostra/nascondi header fisso dispensa
+  const dfh = document.getElementById('disp-fixed-header');
+  if (dfh) dfh.classList.toggle('visible', name === 'dispensa');
   if (name === 'dispensa')  renderD();
   if (name === 'ricette')   renderR();
   if (name === 'spesa')     renderShop();
@@ -4200,6 +4221,7 @@ save = function() {
 load();
 renderD();
 renderR();
+const _dfh=document.getElementById('disp-fixed-header'); if(_dfh) _dfh.classList.add('visible');
 updateShopBadge();
 updateSidebar();
 renderMiniCal();
