@@ -629,9 +629,9 @@ body { display: flex; justify-content: center; }
 
 /* ── Refresh button ─────────────────────────────────────────────── */
 #refresh-btn {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--bg2); border: 1px solid var(--border);
-  color: var(--text2); font-size: 17px; cursor: pointer;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text2); font-size: 15px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: all .2s; flex-shrink: 0; padding: 0;
 }
@@ -951,6 +951,61 @@ select.fi                        { padding-right: 32px !important; }
 #pg-dispensa .disp-sticky { all: unset; }
 .disp-sticky { position: static !important; }
 
+
+/* ── Jarvis voice assistant ── */
+#jarvis-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text2); font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; flex-shrink: 0;
+}
+#jarvis-btn:hover { border-color: var(--accent); color: var(--accent); }
+#jarvis-btn.listening {
+  background: var(--danger-dim); border-color: var(--danger);
+  color: var(--danger); animation: jarvis-pulse 1.2s ease-in-out infinite;
+}
+#jarvis-btn.awake {
+  background: var(--accent-dim); border-color: var(--accent);
+  color: var(--accent); animation: jarvis-pulse .7s ease-in-out infinite;
+}
+@keyframes jarvis-pulse {
+  0%,100% { box-shadow: 0 0 0 0 currentColor; opacity:1; }
+  50%      { box-shadow: 0 0 0 6px transparent; opacity:.85; }
+}
+
+/* Overlay Jarvis attivo */
+#jarvis-overlay {
+  position: fixed; bottom: calc(var(--tabh) + 16px); left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20,20,24,.95); border: 1px solid var(--border2);
+  border-radius: 18px; padding: 14px 20px;
+  font-size: 13px; color: var(--text2); z-index: 500;
+  display: none; flex-direction: column; align-items: center; gap: 8px;
+  max-width: 340px; width: 90%; text-align: center;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+}
+#jarvis-overlay.show { display: flex; }
+#jarvis-overlay.awake { border-color: rgba(240,125,30,.4); }
+#jarvis-wave {
+  display: flex; gap: 3px; align-items: center; height: 20px;
+}
+#jarvis-wave span {
+  display: block; width: 3px; border-radius: 2px;
+  background: var(--accent); animation: jarvis-wave-bar 1s ease-in-out infinite;
+}
+#jarvis-wave span:nth-child(1){height:6px;animation-delay:.0s}
+#jarvis-wave span:nth-child(2){height:14px;animation-delay:.1s}
+#jarvis-wave span:nth-child(3){height:20px;animation-delay:.2s}
+#jarvis-wave span:nth-child(4){height:14px;animation-delay:.3s}
+#jarvis-wave span:nth-child(5){height:6px;animation-delay:.4s}
+@keyframes jarvis-wave-bar {
+  0%,100%{transform:scaleY(.4)} 50%{transform:scaleY(1)}
+}
+#jarvis-status { font-size: 13px; font-weight: 600; color: var(--text); }
+#jarvis-transcript { font-size: 12px; color: var(--text2); min-height: 16px; font-style: italic; }
+
 </style>
 </head>
 <body>
@@ -960,6 +1015,7 @@ select.fi                        { padding-right: 32px !important; }
 <header id="hdr">
   <h1>🫙 Dispensa</h1>
   <div style="display:flex;align-items:center;gap:7px">
+    <button id="jarvis-btn" onclick="toggleJarvis()" title="Jarvis — assistente vocale">🎤</button>
     <button id="refresh-btn" onclick="manualRefresh()" title="Scarica dati aggiornati dal cloud">
       <span id="refresh-ico">↻</span>
     </button>
@@ -969,6 +1025,17 @@ select.fi                        { padding-right: 32px !important; }
   </div>
 </header>
 <div id="ptr-indicator"><span id="ptr-spinner">↻</span><span id="ptr-text">Trascina per aggiornare</span></div>
+
+<!-- Jarvis overlay -->
+<div id="jarvis-overlay">
+  <div id="jarvis-wave">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div id="jarvis-status">In ascolto… di' "Jarvis"</div>
+  <div id="jarvis-transcript"></div>
+  <button onclick="stopJarvis()" style="margin-top:4px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:5px 14px;color:var(--text2);font-size:12px;cursor:pointer">✕ Chiudi</button>
+</div>
+
 <div id="toast-container"></div>
 <div id="alert"></div>
 <div id="disp-fixed-header">
@@ -4217,6 +4284,259 @@ save = function() {
   _origSave();
   scheduleSync();
 };
+
+// ================================================================
+// 🎤 JARVIS — Assistente vocale (Web Speech API)
+// ================================================================
+
+const JARVIS_WAKE    = ['jarvis', 'ghiarvis', 'giarvis', 'davis', 'garvis'];
+const JARVIS_LANG    = 'it-IT';
+let jarvisRecog      = null;
+let jarvisActive     = false;   // microfono aperto
+let jarvisAwake      = false;   // wake word rilevata, in attesa di comando
+
+// ── Sintesi vocale ────────────────────────────────────────────
+function jarvisSpeak(text, onEnd) {
+  if (!('speechSynthesis' in window)) { onEnd && onEnd(); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = JARVIS_LANG; u.rate = 1.05; u.pitch = 1;
+  // Scegli voce italiana se disponibile
+  const voices = window.speechSynthesis.getVoices();
+  const itVoice = voices.find(v => v.lang.startsWith('it'));
+  if (itVoice) u.voice = itVoice;
+  u.onend = () => { onEnd && onEnd(); };
+  window.speechSynthesis.speak(u);
+}
+
+// ── Parser comandi italiani ───────────────────────────────────
+function jarvisParseCommand(text) {
+  text = text.toLowerCase().trim();
+  // Rimuovi eventuali residui del wake word
+  JARVIS_WAKE.forEach(w => { text = text.replace(new RegExp('^' + w + '\\\\s*,?\\\\s*'), ''); });
+
+  // ── LISTA SPESA ──
+  // "aggiungi X alla lista della spesa" / "metti X nella spesa"
+  let m = text.match(/(?:aggiungi|metti|inserisci|scrivi)\s+(.+?)\s+(?:alla|nella|in)\s+(?:lista\s+(?:della\s+)?spesa|spesa|lista)/i);
+  if (m) return { action: 'spesa_add', item: m[1].trim() };
+
+  // ── DISPENSA ──
+  // "aggiungi X alla dispensa" / "ho comprato X"
+  m = text.match(/(?:aggiungi|metti|inserisci|ho\s+comprato|aggiunto)\s+(.+?)\s+(?:alla|nella|in)\s+dispensa/i);
+  if (m) return { action: 'dispensa_add', item: m[1].trim() };
+
+  // ── QUANTI PRODOTTI ──
+  m = text.match(/quant[ie]\s+(?:prodott[io]|articoli|cose|alimenti)\s+(?:ho|ci\s+sono|abbiamo)/i);
+  if (m) return { action: 'count' };
+
+  // ── COSA STA SCADENDO ──
+  m = text.match(/cosa\s+(?:sta\s+)?(?:scad[e|endo]|è\s+in\s+scadenza|scade\s+presto)/i);
+  if (m) return { action: 'expiring' };
+
+  // ── APRI TAB ──
+  m = text.match(/(?:apri|vai|vai\s+a|mostra)\s+(dispensa|ricette|spesa|calendario|listino)/i);
+  if (m) return { action: 'open_tab', tab: m[1].toLowerCase() };
+
+  // ── COSA POSSO CUCINARE ──
+  m = text.match(/cosa\s+(?:posso\s+)?(?:cucinare|fare\s+da\s+mangiare|preparare)/i);
+  if (m) return { action: 'recipes' };
+
+  return null;
+}
+
+// ── Esegui comando ────────────────────────────────────────────
+function jarvisExecute(cmd) {
+  if (!cmd) {
+    jarvisSpeak('Non ho capito. Riprova.');
+    setJarvisStatus('Non ho capito 🤔');
+    setTimeout(() => resetJarvisAwake(), 2000);
+    return;
+  }
+
+  switch (cmd.action) {
+    case 'spesa_add': {
+      const name = capitalize(cmd.item);
+      const cat  = detectCat(name);
+      const already = shopping.some(s => s.name.toLowerCase() === name.toLowerCase());
+      if (already) {
+        jarvisSpeak(`${name} è già nella lista della spesa.`);
+        showAlert(`🎤 "${name}" già in lista`, 'warn', 3000);
+      } else {
+        const pb = pbGet(name);
+        shopping.push({ id: uid(), name, category: cat, checked: false, addedDate: today(),
+          hintPrice: pb?.price || null, hintQty: pb?.qty || null, hintUnit: pb?.unit || null });
+        save(); updateShopBadge(); renderShop();
+        jarvisSpeak(`Ok! Ho aggiunto ${name} alla lista della spesa.`);
+        showAlert(`🛒 "${name}" aggiunto alla spesa`, 'ok', 3000);
+      }
+      break;
+    }
+    case 'dispensa_add': {
+      const name = capitalize(cmd.item);
+      const cat  = detectCat(name);
+      const def  = CAT_QTY_DEFAULTS[cat] || CAT_QTY_DEFAULTS.generico;
+      items.push({ id: uid(), name, quantity: def.qty, unit: def.unit, category: cat,
+        expiryDate: null, originalExpiry: null, frozen: false, frozenDate: null,
+        thawedDate: null, barcode: null, addedDate: today() });
+      additionLog.push({ id: uid(), name, category: cat, qty: def.qty, unit: def.unit, price: null, date: today() });
+      save(); renderD(); renderR(); updateSidebar();
+      jarvisSpeak(`Aggiunto! ${name} è ora in dispensa.`);
+      showAlert(`✅ "${name}" aggiunto in dispensa`, 'ok', 3000);
+      break;
+    }
+    case 'count': {
+      const n = items.length;
+      const txt = n === 0 ? 'La dispensa è vuota.'
+                : n === 1 ? 'Hai un solo prodotto in dispensa.'
+                : `Hai ${n} prodotti in dispensa.`;
+      jarvisSpeak(txt);
+      setJarvisStatus(txt);
+      break;
+    }
+    case 'expiring': {
+      const soon = items.filter(it => { const d = daysTo(it.expiryDate); return !it.frozen && d !== null && d >= 0 && d <= 7; });
+      if (!soon.length) {
+        jarvisSpeak('Nessun prodotto in scadenza nei prossimi sette giorni.');
+      } else {
+        const nomi = soon.slice(0,3).map(it => it.name).join(', ');
+        jarvisSpeak(`Attenzione! ${soon.length} prodott${soon.length>1?'i':'o'} in scadenza: ${nomi}.`);
+        showAlert(`⚠ ${soon.length} in scadenza: ${nomi}`, 'warn', 5000);
+      }
+      break;
+    }
+    case 'open_tab': {
+      const tabMap = { dispensa:'dispensa', ricette:'ricette', spesa:'spesa', calendario:'calendario', listino:'listino' };
+      const tab = tabMap[cmd.tab];
+      if (tab) {
+        const btn = document.querySelector(`.tb[onclick*="'${tab}'"]`);
+        if (btn) { goTab(tab, btn); jarvisSpeak(`Ecco ${cmd.tab}.`); }
+      }
+      break;
+    }
+    case 'recipes': {
+      const btn = document.querySelector('[data-rf="possibili"]');
+      if (btn) { goTab('ricette', document.querySelector('.tb[onclick*="ricette"]')); setRF('possibili', btn); }
+      jarvisSpeak('Ecco le ricette che puoi preparare con quello che hai in dispensa.');
+      break;
+    }
+  }
+  setTimeout(() => resetJarvisAwake(), 3000);
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ── UI helpers ────────────────────────────────────────────────
+function setJarvisStatus(txt) {
+  const el = document.getElementById('jarvis-status');
+  if (el) el.textContent = txt;
+}
+function setJarvisTranscript(txt) {
+  const el = document.getElementById('jarvis-transcript');
+  if (el) el.textContent = txt ? `"${txt}"` : '';
+}
+
+function resetJarvisAwake() {
+  jarvisAwake = false;
+  const btn = document.getElementById('jarvis-btn');
+  const ov  = document.getElementById('jarvis-overlay');
+  if (btn) { btn.classList.remove('awake'); btn.classList.add('listening'); }
+  if (ov)  { ov.classList.remove('awake'); }
+  setJarvisStatus('In ascolto… di\' "Jarvis"');
+  setJarvisTranscript('');
+}
+
+// ── Speech Recognition ────────────────────────────────────────
+function startJarvisRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showAlert('🎤 Il tuo browser non supporta il riconoscimento vocale', 'err', 4000); return; }
+
+  jarvisRecog = new SR();
+  jarvisRecog.lang = JARVIS_LANG;
+  jarvisRecog.continuous = true;
+  jarvisRecog.interimResults = true;
+  jarvisRecog.maxAlternatives = 3;
+
+  jarvisRecog.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript.toLowerCase().trim();
+      if (e.results[i].isFinal) final += t + ' ';
+      else interim = t;
+    }
+
+    const text = (final || interim).trim();
+    setJarvisTranscript(text);
+
+    if (!jarvisAwake) {
+      // Cerca wake word
+      const hasWake = JARVIS_WAKE.some(w => text.includes(w));
+      if (hasWake) {
+        jarvisAwake = true;
+        const btn = document.getElementById('jarvis-btn');
+        const ov  = document.getElementById('jarvis-overlay');
+        if (btn) { btn.classList.remove('listening'); btn.classList.add('awake'); }
+        if (ov)  { ov.classList.add('awake'); }
+        setJarvisStatus('Ti ascolto… 🎤');
+        setJarvisTranscript('');
+        jarvisSpeak('Dimmi!');
+      }
+    } else {
+      // In modalità comando — aspetta risultato finale
+      if (final.trim()) {
+        const cleanText = final.trim();
+        setJarvisStatus('Elaboro…');
+        const cmd = jarvisParseCommand(cleanText);
+        jarvisExecute(cmd);
+      }
+    }
+  };
+
+  jarvisRecog.onerror = (e) => {
+    if (e.error === 'no-speech') return; // ignora silenzio
+    if (e.error === 'not-allowed') {
+      showAlert('🎤 Microfono non autorizzato — controlla i permessi', 'err', 4000);
+      stopJarvis(); return;
+    }
+    // Restart automatico
+    if (jarvisActive) setTimeout(() => { jarvisRecog.start(); }, 500);
+  };
+
+  jarvisRecog.onend = () => {
+    if (jarvisActive) setTimeout(() => { try { jarvisRecog.start(); } catch(e){} }, 300);
+  };
+
+  jarvisRecog.start();
+}
+
+// ── Start / Stop ──────────────────────────────────────────────
+function toggleJarvis() {
+  if (jarvisActive) { stopJarvis(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    showAlert('🎤 Riconoscimento vocale non supportato su questo browser', 'err', 4000);
+    return;
+  }
+  jarvisActive = true;
+  jarvisAwake  = false;
+  const btn = document.getElementById('jarvis-btn');
+  const ov  = document.getElementById('jarvis-overlay');
+  if (btn) btn.classList.add('listening');
+  if (ov)  ov.classList.add('show');
+  setJarvisStatus('In ascolto… di\' "Jarvis"');
+  jarvisSpeak('Sono pronto. Dimmi "Jarvis" seguito dal comando.');
+  startJarvisRecognition();
+}
+
+function stopJarvis() {
+  jarvisActive = false;
+  jarvisAwake  = false;
+  if (jarvisRecog) { try { jarvisRecog.stop(); } catch(e){} jarvisRecog = null; }
+  window.speechSynthesis.cancel();
+  const btn = document.getElementById('jarvis-btn');
+  const ov  = document.getElementById('jarvis-overlay');
+  if (btn) { btn.classList.remove('listening', 'awake'); }
+  if (ov)  { ov.classList.remove('show', 'awake'); }
+}
 
 load();
 renderD();
