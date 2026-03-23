@@ -771,14 +771,14 @@ select option { background: #1b1b1f; color: #f0ece6; }
 .ingr-shop-btn.added { border-color:var(--success);color:var(--success);pointer-events:none; }
 
 /* ═══════════════ MINI CALENDAR SIDEBAR ═══════════════ */
-.sb-mini-cal { }
+.sb-mini-cal { margin-top: 12px; }
 .sb-mini-cal-nav { display:flex;align-items:center;justify-content:space-between;margin-bottom:10px; }
 .sb-mini-cal-month { font-size:13px;font-weight:700;color:var(--text); }
 .sb-mini-cal-btn { background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 10px;color:var(--text2);cursor:pointer;font-size:14px;transition:all .15s; }
 .sb-mini-cal-btn:hover { border-color:var(--border2);color:var(--text); }
-.sb-mini-cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:2px; }
+.sb-mini-cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:3px; }
 .sb-mc-dow { font-size:9px;font-weight:700;text-align:center;color:var(--text3);text-transform:uppercase;padding:3px 0; }
-.sb-mc-day { font-size:11px;text-align:center;padding:5px 2px;border-radius:6px;cursor:pointer;transition:all .12s;color:var(--text2);position:relative; }
+.sb-mc-day { font-size:12px;text-align:center;padding:9px 2px;border-radius:6px;cursor:pointer;transition:all .12s;color:var(--text2);position:relative; }
 .sb-mc-day:hover { background:var(--bg3); }
 .sb-mc-day.today { background:var(--accent-dim);color:var(--accent);font-weight:700; }
 .sb-mc-day.has-ev::after { content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent); }
