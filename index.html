@@ -4402,17 +4402,17 @@ Rispondi SOLO con JSON valido.`;
 
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
       headers: {
         'Content-Type': 'application/json',
-        ...(anthropicApiKey ? {
-          'x-api-key': anthropicApiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        } : {})
+        'x-api-key': anthropicApiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
         system: systemPrompt,
         messages: jarvisHistory.slice(-10) // max 10 turni di storia
       })
@@ -4439,11 +4439,14 @@ Rispondi SOLO con JSON valido.`;
 
     return parsed;
   } catch(e) {
-    console.error('Jarvis API error:', e);
-    const msg = e.message === 'auth'     ? 'Problema di autenticazione con il servizio AI.' :
-                e.message === 'overload' ? 'Il servizio AI è sovraccarico, riprova tra un momento.' :
-                'Non riesco a connettermi. Controlla la connessione e riprova.';
-    return { speak: msg, display: 'Errore rete', action: null };
+    console.error('Jarvis API error:', e.message, e);
+    let msg;
+    if (e.message === 'auth')          msg = 'Chiave API non valida. Controlla nel menu Sync.';
+    else if (e.message === 'overload') msg = 'Servizio momentaneamente sovraccarico.';
+    else if (e.message?.includes('Failed to fetch') || e.name === 'TypeError')
+      msg = 'Errore di rete o CORS. Assicurati che la chiave API sia corretta e che il browser permetta le richieste esterne.';
+    else msg = 'Errore: ' + (e.message || 'sconosciuto');
+    return { speak: msg, display: '⚠ ' + msg.slice(0,40), action: null };
   } finally {
     jarvisThinking = false;
   }
@@ -4453,6 +4456,7 @@ Rispondi SOLO con JSON valido.`;
 async function jarvisHandleResponse(parsed) {
   const speak = parsed.speak || '';
   const disp  = parsed.display || speak.slice(0,60);
+  // Mostra sempre il testo sullo schermo
 
   setJarvisStatus(disp);
 
@@ -4581,7 +4585,7 @@ function startJarvisRecognition() {
         if(btn){btn.classList.remove('listening');btn.classList.add('awake');}
         if(ov) ov.classList.add('awake');
         setJarvisStatus('Ti ascolto 🎤'); setJarvisTranscript('');
-        jarvisSpeak('Dimmi!');
+        // Nessun audio alla wake word — solo feedback visivo
       }
     } else {
       if (final.trim()) {
@@ -4616,8 +4620,7 @@ function toggleJarvis() {
   if(btn) btn.classList.add('listening');
   if(ov)  ov.classList.add('show');
   setJarvisStatus('In ascolto… di\' "Jarvis"');
-  jarvisSpeak('Sono pronto. Dimmi "Jarvis" e poi il tuo comando.');
-  startJarvisRecognition();
+  startJarvisRecognition(); // avvio silenzioso
 }
 
 function stopJarvis() {
