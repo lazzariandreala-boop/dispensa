@@ -947,7 +947,7 @@ select.fi                        { padding-right: 32px !important; }
 
 
 /* ── Jarvis voice assistant ── */
-#jarvis-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); color: var(--text2); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
+#jarvis-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); color: var(--text2); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
 #jarvis-btn:hover { border-color: var(--accent); color: var(--accent); }
 #jarvis-btn.listening {
   background: var(--danger-dim); border-color: var(--danger);
@@ -1881,7 +1881,7 @@ r('a12','Korean BBQ Bulgogi',RC.as,30,'media','🥩',
 r('a11','Dahl di Lenticchie Rosse',RC.as,35,'facile','🍲',
 [i('lenticchie rosse decorticate',200,'g','lenticchie'),i('pomodori pelati',250,'g','pomodori'),i('cipolla',1,'pz','cipolla'),i('aglio',3,'pz','aglio'),i('zenzero fresco',15,'g','zenzero'),i('latte di cocco',200,'ml','cocco'),i('brodo vegetale',300,'ml','brodo'),i('curry in polvere',8,'g','curry'),i('curcuma',3,'g','curcuma'),i('cumino in semi',4,'g','cumino'),i('semi di senape',3,'g','senape'),i('foglie di curry',6,'pz','erbe'),i('burro chiarificato o olio',30,'ml','olio'),i('riso basmati',200,'g','riso')],
 ['Sciacqua le lenticchie rosse finché l\'acqua è limpida. Non hanno bisogno di ammollo.','TARKA (la base aromatica): in una casseruola scalda 30ml di burro chiarificato a fuoco medio. Aggiungi semi di cumino + semi di senape + foglie di curry (se le hai): aspetta che scoppiettino, 30 secondi. ATTENZIONE agli schizzi.','Aggiungi cipolla tritata finissima: cuoci 8-10 min a fuoco medio finché dorata.','Aggiungi aglio e zenzero grattugiati: 1 min. Aggiungi curry in polvere + curcuma: mescola 1 min per tostare le spezie (non bruciare — aggiunta di liquido subito dopo).','Aggiungi pomodori pelati schiacciati. Cuoci 5 min. Aggiungi lenticchie sciacquate + brodo vegetale + latte di cocco.','Porta a bollore, poi abbassa, cuoci semicoperto 20-25 min mescolando spesso — le lenticchie rosse si disfano completamente creando una zuppa cremosa naturale. Aggiusta di sale e succo di limone.','Servi con riso basmati e naan. Guarnisci con coriandolo fresco, chili verde e un filo di olio al chili.'],
-['Tarka nel Mambo: burro + cumino + senape + foglie curry: 1 min / 130°C / Vel. 1.','Aggiungi cipolla tritata: 8 min / 120°C / Vel. 1. Aggiungi aglio+zenzero+spezie: 2 min / 120°C / Vel. 1.','Aggiungi pomodori: 5 min / 100°C / Vel. 1. Aggiungi lenticchie + brodo + cocco: 25 min / 100°C / Vel. 2. A fine cottura, frulla parzialmente se vuoi una consistenza più cremosa: 10 sec / Vel. 5.']),,
+['Tarka nel Mambo: burro + cumino + senape + foglie curry: 1 min / 130°C / Vel. 1.','Aggiungi cipolla tritata: 8 min / 120°C / Vel. 1. Aggiungi aglio+zenzero+spezie: 2 min / 120°C / Vel. 1.','Aggiungi pomodori: 5 min / 100°C / Vel. 1. Aggiungi lenticchie + brodo + cocco: 25 min / 100°C / Vel. 2. A fine cottura, frulla parzialmente se vuoi una consistenza più cremosa: 10 sec / Vel. 5.']),
 
 // ===== POLLO =====
 r('p1','Pollo al Forno con Patate',RC.italiana,70,'facile','🍗',
@@ -2103,7 +2103,268 @@ r('u2','Frittata di Pasta',RC.italiana,20,'facile','🍳',
 
 r('u3','Shakshuka',RC.as,25,'facile','🍳',
 [i('uova',4,'pz','uova'),i('pomodori pelati',500,'g','pomodori'),i('peperoni rossi',2,'pz','peperone'),i('cipolla',1,'pz','cipolla'),i('aglio',3,'pz','aglio'),i('paprika affumicata',5,'g','paprika'),i('cumino',3,'g','cumino'),i('peperoncino',1,'pz','peperoncino'),i('olio EVO',30,'ml','olio'),i('coriandolo o prezzemolo',10,'g','coriandolo'),i('feta',60,'g','feta')],
-['Soffriggi cipolla e peperoni in olio 8 min. Aggiungi aglio, paprika, cumino e peperoncino: 2 min.','Aggiungi i pomodori, sale e cuoci 10 min finché la salsa è densa.','Crea 4 buchette, rompi le uova. Copri e cuoci 5-7 min. Aggiungi feta sbriciolata e erbe fresche. Servi con pane pitta.'])
+['Soffriggi cipolla e peperoni in olio 8 min. Aggiungi aglio, paprika, cumino e peperoncino: 2 min.','Aggiungi i pomodori, sale e cuoci 10 min finché la salsa è densa.','Crea 4 buchette, rompi le uova. Copri e cuoci 5-7 min. Aggiungi feta sbriciolata e erbe fresche. Servi con pane pitta.']),
+
+// ===== SECONDI POLLO (extra) =====
+r('p13','Pollo alla Diavola',RC.italiana,40,'facile','🍗',
+[i('pollo a metà',900,'g','pollo'),i('aglio',4,'pz','aglio'),i('peperoncino fresco',2,'pz','peperoncino'),i('rosmarino',3,'rametti','rosmarino'),i('olio EVO',50,'ml','olio'),i('limone',1,'pz','limone'),i('sale',5,'g','sale')],
+['Appiattisci il mezzo pollo con un batticarne. Prepara la marinata: olio, aglio tritato, peperoncino, rosmarino e succo di limone.','Marina il pollo almeno 1h (meglio tutta la notte). Scola e asciuga bene.','Cuoci sulla griglia o in padella in ghisa a fuoco medio-vivace, 15-18 min per lato, pressando con un peso per tenerlo piatto. Deve essere ben dorato e croccante.']),
+
+r('p14','Pollo alla Parmigiana',RC.italiana,40,'media','🍗',
+[i('petti di pollo',400,'g','pollo'),i('pomodori pelati',300,'g','pomodori'),i('mozzarella',150,'g','mozzarella'),i('parmigiano',60,'g','parmigiano'),i('uova',2,'pz','uova'),i('pangrattato',80,'g','pangrattato'),i('olio di semi',100,'ml','olio'),i('basilico',6,'foglie','basilico'),i('sale',4,'g','sale')],
+['Impana i petti di pollo: uova sbattute poi pangrattato. Friggili in olio a 175°C finché dorati.','Prepara la salsa: pomodori pelati con basilico, aglio, sale, 15 min di cottura.','Disponi i petti in teglia, copri con salsa, mozzarella e parmigiano. Forno a 200°C per 15 min fino a fusione del formaggio.']),
+
+r('p15','Spiedini di Pollo allo Yogurt',RC.as,25,'facile','🍗',
+[i('petti di pollo',500,'g','pollo'),i('yogurt greco',120,'g','yogurt'),i('curry',5,'g','curry'),i('paprika',4,'g','paprika'),i('aglio',2,'pz','aglio'),i('zenzero',10,'g','zenzero'),i('limone',1,'pz','limone'),i('olio',20,'ml','olio'),i('sale',4,'g','sale')],
+['Taglia il pollo a cubetti. Mescola yogurt, curry, paprika, aglio e zenzero grattugiati, succo di limone, olio e sale.','Marina il pollo nella miscela per almeno 1h in frigo (meglio 4h).','Infila i cubetti su spiedini di legno ammollati. Griglia a fuoco medio 10-12 min girandoli spesso. Servi con pane pitta e salsa tzatziki.']),
+
+r('p16','Pollo al Sesamo con Verdure',RC.cn,25,'facile','🍗',
+[i('petti di pollo',400,'g','pollo'),i('semi di sesamo',40,'g','sesamo'),i('salsa di soia',40,'ml','soia'),i('miele',20,'g','miele'),i('aglio',3,'pz','aglio'),i('broccoli',200,'g','broccoli'),i('peperone',1,'pz','peperone'),i('amido di mais',15,'g','amido'),i('olio di sesamo',15,'ml','sesamo')],
+['Marina il pollo a cubetti con soia, miele e amido per 20 min. Passa nella miscela di semi di sesamo.','Cuoci il pollo in padella con olio di sesamo a fuoco vivace 5-6 min finché croccante. Metti da parte.','Salta le verdure nel wok, aggiungi il pollo e un filo di soia. Cuoci 2 min. Semi di sesamo extra sopra.']),
+
+r('p17','Pollo Lemon Herb Americano',RC.eu,35,'facile','🍗',
+[i('cosce di pollo',600,'g','pollo'),i('limoni',2,'pz','limone'),i('timo',4,'rametti','timo'),i('rosmarino',2,'rametti','rosmarino'),i('aglio',4,'pz','aglio'),i('burro',40,'g','burro'),i('paprika dolce',4,'g','paprika'),i('sale e pepe',5,'g','sale')],
+['Mescola burro morbido con scorza di limone, timo, rosmarino, aglio tritato, paprika, sale.','Massaggia le cosce con il burro aromatizzato. Lascia marinare 30 min.','Cuoci in forno a 200°C per 35-40 min. Ultimi 5 min metti il grill per la pelle super croccante.']),
+
+r('p18','Pollo alla Marocchina',RC.as,50,'media','🍛',
+[i('pollo a pezzi',800,'g','pollo'),i('cipolla',2,'pz','cipolla'),i('pomodori pelati',300,'g','pomodori'),i('olive verdi',80,'g','olive'),i('limone sotto sale',1,'pz','limone'),i('coriandolo fresco',15,'g','coriandolo'),i('zafferano',1,'bustina','zafferano'),i('zenzero',10,'g','zenzero'),i('curcuma',4,'g','curcuma'),i('cumino',3,'g','cumino'),i('olio',30,'ml','olio'),i('brodo',200,'ml','brodo')],
+['Rosola il pollo in olio. Aggiungi cipolla, zafferano, zenzero, curcuma, cumino: soffriggi 3 min.','Aggiungi pomodori, brodo, limone sotto sale tagliato a spicchi e olive. Cuoci coperto 30 min.','Alza la fiamma e riduci il fondo altri 10 min. Aggiungi coriandolo fresco. Servi con couscous.']),
+
+// ===== PASTA EXTRA =====
+r('ps8','Cacio e Pepe',RC.italiana,20,'media','🍝',
+[i('spaghetti o tonnarelli',320,'g','pasta'),i('pecorino romano',120,'g','pecorino'),i('pepe nero in grani',8,'g','pepe'),i('sale',4,'g','sale')],
+['Tosta i grani di pepe in padella, poi macinali grossolanamente. Gratta il pecorino finemente.','Cuoci la pasta. Nella padella del pepe aggiungi un mestolo di acqua di cottura e scalda. Scola la pasta al dente e saltala nel pepe.','Fuori dal fuoco, aggiungi il pecorino a pioggia mescolando rapidamente con acqua di cottura per creare una crema. Niente uova, niente panna.']),
+
+r('ps9','Gricia',RC.italiana,20,'facile','🍝',
+[i('rigatoni',320,'g','pasta'),i('guanciale',150,'g','guanciale'),i('pecorino romano',80,'g','pecorino'),i('pepe nero',6,'g','pepe'),i('sale',4,'g','sale')],
+['Taglia il guanciale a listarelle e cuocilo in padella finché croccante e il grasso si è sciolto. Metti da parte.','Cuoci la pasta, conserva abbondante acqua di cottura. Nella padella del guanciale aggiungi il pepe.','Scola la pasta e saltala con il guanciale. Fuori dal fuoco aggiungi pecorino e acqua di cottura per la cremina.']),
+
+r('ps10','Pasta con Vongole',RC.italiana,25,'media','🍝',
+[i('spaghetti',320,'g','pasta'),i('vongole veraci',600,'g','vongole'),i('aglio',4,'pz','aglio'),i('vino bianco',100,'ml','vino'),i('prezzemolo',15,'g','prezzemolo'),i('olio EVO',50,'ml','olio'),i('peperoncino',1,'pz','peperoncino')],
+['Spurgla le vongole in acqua salata 2h. In padella larga scalda olio, aglio e peperoncino.','Aggiungi le vongole, sfuma con vino bianco, copri e cuoci 4-5 min fino all apertura. Scarta le chiuse.','Scola la pasta al dente e saltala nel sugo delle vongole. Prezzemolo abbondante e olio a crudo.']),
+
+r('ps11','Lasagne Verdi al Pesto',RC.italiana,60,'media','🍝',
+[i('sfoglie lasagne',250,'g','lasagne'),i('pesto di basilico',200,'g','pesto'),i('besciamella',500,'ml','latte'),i('patate',200,'g','patate'),i('fagiolini',150,'g','fagiolini'),i('parmigiano',60,'g','parmigiano'),i('sale',4,'g','sale')],
+['Prepara la besciamella. Lessare le patate a dadini e i fagiolini.','Alterna strati: besciamella, sfoglie, pesto diluito con un po di acqua di cottura, patate e fagiolini.','Termina con besciamella e parmigiano. Forno a 180°C per 30 min. Le lasagne al pesto sono tipiche della Liguria.']),
+
+r('ps12','Pasta al Tonno Fresco',RC.italiana,20,'facile','🍝',
+[i('pasta corta',320,'g','pasta'),i('tonno fresco',250,'g','tonno'),i('pomodorini',200,'g','pomodori'),i('capperi',20,'g','capperi'),i('olive nere',50,'g','olive'),i('aglio',2,'pz','aglio'),i('origano',3,'g','origano'),i('olio EVO',40,'ml','olio'),i('sale',3,'g','sale')],
+['Taglia il tonno a dadini. In padella scalda olio e aglio, aggiungi i pomodorini tagliati.','Cuoci i pomodorini 5 min finché si ammorbidiscono. Aggiungi olive, capperi e origano.','Aggiungi il tonno e cuoci 3 min (deve rimanere rosato). Scola la pasta al dente e salta nel sugo.']),
+
+r('ps13','Risotto alla Zucca',RC.italiana,35,'media','🍚',
+[i('riso Carnaroli',320,'g','riso'),i('zucca',400,'g','zucca'),i('cipolla',1,'pz','cipolla'),i('brodo vegetale',1000,'ml','brodo'),i('vino bianco',100,'ml','vino'),i('parmigiano',60,'g','parmigiano'),i('burro',50,'g','burro'),i('salvia',4,'foglie','salvia'),i('noce moscata',2,'g','noce moscata'),i('sale',4,'g','sale')],
+['Rosola la cipolla in burro. Aggiungi la zucca a dadini, cuoci 5 min. Tosta il riso 2 min.','Sfuma con vino. Aggiungi brodo un mestolo alla volta per 18 min. A metà cottura frulla metà della zucca per creare cremosità.','Manteca con burro e parmigiano. Servi con foglie di salvia fritte in burro e noce moscata grattugiata.']),
+
+r('ps14','Pasta al Forno Napoletana',RC.italiana,60,'media','🍝',
+[i('rigatoni',400,'g','pasta'),i('carne macinata',300,'g','macinato'),i('pomodori pelati',500,'g','pomodori'),i('mozzarella',200,'g','mozzarella'),i('uova sode',3,'pz','uova'),i('salame napoletano',80,'g','salame'),i('parmigiano',60,'g','parmigiano'),i('cipolla',1,'pz','cipolla'),i('olio',30,'ml','olio'),i('sale',5,'g','sale')],
+['Prepara il ragù: soffriggi cipolla, aggiungi carne, poi pomodori. Cuoci 20 min.','Lessate la pasta molto al dente. Mescola con il ragù, mozzarella a dadini, uova sode a fette, salame.','Versa in teglia, copri con parmigiano. Forno a 200°C per 25-30 min finché gratinata.']),
+
+r('ps15','Risotto ai Gamberi',RC.italiana,30,'media','🍚',
+[i('riso Carnaroli',320,'g','riso'),i('gamberi',400,'g','gamberi'),i('brodo di pesce',900,'ml','brodo'),i('cipolla',1,'pz','cipolla'),i('vino bianco',100,'ml','vino'),i('pomodorini',150,'g','pomodori'),i('panna fresca',80,'ml','panna'),i('burro',30,'g','burro'),i('prezzemolo',10,'g','prezzemolo'),i('aglio',2,'pz','aglio')],
+['Soffriggi cipolla in burro. Tosta il riso 2 min. Sfuma con vino. Aggiungi brodo un mestolo alla volta.','A metà cottura aggiungi i pomodorini tagliati. Negli ultimi 3 min aggiungi i gamberi.','Manteca con burro e panna. Prezzemolo tritato. Il risotto ai gamberi non vuole parmigiano.']),
+
+// ===== CUCINA ASIATICA EXTRA =====
+r('as7','Gyoza al Vapore',RC.jp,40,'difficile','🥟',
+[i('pasta per gyoza',20,'fogli','pasta'),i('carne macinata di maiale',200,'g','maiale'),i('cavolo cinese',150,'g','cavolo'),i('zenzero',15,'g','zenzero'),i('aglio',2,'pz','aglio'),i('salsa di soia',20,'ml','soia'),i('olio di sesamo',10,'ml','sesamo'),i('cipollotti',3,'pz','cipollotto'),i('sake',15,'ml','sake'),i('olio',20,'ml','olio')],
+['Trita finemente il cavolo, salalo e strizza l acqua dopo 10 min. Mescola con carne, zenzero, aglio, soia, sesamo, cipollotti, sake.','Metti un cucchiaino di ripieno al centro di ogni foglio. Bagna il bordo, piega e crea le pieghe caratteristiche.','Cuoci in padella con olio 3 min finché dorati sotto, poi versa acqua fino a metà altezza, copri e cuoci al vapore 5 min.']),
+
+r('as8','Tom Kha Gai',RC.as,30,'facile','🍲',
+[i('petto di pollo',300,'g','pollo'),i('latte di cocco',400,'ml','cocco'),i('brodo di pollo',300,'ml','brodo'),i('funghi champignon',150,'g','funghi'),i('galanga o zenzero',20,'g','zenzero'),i('citronella',2,'steli','citronella'),i('foglie di lime kaffir',4,'foglie','lime'),i('salsa di pesce',25,'ml','salsa pesce'),i('lime',2,'pz','lime'),i('coriandolo',10,'g','coriandolo'),i('peperoncino',2,'pz','peperoncino')],
+['Porta a ebollizione brodo con latte di cocco, citronella schiacciata, galanga, foglie di lime.','Aggiungi il pollo a striscioline e i funghi. Cuoci a fuoco medio 10 min.','Aggiusta con salsa di pesce e succo di lime. Peperoncino e coriandolo fresco a fine cottura. Togli citronella e galanga prima di servire.']),
+
+r('as9','Curry Massaman',RC.as,60,'media','🍛',
+[i('manzo per spezzatino',600,'g','manzo'),i('patate',300,'g','patate'),i('latte di cocco',400,'ml','cocco'),i('pasta curry massaman',40,'g','curry'),i('cipolla',2,'pz','cipolla'),i('arachidi',60,'g','arachidi'),i('cannella',1,'stecca','cannella'),i('cardamomo',3,'baccelli','cardamomo'),i('salsa di pesce',25,'ml','salsa pesce'),i('zucchero di palma',15,'g','zucchero'),i('tamarindo',15,'g','tamarindo'),i('olio',20,'ml','olio')],
+['Rosola la pasta curry nell olio. Aggiungi il manzo a cubetti e cuoci 5 min.','Aggiungi latte di cocco, brodo, spezie, cipolla, patate e arachidi. Cuoci coperto a fuoco basso 40 min.','Aggiusta con salsa di pesce, zucchero e succo di tamarindo (equilibrio dolce-acido-sapido). Servi con riso jasmine.']),
+
+r('as10','Pho Bo Vietnamita',RC.as,180,'difficile','🍜',
+[i('noodles di riso piatti',200,'g','riso'),i('controfiletto di manzo',200,'g','manzo'),i('ossa di manzo',500,'g','ossa'),i('cipolla',2,'pz','cipolla'),i('zenzero',30,'g','zenzero'),i('anice stellato',3,'pz','anice'),i('cannella',1,'stecca','cannella'),i('salsa di pesce',40,'ml','salsa pesce'),i('germogli di soia',100,'g','germogli'),i('lime',2,'pz','lime'),i('basilico thai',15,'g','basilico'),i('peperoncino',2,'pz','peperoncino')],
+['Tostan cipolla e zenzero direttamente sulla fiamma finché anneriti. Bollire le ossa 5 min e sciacquare.','Cuoci le ossa con cipolla, zenzero, anice, cannella in acqua per 2-3h. Filtra il brodo e aggiusta con salsa di pesce e sale.','Scottare il manzo a fettissime nella fondina con il brodo bollente. Noodles, germogli, basilico, lime e peperoncino a tavola.']),
+
+r('as11','Bibimbap Coreano',RC.as,35,'media','🍚',
+[i('riso cotto',400,'g','riso'),i('spinaci',150,'g','spinaci'),i('carota',2,'pz','carota'),i('zucchine',1,'pz','zucchina'),i('funghi shiitake',100,'g','funghi'),i('germogli di soia',100,'g','germogli'),i('uova',2,'pz','uova'),i('manzo macinato',200,'g','manzo'),i('pasta gochujang',30,'g','gochujang'),i('olio di sesamo',20,'ml','sesamo'),i('salsa di soia',20,'ml','soia'),i('aglio',2,'pz','aglio'),i('semi di sesamo',10,'g','sesamo')],
+['Cuoci separatamente ogni verdura saltata con aglio e olio di sesamo. Rosola il manzo con soia e un po di gochujang.','Prepara l uovo fritto con tuorlo morbido.','Disponi il riso nella ciotola, metti le verdure a settori, il manzo e l uovo sopra. Salsa gochujang. Mescola tutto prima di mangiare.']),
+
+r('as12','Yakitori',RC.jp,20,'facile','🍗',
+[i('cosce di pollo disossate',400,'g','pollo'),i('cipollotti',6,'pz','cipollotto'),i('salsa di soia',60,'ml','soia'),i('mirin',40,'ml','mirin'),i('sake',30,'ml','sake'),i('zucchero',15,'g','zucchero'),i('olio di sesamo',10,'ml','sesamo')],
+['Prepara la salsa tare: soia, mirin, sake e zucchero in padellino, riduci a fuoco basso fino a quando si addensa (10 min).','Taglia il pollo a bocconcini. Infilza alternando pollo e pezzi di cipollotto su spiedini.','Griglia a fuoco medio-alto 3-4 min per lato, spennellando abbondantemente con la salsa tare durante la cottura. Semi di sesamo alla fine.']),
+
+r('as13','Tonkatsu',RC.jp,25,'facile','🥩',
+[i('cotolette di maiale',400,'g','maiale'),i('panko',100,'g','panko'),i('uova',2,'pz','uova'),i('farina',50,'g','farina'),i('olio di semi',300,'ml','olio'),i('cavolo cappuccio',200,'g','cavolo'),i('salsa tonkatsu',50,'g','salsa'),i('sale e pepe',4,'g','sale')],
+['Batti le cotolette, sala e pepa. Impana: farina → uovo sbattuto → panko abbondante (non schiacciarlo, lascialo spesso e ariato).','Friggi in olio a 170°C per 4-5 min per lato finché dorato intenso. Il panko deve essere croccantissimo.','Taglia a striscioline senza spostare i pezzi. Servi su letto di cavolo julienne con salsa tonkatsu.']),
+
+r('as14','Dim Sum - Har Gow',RC.cn,45,'difficile','🥟',
+[i('pasta per har gow',20,'fogli','pasta'),i('gamberi sgusciati',300,'g','gamberi'),i('germogli di bambu',60,'g','bambu'),i('grasso di maiale',20,'g','lardo'),i('olio di sesamo',10,'ml','sesamo'),i('amido di mais',10,'g','amido'),i('sale',3,'g','sale'),i('zucchero',3,'g','zucchero')],
+['Trita grossolanamente i gamberi (non in pasta, lascia pezzetti). Mescola con germogli tritati, olio di sesamo, amido, sale e zucchero.','Avvolgi il ripieno nei fogli di pasta creando la forma caratteristica a mezzaluna con pieghe multiple.','Cuoci a vapore per 6-7 min. Devono diventare leggermente traslucidi. Servi immediatamente con salsa di soia.']),
+
+r('as15','Banh Mi',RC.as,30,'facile','🥖',
+[i('baguette vietnamita',2,'pz','pane'),i('petto di pollo',300,'g','pollo'),i('maionese',40,'g','maionese'),i('carote',2,'pz','carota'),i('daikon',100,'g','daikon'),i('cetriolo',1,'pz','cetriolo'),i('coriandolo',15,'g','coriandolo'),i('peperoncino jalapeño',1,'pz','peperoncino'),i('aceto di riso',30,'ml','aceto'),i('zucchero',10,'g','zucchero'),i('salsa di pesce',15,'ml','salsa pesce')],
+['Prepara il do chua: carote e daikon julienne marinati in aceto, zucchero e sale per 20 min. Cuoci il pollo con salsa di pesce e zucchero.','Taglia la baguette a metà. Spalma maionese. Aggiungi il pollo affettato.','Farcisci con do chua, cetriolo a fette, coriandolo fresco e jalapeño. La combinazione croccante-fresco-speziato è il segreto.']),
+
+// ===== CUCINA EUROPEA =====
+r('eu1','Beef Bourguignon',RC.eu,180,'difficile','🥩',
+[i('manzo per spezzatino',800,'g','manzo'),i('Borgogna o altro vino rosso',750,'ml','vino'),i('pancetta',150,'g','pancetta'),i('cipollotte',200,'g','cipolla'),i('funghi champignon',200,'g','funghi'),i('carote',3,'pz','carota'),i('aglio',3,'pz','aglio'),i('concentrato di pomodoro',20,'g','pomodoro'),i('farina',30,'g','farina'),i('burro',50,'g','burro'),i('timo e alloro',5,'g','timo'),i('brodo',200,'ml','brodo')],
+['Taglia il manzo in pezzi grandi. Rosolali in burro con pancetta. Aggiungi le farine e mescola.','Sfuma con il vino, aggiungi aglio, concentrato, timo e alloro. Cuoci coperto a 160°C per 2h.','Nell ultima mezz ora aggiungi le cipollotte dorate e i funghi saltati separatamente. La salsa deve essere lucida e concentrata.']),
+
+r('eu2','Moussaka Greca',RC.eu,90,'media','🍆',
+[i('melanzane',600,'g','melanzane'),i('carne macinata di agnello',400,'g','agnello'),i('patate',300,'g','patate'),i('pomodori pelati',300,'g','pomodori'),i('cipolla',1,'pz','cipolla'),i('cannella',2,'g','cannella'),i('noce moscata',2,'g','noce moscata'),i('besciamella',500,'ml','latte'),i('parmigiano',40,'g','parmigiano'),i('olio',50,'ml','olio'),i('sale',5,'g','sale')],
+['Taglia e griglia melanzane e patate. Prepara il ragù di agnello con cipolla, pomodori, cannella.','In teglia alterna: patate, melanzane, ragù. Ripeti.','Copri con besciamella speziata con noce moscata e parmigiano. Forno a 180°C per 45 min finché dorata.']),
+
+r('eu3','Coq au Vin',RC.eu,80,'media','🍗',
+[i('pollo a pezzi',1000,'g','pollo'),i('vino rosso',500,'ml','vino'),i('pancetta',120,'g','pancetta'),i('cipollotte',150,'g','cipolla'),i('funghi champignon',200,'g','funghi'),i('carote',2,'pz','carota'),i('aglio',3,'pz','aglio'),i('concentrato di pomodoro',15,'g','pomodoro'),i('farina',20,'g','farina'),i('burro',40,'g','burro'),i('timo e alloro',5,'g','timo'),i('brodo',200,'ml','brodo')],
+['Rosola il pollo in burro finché ben dorato. Aggiungi pancetta, cipollotte, carote e aglio.','Aggiungi farina, concentrato, vino e brodo. Porta a ebollizione e trasferisci in forno a 160°C per 50 min.','Nell ultima mezzora aggiungi i funghi saltati. La salsa deve essere densa e avvolgente. Servi con puré o tagliatelle.']),
+
+r('eu4','Paella Valenciana',RC.eu,50,'media','🥘',
+[i('riso bomba',400,'g','riso'),i('pollo a pezzi',400,'g','pollo'),i('coniglio a pezzi',300,'g','coniglio'),i('fagiolini piatti',150,'g','fagiolini'),i('pomodoro maturo',2,'pz','pomodoro'),i('paprika dolce',6,'g','paprika'),i('zafferano',1,'bustina','zafferano'),i('aglio',3,'pz','aglio'),i('olio EVO',60,'ml','olio'),i('brodo',900,'ml','brodo'),i('sale',5,'g','sale'),i('rosmarino',2,'rametti','rosmarino')],
+['Rosola il pollo e coniglio nell olio finché ben dorati. Aggiungi i fagiolini. Aggiungi pomodoro grattugiato, aglio e paprika.','Aggiungi lo zafferano sciolto nel brodo caldo. Porta a ebollizione.','Aggiungi il riso uniformemente, non mescolare più. Cuoci a fuoco medio-vivace 18-20 min. Deve formarsi il socarrat (fondo croccante).']),
+
+r('eu5','Goulash Ungherese',RC.eu,120,'media','🥩',
+[i('manzo per spezzatino',700,'g','manzo'),i('cipolla',3,'pz','cipolla'),i('paprika dolce ungherese',20,'g','paprika'),i('paprika piccante',5,'g','paprika'),i('pomodori pelati',300,'g','pomodori'),i('carote',2,'pz','carota'),i('patate',300,'g','patate'),i('cumino',3,'g','cumino'),i('aglio',2,'pz','aglio'),i('brodo',400,'ml','brodo'),i('olio',30,'ml','olio'),i('sale',5,'g','sale')],
+['Soffriggi abbondante cipolla in olio finché completamente morbida e dorata (20 min). Aggiungi la paprika e il cumino.','Aggiungi il manzo a cubetti e rosola. Aggiungi pomodori, brodo, carote. Cuoci coperto 60 min a fuoco basso.','Aggiungi le patate a dadini e cuoci altri 30 min. Il goulash deve essere denso, quasi uno stufato. Servi con pane o pasta csipetke.']),
+
+r('eu6','Wiener Schnitzel',RC.eu,20,'facile','🥩',
+[i('fettine di vitello sottili',400,'g','vitello'),i('farina',50,'g','farina'),i('uova',2,'pz','uova'),i('pangrattato',100,'g','pangrattato'),i('burro chiarificato',80,'g','burro'),i('limone',2,'pz','limone'),i('sale e pepe',4,'g','sale')],
+['Batti le fettine fino a 3-4mm. Sala e pepa. Impana con farina, uovo sbattuto, pangrattato molto fine.','Friggi nel burro chiarificato abbondante a 160-170°C. NON schiacciare durante la cottura: la panatura deve "nuotare" nel grasso per diventare croccante.','Scola su carta, servi subito con spicchi di limone e insalata di patate. La panatura deve essere di color oro pallido, non marrone.']),
+
+r('eu7','Spanakopita',RC.eu,60,'media','🥬',
+[i('pasta fillo',12,'fogli','fillo'),i('spinaci freschi',600,'g','spinaci'),i('feta',250,'g','feta'),i('uova',3,'pz','uova'),i('cipolla',1,'pz','cipolla'),i('cipollotti',4,'pz','cipollotto'),i('aneto',10,'g','aneto'),i('noce moscata',2,'g','noce moscata'),i('olio EVO',60,'ml','olio'),i('burro fuso',40,'g','burro'),i('sale e pepe',4,'g','sale')],
+['Appassisci gli spinaci in padella, strizzali bene. Mescola con feta sbriciolata, uova, cipolla, cipollotti, aneto, noce moscata.','Spennella ogni foglio di fillo con burro fuso. Sovrapponi 4 fogli per ogni strato.','Alterna strati di fillo con ripieno. Termina con 4 fogli di fillo. Incidi la superficie, inforna a 180°C per 40-45 min.']),
+
+// ===== PESCE EXTRA =====
+r('f6','Zuppa di Pesce alla Livornese',RC.italiana,50,'media','🐟',
+[i('misto di pesce da zuppa',800,'g','pesce'),i('pomodori pelati',400,'g','pomodori'),i('seppie',200,'g','seppie'),i('vongole',200,'g','vongole'),i('aglio',4,'pz','aglio'),i('peperoncino',1,'pz','peperoncino'),i('vino bianco',100,'ml','vino'),i('prezzemolo',15,'g','prezzemolo'),i('olio EVO',50,'ml','olio'),i('pane tostato',4,'fette','pane'),i('sale',4,'g','sale')],
+['Pulisci e prepara il pesce. In tegame largo scalda olio con aglio e peperoncino. Aggiungi le seppie e cuoci 10 min.','Sfuma con vino, aggiungi pomodori pelati. Cuoci 10 min. Aggiungi il pesce più duro prima, poi quello delicato.','Aggiungi le vongole per ultime, copri e cuoci 5 min. Prezzemolo abbondante. Servi su fette di pane tostato sfregato con aglio.']),
+
+r('f7','Baccalà alla Vicentina',RC.italiana,240,'difficile','🐟',
+[i('baccalà ammollato',600,'g','baccalà'),i('cipolla',3,'pz','cipolla'),i('acciughe sott olio',30,'g','acciughe'),i('latte intero',300,'ml','latte'),i('olio EVO',150,'ml','olio'),i('farina',30,'g','farina'),i('prezzemolo',10,'g','prezzemolo'),i('parmigiano',40,'g','parmigiano'),i('sale e pepe',4,'g','sale')],
+['Infarina il baccalà e disponilo in tegame. Prepara il soffritto: cipolla, acciughe in olio abbondante finché morbide.','Copri il baccalà con il soffritto, il latte, il prezzemolo, il parmigiano. Pepe abbondante.','Cuoci coperto a fuoco bassissimo per almeno 4h, muovendo il tegame (non mescolare). Servi con polenta bianca.']),
+
+r('f8','Polpo alla Gallegiana',RC.italiana,60,'facile','🐙',
+[i('polpo',800,'g','polpo'),i('patate',400,'g','patate'),i('olive verdi',60,'g','olive'),i('capperi',20,'g','capperi'),i('sedano',2,'coste','sedano'),i('prezzemolo',15,'g','prezzemolo'),i('olio EVO',50,'ml','olio'),i('aceto di vino bianco',20,'ml','aceto'),i('aglio',2,'pz','aglio'),i('sale e pepe',4,'g','sale')],
+['Cuoci il polpo in acqua con un tappo di sughero (si dice lo ammorbidisca). Bollitura 40-50 min dal fischio della pentola.','Lessa le patate, pelale e taglia a dadini. Taglia il polpo a pezzetti.','Condisci polpo e patate con olio, aceto, olive, capperi, sedano, prezzemolo, aglio. Riposa 30 min prima di servire.']),
+
+r('f9','Salmone in Crosta di Erbe',RC.eu,25,'facile','🐟',
+[i('filetti di salmone',500,'g','salmone'),i('pangrattato',60,'g','pangrattato'),i('prezzemolo',15,'g','prezzemolo'),i('aneto',10,'g','aneto'),i('scorza di limone',1,'pz','limone'),i('aglio',2,'pz','aglio'),i('olio EVO',30,'ml','olio'),i('senape di Digione',20,'g','senape'),i('sale e pepe',4,'g','sale')],
+['Mescola pangrattato con prezzemolo, aneto, scorza di limone, aglio tritato, olio, sale e pepe.','Spennella il salmone con la senape (crea la base per far attaccare la crosta).','Pressa la panatura sul lato superiore. Cuoci in forno a 200°C per 12-14 min. La crosta deve essere dorata e croccante.']),
+
+r('f10','Ceviche di Pesce Bianco',RC.eu,20,'facile','🐟',
+[i('branzino o spigola freschissimo',400,'g','branzino'),i('lime',4,'pz','lime'),i('cipolla rossa',1,'pz','cipolla'),i('peperoncino jalapeño',1,'pz','peperoncino'),i('coriandolo',15,'g','coriandolo'),i('pomodorini',100,'g','pomodori'),i('avocado',1,'pz','avocado'),i('sale',4,'g','sale')],
+['Taglia il pesce in dadini piccoli. Marina con succo di lime abbondante per 20-30 min: l acido cuocerà il pesce.','Aggiungi cipolla rossa a fettine sottili, peperoncino, pomodorini e avocado a dadini.','Condisci con coriandolo fresco, sale. Servi subito freddo su foglie di lattuga o con chips di mais.']),
+
+// ===== VERDURE E CONTORNI EXTRA =====
+r('v4','Tortino di Patate',RC.italiana,50,'facile','🥔',
+[i('patate',600,'g','patate'),i('uova',3,'pz','uova'),i('parmigiano',60,'g','parmigiano'),i('rosmarino',3,'rametti','rosmarino'),i('olio EVO',30,'ml','olio'),i('sale e pepe',4,'g','sale'),i('noce moscata',2,'g','noce moscata')],
+['Lessa le patate, pelale e schiacciale. Mescola con uova, parmigiano, noce moscata, sale, pepe.','Scalda olio in padella antiaderente 24cm con rosmarino. Versa il composto, livella.','Cuoci a fuoco medio 15 min coperchio. Gira con aiuto di piatto. Cuoci altri 12 min. Servi tagliato a spicchi.']),
+
+r('v5','Ratatouille Provenzale',RC.eu,60,'facile','🍅',
+[i('melanzane',2,'pz','melanzana'),i('zucchine',2,'pz','zucchina'),i('peperoni rossi',2,'pz','peperone'),i('pomodori maturi',3,'pz','pomodoro'),i('cipolla',2,'pz','cipolla'),i('aglio',4,'pz','aglio'),i('timo',4,'rametti','timo'),i('basilico',10,'foglie','basilico'),i('olio EVO',60,'ml','olio'),i('sale e pepe',5,'g','sale')],
+['Taglia tutte le verdure a rondelle uniformi. In tegame soffriggi cipolla e aglio in olio.','Aggiungi le verdure a strati: prima i peperoni (più duri), poi melanzane, zucchine, pomodori.','Copri e cuoci a fuoco basso 30-35 min. Scopri e cuoci altri 10 min per addensare i succhi. Timo e basilico a fine cottura.']),
+
+r('v6','Gratin di Patate Dauphinois',RC.eu,70,'facile','🥔',
+[i('patate',800,'g','patate'),i('panna fresca',300,'ml','panna'),i('latte intero',200,'ml','latte'),i('gruyère',100,'g','formaggio'),i('aglio',2,'pz','aglio'),i('noce moscata',3,'g','noce moscata'),i('burro',30,'g','burro'),i('sale e pepe',5,'g','sale')],
+['Pela e affetta le patate sottilissime (2mm). Strofina la teglia con aglio e imburra.','Mescola panna e latte con noce moscata, sale e pepe. Disponi le patate a strati, versando il composto tra ogni strato.','Copri con gruyère grattugiato. Cuoci in forno a 170°C per 60-65 min. Le patate devono assorbire tutta la panna.']),
+
+r('v7','Peperonata',RC.italiana,35,'facile','🫑',
+[i('peperoni misti',600,'g','peperone'),i('cipolla',2,'pz','cipolla'),i('pomodori pelati',200,'g','pomodori'),i('aglio',3,'pz','aglio'),i('aceto di vino',20,'ml','aceto'),i('zucchero',10,'g','zucchero'),i('basilico',8,'foglie','basilico'),i('olio EVO',40,'ml','olio'),i('sale',4,'g','sale')],
+['Taglia i peperoni a striscioline, la cipolla a mezzaluna. Soffriggi in olio con aglio a fuoco medio 10 min.','Aggiungi i pomodori pelati, aceto e zucchero. Cuoci a fuoco medio 20 min mescolando.','Aggiusta agrodolce con altro aceto o zucchero. Basilico fresco. Ottima fredda come antipasto o calda come contorno.']),
+
+r('v8','Insalata di Farro con Verdure',RC.italiana,30,'facile','🌾',
+[i('farro perlato',300,'g','farro'),i('pomodorini',150,'g','pomodori'),i('cetriolo',1,'pz','cetriolo'),i('peperone giallo',1,'pz','peperone'),i('olive',50,'g','olive'),i('feta',80,'g','feta'),i('basilico',10,'g','basilico'),i('olio EVO',40,'ml','olio'),i('aceto balsamico',15,'ml','aceto'),i('sale',3,'g','sale')],
+['Cuoci il farro in acqua salata 25-30 min. Deve restare al dente. Scola e raffredda.','Taglia tutte le verdure a dadini. Mescola con il farro raffreddato.','Condisci con olio, aceto balsamico, sale. Aggiungi feta sbriciolata e basilico fresco. Riposa 20 min prima di servire.']),
+
+// ===== ANTIPASTI E STREET FOOD =====
+r('an1','Bruschetta al Pomodoro',RC.italiana,15,'facile','🍞',
+[i('pane rustico',8,'fette','pane'),i('pomodori maturi',400,'g','pomodoro'),i('aglio',2,'pz','aglio'),i('basilico',15,'foglie','basilico'),i('olio EVO',50,'ml','olio'),i('sale e pepe',4,'g','sale'),i('aceto balsamico',10,'ml','aceto')],
+['Tosta le fette di pane in forno a 200°C per 8 min o sulla griglia finché croccanti e dorate.','Strofina ogni fetta con l aglio tagliato a metà (dà aroma senza l amarezza dell aglio crudo).','Condisci i pomodori a dadini con olio, sale, pepe e basilico spezzato. Metti sui crostini. Aceto balsamico a gocce.']),
+
+r('an2','Supplì al Telefono',RC.italiana,60,'media','🍚',
+[i('riso per risotto',300,'g','riso'),i('sugo di carne',200,'g','sugo'),i('mozzarella',150,'g','mozzarella'),i('uova',2,'pz','uova'),i('parmigiano',40,'g','parmigiano'),i('pangrattato',100,'g','pangrattato'),i('olio per friggere',500,'ml','olio')],
+['Cuoci il riso nel sugo di carne, deve assorbire tutto il liquido. Aggiungi parmigiano, raffredda.','Forma palline ovali con al centro un dadino di mozzarella. Chiudi bene.','Impana (uovo→pangrattato) e friggi in olio profondo a 175°C per 4-5 min finché dorati. Al momento del morso la mozzarella fila - il telefono!']),
+
+r('an3','Arancini di Riso',RC.italiana,60,'media','🍊',
+[i('riso Carnaroli',400,'g','riso'),i('zafferano',1,'bustina','zafferano'),i('carne macinata',150,'g','macinato'),i('piselli',80,'g','piselli'),i('mozzarella',100,'g','mozzarella'),i('parmigiano',50,'g','parmigiano'),i('uova',2,'pz','uova'),i('pangrattato',120,'g','pangrattato'),i('pomodori pelati',200,'g','pomodori'),i('olio',500,'ml','olio'),i('sale',5,'g','sale')],
+['Cuoci il riso con lo zafferano e parmigiano. Raffredda. Prepara il ragù con carne, piselli e pomodoro.','Forma coni con il riso, riempi con ragù e mozzarella, chiudi a forma sferica o a cono.','Impana con uovo e pangrattato. Friggi in olio profondo a 175°C per 5-6 min. Devono essere uniformemente dorati.']),
+
+r('an4','Crostini di Fegatini',RC.italiana,30,'facile','🍞',
+[i('fegatini di pollo',200,'g','fegatini'),i('pane toscano',8,'fette','pane'),i('cipolla',1,'pz','cipolla'),i('acciughe sott olio',3,'filetti','acciughe'),i('capperi',15,'g','capperi'),i('salvia',4,'foglie','salvia'),i('vino bianco',50,'ml','vino'),i('burro',30,'g','burro'),i('olio EVO',20,'ml','olio'),i('sale e pepe',3,'g','sale')],
+['Pulisci i fegatini. Soffriggi cipolla in burro e olio. Aggiungi i fegatini e cuoci 5 min rosolando bene.','Aggiungi le acciughe, capperi, salvia. Sfuma con vino bianco. Cuoci ancora 5 min.','Trita tutto grossolanamente o frulla parzialmente. La consistenza deve essere rustica. Spalma sui crostini.']),
+
+// ===== ZUPPE EXTRA =====
+r('z4','Vellutata di Zucca',RC.italiana,35,'facile','🎃',
+[i('zucca butternut',800,'g','zucca'),i('cipolla',1,'pz','cipolla'),i('patate',200,'g','patate'),i('brodo vegetale',700,'ml','brodo'),i('panna fresca',80,'ml','panna'),i('zenzero',10,'g','zenzero'),i('noce moscata',2,'g','noce moscata'),i('olio EVO',30,'ml','olio'),i('semi di zucca',20,'g','semi'),i('sale e pepe',4,'g','sale')],
+['Soffriggi cipolla in olio. Aggiungi zucca a dadini, patate e zenzero grattugiato. Cuoci 5 min.','Aggiungi il brodo caldo, cuoci 20 min. Frulla tutto con frullatore a immersione.','Aggiusta di sale e pepe. Aggiungi noce moscata. Servi con panna a giro e semi di zucca tostati.']),
+
+r('z5','Gazpacho Andaluso',RC.eu,15,'facile','🍅',
+[i('pomodori maturi',600,'g','pomodoro'),i('cetriolo',1,'pz','cetriolo'),i('peperone rosso',1,'pz','peperone'),i('aglio',1,'pz','aglio'),i('cipolla rossa',0.5,'pz','cipolla'),i('aceto di Jerez',25,'ml','aceto'),i('olio EVO',50,'ml','olio'),i('pane raffermo',40,'g','pane'),i('sale',5,'g','sale')],
+['Ammolla il pane nell acqua 5 min. Frulla insieme: pomodori, cetriolo sbucciato, peperone, aglio, cipolla e pane strizzato.','Aggiungi olio a filo mentre frulla, aceto, sale. Frulla fino a ottenere una crema liscia.','Filtra con colino e raffredda minimo 2h in frigo. Servi ghiacciato con dadini di verdure fresche e crostini.']),
+
+r('z6','Stracciatella alla Romana',RC.italiana,10,'facile','🥚',
+[i('brodo di carne',1000,'ml','brodo'),i('uova',3,'pz','uova'),i('parmigiano',50,'g','parmigiano'),i('semolino',20,'g','semolino'),i('noce moscata',2,'g','noce moscata'),i('prezzemolo',8,'g','prezzemolo'),i('sale',3,'g','sale')],
+['Porta a ebollizione il brodo di carne. In una ciotola sbatti le uova con parmigiano, semolino, noce moscata e prezzemolo.','Versa il composto a filo nel brodo bollente mescolando continuamente con una frusta.','Le uova cuociono formando i caratteristici filamenti stracciatella. Cuoci 2 min, aggiusta di sale. Servi con altro parmigiano.']),
+
+// ===== DOLCI EXTRA =====
+r('d6','Cannoli Siciliani',RC.italiana,60,'difficile','🍰',
+[i('farina 00',200,'g','farina'),i('zucchero',20,'g','zucchero'),i('strutto',30,'g','strutto'),i('marsala secco',60,'ml','marsala'),i('ricotta di pecora',400,'g','ricotta'),i('zucchero a velo',120,'g','zucchero'),i('gocce di cioccolato',60,'g','cioccolato'),i('scorza arancia candita',30,'g','arancia'),i('olio per friggere',500,'ml','olio'),i('sale',1,'g','sale')],
+['Impasta farina, zucchero, strutto, marsala e sale. Frigo 30 min. Stendi sottile, taglia dischi, avvolgi sui cilindretti, friggi.','Scola i gusci e raffredda. Lavora la ricotta con zucchero a velo fino a crema liscia. Aggiungi gocce di cioccolato e arancia.','Riempi i cannoli al momento (non prima, si ammollano). Guarnisci le estremità con la crema e granella di pistacchi.']),
+
+r('d7','Gelato al Cioccolato',RC.italiana,30,'media','🍦',
+[i('latte intero',500,'ml','latte'),i('panna fresca',200,'ml','panna'),i('tuorli',5,'pz','uova'),i('zucchero',140,'g','zucchero'),i('cacao amaro',50,'g','cacao'),i('cioccolato fondente',80,'g','cioccolato')],
+['Scalda latte e panna senza bollire. Sbatti tuorli con zucchero finché pallidi. Versa il latte caldo a filo mescolando.','Aggiungi cacao e cuoci a fuoco basso fino a 82°C (vela il cucchiaio). Aggiungi il cioccolato spezzato e mescola.','Raffredda completamente, manteca in gelatiera 30-40 min. Riposa in freezer 2h prima di servire.']),
+
+r('d8','Torta di Mele della Nonna',RC.italiana,60,'facile','🍎',
+[i('mele golden',3,'pz','mela'),i('farina 00',250,'g','farina'),i('uova',3,'pz','uova'),i('zucchero',180,'g','zucchero'),i('burro',100,'g','burro'),i('latte',80,'ml','latte'),i('lievito per dolci',16,'g','lievito'),i('cannella',4,'g','cannella'),i('limone',1,'pz','limone'),i('sale',1,'g','sale'),i('zucchero a velo',20,'g','zucchero')],
+['Monta burro morbido con zucchero. Aggiungi uova una alla volta. Incorpora farina, lievito, sale, latte alternando.','Sbuccia le mele, tagliale a dadini, condiscile con succo di limone e cannella. Incorpora metà nell impasto.','Versa in stampo 24cm, disponi le mele restanti a spicchi in superficie. Forno a 180°C per 45-50 min. Spolverina di zucchero a velo.']),
+
+r('d9','Crema Catalana',RC.eu,20,'facile','🍮',
+[i('tuorli',4,'pz','uova'),i('latte intero',500,'ml','latte'),i('zucchero',120,'g','zucchero'),i('amido di mais',25,'g','amido'),i('scorza di limone',1,'pz','limone'),i('cannella',1,'stecca','cannella'),i('zucchero per caramellare',40,'g','zucchero')],
+['Scalda il latte con la scorza di limone e la cannella senza bollire. Sbatti i tuorli con zucchero e amido.','Versa il latte caldo filtrato sui tuorli mescolando. Rimetti sul fuoco e cuoci a fuoco basso finché si addensa (crema pasticciera).','Versa in terrine, raffredda in frigo. Prima di servire, cospargi di zucchero e caramellizza con il cannello.']),
+
+r('d10','Profiteroles',RC.eu,60,'difficile','🍫',
+[i('acqua',200,'ml','acqua'),i('burro',80,'g','burro'),i('farina 00',120,'g','farina'),i('uova',4,'pz','uova'),i('panna fresca',400,'ml','panna'),i('cioccolato fondente',200,'g','cioccolato'),i('zucchero a velo',30,'g','zucchero'),i('sale',2,'g','sale')],
+['Bignè: porta acqua, burro e sale a bollore. Aggiungi tutta la farina in una volta, mescola fino a palla. Raffredda, incorpora le uova una alla volta.','Forma i bignè su carta forno con sac-à-poche. Forno a 200°C per 20-25 min (non aprire!).','Farcisci i bignè con panna montata zuccherata. Prepara la ganache: panna bollente sul cioccolato. Immergi i bignè e disponi a piramide.']),
+
+r('d11','Sbrisolona Mantovana',RC.italiana,45,'facile','🍰',
+[i('farina di mais bramata',150,'g','farina'),i('farina 00',150,'g','farina'),i('zucchero',150,'g','zucchero'),i('mandorle',100,'g','mandorle'),i('burro',100,'g','burro'),i('strutto',50,'g','strutto'),i('limone',1,'pz','limone'),i('vaniglia',1,'bustina','vaniglia'),i('sale',1,'g','sale')],
+['Mescola le farine con zucchero, mandorle tostate e tritate grossolanamente, scorza di limone, vaniglia e sale.','Aggiungi burro e strutto freddi a dadini. Lavora velocemente con la punta delle dita: deve restare sbriciolosa.','Disponi l impasto sbricioloso in teglia 26cm senza compattare. Forno a 180°C per 35-40 min. Si rompe con le mani, non si taglia.']),
+
+r('d12','Pandoro Casalingo',RC.italiana,240,'difficile','🎂',
+[i('farina Manitoba',500,'g','farina'),i('lievito di birra fresco',15,'g','lievito'),i('uova',5,'pz','uova'),i('zucchero',150,'g','zucchero'),i('burro',200,'g','burro'),i('latte',80,'ml','latte'),i('vaniglia',2,'bustine','vaniglia'),i('sale',5,'g','sale'),i('zucchero a velo',30,'g','zucchero')],
+['Primo impasto: lievito, 200g farina, latte, 1 uovo, 30g zucchero. Lievita 1h. Secondo impasto: aggiungi resto uova e zucchero.','Terzo impasto: incorpora il burro morbido a pomata poco alla volta lavorando 20 min. Lievita 2h. Aggiungi sale e vaniglia.','Versa nello stampo da pandoro imburrato, lievita ancora 3-4h. Cuoci a 170°C per 40-45 min. Zucchero a velo abbondante.']),
+
+// ===== COLAZIONE E BRUNCH =====
+r('br1','Pancakes Americani',RC.eu,20,'facile','🥞',
+[i('farina 00',200,'g','farina'),i('latte',200,'ml','latte'),i('uova',2,'pz','uova'),i('zucchero',30,'g','zucchero'),i('lievito per dolci',10,'g','lievito'),i('burro',30,'g','burro'),i('vaniglia',1,'bustina','vaniglia'),i('sale',2,'g','sale'),i('sciroppo d acero',30,'ml','sciroppo'),i('frutti di bosco',100,'g','frutti di bosco')],
+['Mescola farina, zucchero, lievito, sale e vaniglia. In altra ciotola mescola latte, uova e burro fuso.','Combina liquidi e secchi mescolando poco (i grumi vanno bene). Lascia riposare 5 min.','Cuoci su padella antiaderente leggermente unta a fuoco medio: quando si formano le bolle in superficie gira. Servi con sciroppo e frutti di bosco.']),
+
+r('br2','French Toast',RC.eu,15,'facile','🍞',
+[i('pane in cassetta spesso',8,'fette','pane'),i('uova',3,'pz','uova'),i('latte',80,'ml','latte'),i('zucchero',20,'g','zucchero'),i('cannella',3,'g','cannella'),i('vaniglia',1,'bustina','vaniglia'),i('burro',40,'g','burro'),i('sciroppo d acero',30,'ml','sciroppo'),i('frutti rossi',100,'g','frutti')],
+['Sbatti uova con latte, zucchero, cannella e vaniglia. Immergi le fette di pane nella miscela su entrambi i lati.','Cuoci nel burro a fuoco medio 2-3 min per lato fino a doratura profonda.','Servi immediatamente con sciroppo d acero, frutti rossi e una spolverata di zucchero a velo.']),
+
+r('br3','Shakshuka al Formaggio',RC.as,25,'facile','🍳',
+[i('uova',4,'pz','uova'),i('pomodori pelati',400,'g','pomodori'),i('peperone rosso',1,'pz','peperone'),i('cipolla',1,'pz','cipolla'),i('feta',100,'g','feta'),i('aglio',2,'pz','aglio'),i('paprika affumicata',4,'g','paprika'),i('cumino',3,'g','cumino'),i('olio EVO',25,'ml','olio'),i('prezzemolo',10,'g','prezzemolo')],
+['Soffriggi cipolla e peperone in olio 8 min. Aggiungi aglio, paprika, cumino: 2 min.','Aggiungi i pomodori pelati schiacciati. Cuoci 10 min finché densa.','Aggiungi feta sbriciolata, crea le buchette per le uova. Copri e cuoci 6-8 min. Prezzemolo e pane pitta.']),
+
+// ===== LEGUMI =====
+r('le1','Hummus Classico',RC.as,15,'facile','🫘',
+[i('ceci cotti',400,'g','ceci'),i('tahini',60,'g','tahini'),i('limone',2,'pz','limone'),i('aglio',1,'pz','aglio'),i('olio EVO',40,'ml','olio'),i('cumino',3,'g','cumino'),i('paprika',3,'g','paprika'),i('sale',4,'g','sale'),i('acqua ghiacciata',60,'ml','acqua')],
+['Frulla i ceci con tahini, succo di limone, aglio, cumino e un pizzico di sale.','Aggiungi l olio a filo e l acqua ghiacciata (il freddo rende l hummus più cremoso). Frulla almeno 3 min.','Servi in ciotola con un giro di olio, paprika, cumino e semi di sesamo. Pane pita caldo.']),
+
+r('le2','Ribollita di Fagioli',RC.italiana,60,'facile','🍲',
+[i('fagioli borlotti secchi',300,'g','fagioli'),i('cavolo nero',200,'g','cavolo'),i('pane raffermo',150,'g','pane'),i('cipolla',1,'pz','cipolla'),i('carota',2,'pz','carota'),i('sedano',2,'coste','sedano'),i('pomodori pelati',200,'g','pomodori'),i('rosmarino',2,'rametti','rosmarino'),i('aglio',3,'pz','aglio'),i('olio EVO',50,'ml','olio'),i('brodo',700,'ml','brodo'),i('sale',5,'g','sale')],
+['Ammolla e cuoci i fagioli. Soffriggi il soffritto in olio 10 min. Aggiungi pomodori e cavolo.','Aggiungi i fagioli e il brodo. Cuoci 30 min. Frulla metà con frullatore a immersione.','Aggiungi il pane raffermo a pezzi. Cuoci 10 min. La ribollita è più buona il giorno dopo, riscaldata.']),
+
+r('le3','Falafel',RC.as,30,'media','🫘',
+[i('ceci secchi',300,'g','ceci'),i('cipolla',1,'pz','cipolla'),i('aglio',3,'pz','aglio'),i('prezzemolo',20,'g','prezzemolo'),i('coriandolo',15,'g','coriandolo'),i('cumino',5,'g','cumino'),i('coriandolo in polvere',3,'g','coriandolo'),i('bicarbonato',3,'g','bicarbonato'),i('farina',30,'g','farina'),i('olio per friggere',400,'ml','olio'),i('sale',5,'g','sale')],
+['Ammolla i ceci secchi 12h (NON usare ceci in scatola). Frullali grossolanamente con tutti gli ingredienti.','Forma palline della dimensione di una noce. Metti in frigo 30 min (aiuta a mantenere la forma).','Friggi in olio profondo a 175°C per 3-4 min finché dorati uniformemente. Servi con pita, hummus, tahini e verdure.']),
+
+// ===== STREET FOOD ITALIANO =====
+r('sf1','Lampredotto Fiorentino',RC.italiana,120,'difficile','🥩',
+[i('lampredotto',600,'g','lampredotto'),i('carota',1,'pz','carota'),i('sedano',1,'costa','sedano'),i('cipolla',1,'pz','cipolla'),i('alloro',2,'foglie','alloro'),i('salsa verde',100,'g','salsa'),i('pane rosetta',4,'pz','pane'),i('sale e pepe',5,'g','sale'),i('peperoncino',1,'pz','peperoncino')],
+['Bollisci il lampredotto in acqua con carota, sedano, cipolla e alloro per 90-120 min finché molto tenero.','Taglia a fettine sottili nel brodo caldo (non farlo asciugare).','Apri le rosette, immergile nel brodo, riempi con il lampredotto. Salsa verde o piccante. Il segreto: bagnare il pane nel brodo.']),
+
+r('sf2','Tigelle Emiliane',RC.italiana,30,'facile','🫓',
+[i('farina 00',500,'g','farina'),i('lievito di birra',7,'g','lievito'),i('acqua tiepida',280,'ml','acqua'),i('latte',50,'ml','latte'),i('strutto',30,'g','strutto'),i('sale',8,'g','sale')],
+['Impasta farina, lievito sciolto in acqua e latte, strutto, sale. Lievita 1h30.','Stendi a 5mm, ritaglia dischi da 8-10cm con un coppapasta.','Cuoci sul tigellaro o su piastra calda 3-4 min per lato. Farcisci con lardo battuto e rosmarino, o prosciutto e crescenza.'])
+
 
 ];
 // ================================================================
