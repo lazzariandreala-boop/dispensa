@@ -1300,12 +1300,12 @@ select.fi                        { padding-right: 32px !important; }
       <button class="btn btn-s" onclick="clearGistConfig()" style="padding:10px 14px;color:var(--danger)">🗑</button>
     </div>
     <div class="divider"></div>
-    <div style="font-size:12px;font-weight:700;margin-bottom:6px">🤖 Jarvis AI — Anthropic API Key</div>
+    <div style="font-size:12px;font-weight:700;margin-bottom:6px">🤖 Jarvis AI — Groq API Key (gratuita)</div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">
-      Necessaria per l'AI di Jarvis. Ottienila gratis su <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a> → API Keys.
+      Gratuita senza limiti di crediti. Ottienila su <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a> → API Keys.
     </div>
     <div class="fg" style="margin-bottom:6px">
-      <input class="fi" id="anthropic-key" type="password" placeholder="sk-ant-..." autocomplete="off" style="font-size:13px">
+      <input class="fi" id="anthropic-key" type="password" placeholder="gsk_..." autocomplete="off" style="font-size:13px">
     </div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:6px;margin-top:4px;line-height:1.4">
       <b style="color:var(--text)">Proxy URL</b> (opz.) — Cloudflare Worker per evitare errori CORS:
@@ -1313,7 +1313,7 @@ select.fi                        { padding-right: 32px !important; }
     <div class="fg" style="margin-bottom:8px">
       <input class="fi" id="anthropic-proxy" type="url" placeholder="https://jarvis-proxy.tuonome.workers.dev" autocomplete="off" style="font-size:13px">
     </div>
-    <button class="btn btn-s" onclick="saveAnthropicKey()" style="margin-bottom:0;font-size:13px;padding:9px">💾 Salva API Key Jarvis</button>
+    <button class="btn btn-s" onclick="saveGroqKey()" style="margin-bottom:0;font-size:13px;padding:9px">💾 Salva API Key Jarvis</button>
 
     <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.5">
       ⚠ Token e API key salvati solo in questo browser (localStorage). Non inviati ad altri server.
@@ -1448,6 +1448,18 @@ select.fi                        { padding-right: 32px !important; }
       <input class="fi" id="rprice" type="number" min="0" step="0.01" placeholder="€ 0.00" style="width:100%">
     </div>
     <div class="divider"></div>
+    <!-- Copie extra -->
+    <div class="copies-row" style="margin-bottom:10px">
+      <div>
+        <div class="copies-label">Copie extra</div>
+        <div class="copies-hint">Quante confezioni uguali hai comprato?</div>
+      </div>
+      <div class="copies-ctrl">
+        <button class="copies-btn" onclick="changeCopies(-1,'rcopie')">−</button>
+        <span class="copies-val" id="rcopie">0</span>
+        <button class="copies-btn" onclick="changeCopies(1,'rcopie')">+</button>
+      </div>
+    </div>
     <button class="btn btn-p" onclick="confirmRestock()">📥 Aggiungi alla dispensa</button>
     <button class="btn btn-s" onclick="closeRestock(null,1)">Annulla</button>
   </div>
@@ -2109,7 +2121,9 @@ function showAlert(msg, type='warn', ms=3000) {
   if (!c) return;
   const t = document.createElement('div');
   t.className = `toast ${type}`;
-  t.innerHTML = `<span>${_toastIcons[type]||'•'}</span><span>${msg}</span>`;
+  // Rimuovi emoji iniziale dal messaggio (evita duplicati con l'icona del toast)
+  const cleanMsg = msg.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}✅❌⚠️ℹ️🗑📋❄🌡🍴🛒€📥]+\s*/u, '');
+  t.innerHTML = `<span class="toast-icon">${_toastIcons[type]||'•'}</span><span class="toast-msg">${cleanMsg}</span>`;
   c.prepend(t);
   const rm = () => { t.classList.add('removing'); t.addEventListener('animationend',()=>t.remove(),{once:true}); };
   t._tmr = setTimeout(rm, ms);
@@ -2270,6 +2284,7 @@ function renderD() {
     <button class="abtn wn" onclick="openPriceModal('${it.id}',event)">€ Prezzo</button>
     <button class="abtn pur" onclick="openPiattoModal()">🍳 Piatto</button>
     <button class="abtn ac" onclick="openEdit('${it.id}',event)">✏️ Modifica</button>
+    <button class="abtn ac" onclick="copyItem('${it.id}',event)" style="color:var(--accent2);border-color:rgba(249,168,76,.3)">📋 Copia</button>
     <button class="abtn dn" onclick="delItem('${it.id}',event)">🗑 Elimina</button>
   </div>
 </div>`;
@@ -2746,22 +2761,25 @@ function confirmRestock() {
   const cat   = document.getElementById('rcat').value;
   const priceRaw = parseFloat(document.getElementById('rprice')?.value);
   const price = isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw;
-  // Aggiungi alla dispensa
-  items.push({
-    id: uid(), name: s.name, quantity: qty, unit, category: cat,
-    expiryDate: exp, originalExpiry: null,
-    frozen: false, frozenDate: null, thawedDate: null,
-    barcode: null, addedDate: today()
-  });
-  // Traccia nel log aggiunte con eventuale prezzo
+  // Copie extra
+  const rCopies = parseInt(document.getElementById('rcopie')?.textContent)||0;
+  const rTotal  = 1 + rCopies;
+  for (let ci=0; ci<rTotal; ci++) {
+    items.push({
+      id: uid(), name: s.name, quantity: qty, unit, category: cat,
+      expiryDate: exp, originalExpiry: null,
+      frozen: false, frozenDate: null, thawedDate: null,
+      barcode: null, addedDate: today(), price
+    });
+  }
   additionLog.push({ id: uid(), name: s.name, category: cat, qty, unit, price, date: today() });
   pbUpdate(s.name, price, qty, unit, cat);
-  // Rimuovi dalla lista spesa
   shopping = shopping.filter(x => x.id !== restockId);
+  const rcopieEl = document.getElementById('rcopie'); if(rcopieEl) rcopieEl.textContent='0';
   save();
   closeRestock(null, 1);
-  renderD(); renderR(); renderShop(); refreshReportIfVisible();
-  showAlert(`✅ "${s.name}" aggiunto alla dispensa!`, 'ok', 3000);
+  renderD(); renderR(); renderShop();
+  showAlert(rTotal>1?`${rTotal}× "${s.name}" aggiunti!`:`"${s.name}" aggiunto alla dispensa!`, 'ok', 3000);
 }
 
 /** Chiude il modal di reinserimento */
@@ -4160,8 +4178,7 @@ async function gistPull() {
     if (!file) throw new Error('File non trovato nel Gist');
     return file.content;
   } catch(e) {
-    console.error('Gist pull error:', e);
-    return null;
+    return null; // silenzioso — rete assente o Gist non configurato
   }
 }
 
@@ -4169,7 +4186,7 @@ async function gistPull() {
  * Auto-sync debounced: chiamato dopo ogni save().
  * Aspetta 2 secondi di inattività prima di pushare.
  */
-function scheduleSync() {
+async function scheduleSync() {
   if (!gistToken) return;
   clearTimeout(syncTimer);
   setSyncStatus('syncing');
@@ -4283,19 +4300,19 @@ save = function() {
 };
 
 // ── Anthropic API Key (salvata in localStorage) ──────────────
-const ANTHROPIC_KEY_SK   = 'dispensa_anthropic_key';
-const ANTHROPIC_PROXY_SK = 'dispensa_anthropic_proxy';
-let anthropicApiKey  = localStorage.getItem(ANTHROPIC_KEY_SK)   || '';
-let anthropicProxy   = localStorage.getItem(ANTHROPIC_PROXY_SK) || '';
+const GROQ_KEY_SK   = 'dispensa_groq_key';
+const GROQ_PROXY_SK = 'dispensa_groq_proxy';
+let groqApiKey  = localStorage.getItem(GROQ_KEY_SK)   || '';
+let groqProxy   = localStorage.getItem(GROQ_PROXY_SK) || '';
 
-function saveAnthropicKey() {
+function saveGroqKey() {
   const val = document.getElementById('anthropic-key')?.value.trim();
-  if (!val || !val.startsWith('sk-ant-')) {
-    showAlert('❌ Chiave non valida — deve iniziare con sk-ant-', 'err', 3000);
+  if (!val || (!val.startsWith('gsk_') && !val.startsWith('sk-'))) {
+    showAlert('❌ Chiave non valida — deve iniziare con gsk_', 'err', 3000);
     return;
   }
-  anthropicApiKey = val;
-  localStorage.setItem(ANTHROPIC_KEY_SK, val);
+  groqApiKey = val;
+  localStorage.setItem(GROQ_KEY_SK, val);
   showAlert('✅ API Key Jarvis salvata!', 'ok', 2500);
   // Aggiorna il campo nel modal
   const el = document.getElementById('anthropic-key');
@@ -4367,111 +4384,92 @@ async function jarvisAskClaude(userText) {
   jarvisThinking = true;
   setJarvisStatus('Sto pensando...');
 
-  if (!anthropicApiKey) {
+  if (!groqApiKey) {
     jarvisThinking = false;
-    return {
-      speak: 'Per usarmi come AI devo avere una chiave API. Aprimi il menu Sync e inserisci la tua API key di Anthropic nella sezione Jarvis.',
-      display: '⚙️ API key mancante',
-      action: null, params: {}
-    };
+    showAlert('Inserisci la Groq API key nel menu Sync', 'warn', 4000);
+    return { speak: '', display: '⚙️ API key mancante', action: null, params: {} };
   }
 
   const context = jarvisBuildContext();
-  const systemPrompt = `Sei Jarvis, un assistente AI avanzato integrato nell'app "Dispensa" di Andrea. Sei preciso, intelligente, con personalità maschile decisa ma cordiale. Rispondi SEMPRE in italiano.
+  const systemPrompt = `Sei Jarvis, un assistente AI integrato nell'app "Dispensa" di Andrea. Personalità maschile, preciso, cordiale. Rispondi SEMPRE in italiano.
 
-STATO ATTUALE DISPENSA:
+STATO DISPENSA ATTUALE:
 ${context}
 
-REGOLE RISPOSTA:
-Rispondi ESCLUSIVAMENTE con JSON valido in questo formato (niente markdown, niente backtick):
-{"speak":"testo parlato conciso (max 2-3 frasi)","display":"testo breve schermo max 50 char","action":null,"params":{}}
+REGOLE RISPOSTA — rispondi ESCLUSIVAMENTE con JSON valido (niente markdown, niente backtick):
+{"speak":"testo da dire ad alta voce (max 2-3 frasi, conciso)","display":"testo breve schermo max 50 char","action":null,"params":{}}
 
-AZIONI DISPONIBILI (usa action+params):
+AZIONI DISPONIBILI:
 - "spesa_add" + {"items":["Pasta","Latte"]} → aggiunge alla lista spesa
-- "spesa_remove" + {"name":"Pasta"} → rimuove dalla lista spesa  
+- "spesa_remove" + {"name":"Pasta"} → rimuove dalla spesa
 - "dispensa_add" + {"name":"Pasta","qty":500,"unit":"g"} → aggiunge in dispensa
 - "open_tab" + {"tab":"ricette"|"spesa"|"dispensa"|"calendario"|"listino"}
 - "weather" + {} → recupera meteo GPS
 
-QUANDO USARE LE AZIONI: se l'utente chiede di aggiungere/rimuovere qualcosa, ESEGUI l'azione oltre a rispondere a voce.
-
-STILE: Sei intelligente e diretto. Se ti fanno domande di cucina, nutrizione, ricette, rispondi come esperto. Ricorda il contesto della conversazione. Puoi fare ragionamenti complessi, suggerire alternative, fare calcoli (es. "ho 3 mozzarelle da 125g, quante calorie sono?"). Sii utile, non evasivo.
-
-ESEMPI DI RISPOSTA:
-User: "aggiungi pasta e pomodori alla spesa" → {"speak":"Fatto! Ho aggiunto pasta e pomodori alla lista della spesa.","display":"✅ Spesa aggiornata","action":"spesa_add","params":{"items":["Pasta","Pomodori"]}}
-User: "che ore sono?" → {"speak":"Sono le 14:32.","display":"14:32","action":null,"params":{}}
-User: "ho 200g di pollo, cosa cucino?" → {"speak":"Con 200g di pollo puoi fare...","display":"💡 Suggerimento cucina","action":null,"params":{}}
+STILE: Intelligente, diretto, mai evasivo. Esperto di cucina e nutrizione. Ricorda il contesto della conversazione. Se l'utente chiede di aggiungere/rimuovere qualcosa ESEGUI sempre l'azione.
 
 Rispondi SOLO con JSON valido.`;
 
   try {
-    // Aggiungi messaggio utente alla storia
     jarvisHistory.push({ role: 'user', content: userText });
 
-    const endpoint = anthropicProxy || 'https://api.anthropic.com/v1/messages';
-    const useProxy  = !!anthropicProxy;
+    const endpoint = groqProxy || 'https://api.groq.com/openai/v1/chat/completions';
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${groqProxy ? '' : groqApiKey}`,
+    };
+    if (groqProxy) headers['x-jarvis-key'] = groqApiKey;
+
     const resp = await fetch(endpoint, {
       method: 'POST',
       mode: 'cors',
       credentials: 'omit',
-      headers: {
-        'Content-Type': 'application/json',
-        // Se usiamo il proxy, manda la key come x-jarvis-key (non serve dangerous-access)
-        // Se chiamata diretta, serve il flag CORS di Anthropic
-        ...(useProxy ? {
-          'x-jarvis-key': anthropicApiKey
-        } : {
-          'x-api-key': anthropicApiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        })
-      },
+      headers,
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        system: systemPrompt,
-        messages: jarvisHistory.length ? jarvisHistory.slice(-10) : [
-          { role: 'user', content: userText }
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 400,
+        temperature: 0.7,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...jarvisHistory.slice(-10)
         ]
       })
     });
 
     if (!resp.ok) {
       const errBody = await resp.json().catch(()=>({}));
-      console.error('Anthropic API error:', resp.status, errBody);
-      if (resp.status === 401) throw new Error('auth');
-      if (resp.status === 400) throw new Error('bad_request: ' + JSON.stringify(errBody));
-      if (resp.status === 529 || resp.status === 503) throw new Error('overload');
-      throw new Error('http_' + resp.status + ': ' + JSON.stringify(errBody));
+      console.error('Groq API error:', resp.status, errBody);
+      const msg = errBody?.error?.message || ('HTTP ' + resp.status);
+      throw new Error(msg);
     }
+
     const data = await resp.json();
-    const raw  = data.content?.[0]?.text || '{}';
+    const raw  = data.choices?.[0]?.message?.content || '{}';
 
     let parsed;
     try {
       parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
     } catch(e) {
-      // Se Claude non ha risposto in JSON, usa il testo direttamente
-      parsed = { speak: raw.slice(0,200), display: null, action: null };
+      // Se non è JSON usa il testo direttamente come risposta vocale
+      parsed = { speak: raw.slice(0,300), display: raw.slice(0,50), action: null, params: {} };
     }
 
-    // Aggiungi risposta alla storia
     jarvisHistory.push({ role: 'assistant', content: raw });
-
     return parsed;
+
   } catch(e) {
-    console.error('Jarvis API error:', e.message, e);
-    const toast = e.message==='auth' ? '❌ API key non valida — menu Sync' :
-                  e.message==='overload' ? '⚠️ Servizio sovraccarico' :
-                  e.name==='TypeError' ? '❌ Errore di rete' :
-                  '⚠️ ' + (e.message||'errore').slice(0,40);
-    showAlert(toast,'err',4000);
+    console.error('Jarvis error:', e.message);
+    const toast = e.name === 'TypeError'
+      ? '❌ Errore di rete — controlla connessione'
+      : '⚠️ ' + (e.message||'errore').slice(0,50);
+    showAlert(toast, 'err', 4000);
     setJarvisStatus('Errore ⚠️');
-    return { speak: '', display: toast, action: null };
+    return { speak: '', display: toast, action: null, params: {} };
   } finally {
     jarvisThinking = false;
   }
 }
+
 
 // ── Esegui azione strutturata ────────────────────────────────
 async function jarvisHandleResponse(parsed) {
@@ -4667,11 +4665,10 @@ maybeGenerateMonthlyReport();
 // Init sync status
 gistToken = localStorage.getItem(GIST_SK_TOKEN)||'';
 gistId    = localStorage.getItem(GIST_SK_ID)||'';
-anthropicApiKey = localStorage.getItem(ANTHROPIC_KEY_SK)||'';
-anthropicProxy  = localStorage.getItem(ANTHROPIC_PROXY_SK)||'';
-// Popola i campi nel modal sync se già salvati
-const _akEl = document.getElementById('anthropic-key');   if (_akEl && anthropicApiKey) _akEl.value = anthropicApiKey;
-const _apEl = document.getElementById('anthropic-proxy'); if (_apEl && anthropicProxy)  _apEl.value = anthropicProxy;
+groqApiKey = localStorage.getItem(GROQ_KEY_SK)||'';
+groqProxy  = localStorage.getItem(GROQ_PROXY_SK)||'';
+const _akEl = document.getElementById('anthropic-key');   if (_akEl && groqApiKey)  _akEl.value = groqApiKey;
+const _apEl = document.getElementById('anthropic-proxy'); if (_apEl && groqProxy)   _apEl.value = groqProxy;
 setSyncStatus(gistToken ? 'idle' : 'off');
 // Se configurato, scarica subito i dati aggiornati in background
 if (gistToken && gistId) {
@@ -4688,8 +4685,8 @@ if (gistToken && gistId) {
         setSyncStatus('ok');
         setTimeout(() => setSyncStatus('idle'), 4000);
       }
-    } catch(e) { console.error('Auto-sync error:', e); }
-  });
+    } catch(e) { /* silent */ }
+  }).catch(() => { /* nessun Gist configurato o offline — silenzioso */ });
 }
 // Listino prezzi: migra eventuali prezzi già noti dagli item
 items.forEach(it => { if (it.price > 0) pbUpdate(it.name, it.price, it.quantity, it.unit, it.category); });
