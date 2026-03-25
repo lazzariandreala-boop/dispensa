@@ -1307,6 +1307,12 @@ select.fi                        { padding-right: 32px !important; }
     <div class="fg" style="margin-bottom:6px">
       <input class="fi" id="anthropic-key" type="password" placeholder="sk-ant-..." autocomplete="off" style="font-size:13px">
     </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:6px;margin-top:4px;line-height:1.4">
+      <b style="color:var(--text)">Proxy URL</b> (opz.) — Cloudflare Worker per evitare errori CORS:
+    </div>
+    <div class="fg" style="margin-bottom:8px">
+      <input class="fi" id="anthropic-proxy" type="url" placeholder="https://jarvis-proxy.tuonome.workers.dev" autocomplete="off" style="font-size:13px">
+    </div>
     <button class="btn btn-s" onclick="saveAnthropicKey()" style="margin-bottom:0;font-size:13px;padding:9px">💾 Salva API Key Jarvis</button>
 
     <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.5">
@@ -4277,8 +4283,10 @@ save = function() {
 };
 
 // ── Anthropic API Key (salvata in localStorage) ──────────────
-const ANTHROPIC_KEY_SK = 'dispensa_anthropic_key';
-let anthropicApiKey = localStorage.getItem(ANTHROPIC_KEY_SK) || '';
+const ANTHROPIC_KEY_SK   = 'dispensa_anthropic_key';
+const ANTHROPIC_PROXY_SK = 'dispensa_anthropic_proxy';
+let anthropicApiKey  = localStorage.getItem(ANTHROPIC_KEY_SK)   || '';
+let anthropicProxy   = localStorage.getItem(ANTHROPIC_PROXY_SK) || '';
 
 function saveAnthropicKey() {
   const val = document.getElementById('anthropic-key')?.value.trim();
@@ -4400,28 +4408,41 @@ Rispondi SOLO con JSON valido.`;
     // Aggiungi messaggio utente alla storia
     jarvisHistory.push({ role: 'user', content: userText });
 
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const endpoint = anthropicProxy || 'https://api.anthropic.com/v1/messages';
+    const useProxy  = !!anthropicProxy;
+    const resp = await fetch(endpoint, {
       method: 'POST',
       mode: 'cors',
       credentials: 'omit',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': anthropicApiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        // Se usiamo il proxy, manda la key come x-jarvis-key (non serve dangerous-access)
+        // Se chiamata diretta, serve il flag CORS di Anthropic
+        ...(useProxy ? {
+          'x-jarvis-key': anthropicApiKey
+        } : {
+          'x-api-key': anthropicApiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        })
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 300,
         system: systemPrompt,
-        messages: jarvisHistory.slice(-10) // max 10 turni di storia
+        messages: jarvisHistory.length ? jarvisHistory.slice(-10) : [
+          { role: 'user', content: userText }
+        ]
       })
     });
 
     if (!resp.ok) {
+      const errBody = await resp.json().catch(()=>({}));
+      console.error('Anthropic API error:', resp.status, errBody);
       if (resp.status === 401) throw new Error('auth');
+      if (resp.status === 400) throw new Error('bad_request: ' + JSON.stringify(errBody));
       if (resp.status === 529 || resp.status === 503) throw new Error('overload');
-      throw new Error('http_' + resp.status);
+      throw new Error('http_' + resp.status + ': ' + JSON.stringify(errBody));
     }
     const data = await resp.json();
     const raw  = data.content?.[0]?.text || '{}';
@@ -4440,13 +4461,13 @@ Rispondi SOLO con JSON valido.`;
     return parsed;
   } catch(e) {
     console.error('Jarvis API error:', e.message, e);
-    let msg;
-    if (e.message === 'auth')          msg = 'Chiave API non valida. Controlla nel menu Sync.';
-    else if (e.message === 'overload') msg = 'Servizio momentaneamente sovraccarico.';
-    else if (e.message?.includes('Failed to fetch') || e.name === 'TypeError')
-      msg = 'Errore di rete o CORS. Assicurati che la chiave API sia corretta e che il browser permetta le richieste esterne.';
-    else msg = 'Errore: ' + (e.message || 'sconosciuto');
-    return { speak: msg, display: '⚠ ' + msg.slice(0,40), action: null };
+    const toast = e.message==='auth' ? '❌ API key non valida — menu Sync' :
+                  e.message==='overload' ? '⚠️ Servizio sovraccarico' :
+                  e.name==='TypeError' ? '❌ Errore di rete' :
+                  '⚠️ ' + (e.message||'errore').slice(0,40);
+    showAlert(toast,'err',4000);
+    setJarvisStatus('Errore ⚠️');
+    return { speak: '', display: toast, action: null };
   } finally {
     jarvisThinking = false;
   }
@@ -4508,9 +4529,11 @@ async function jarvisHandleResponse(parsed) {
     }
   }
 
-  jarvisSpeak(speak, () => {
-    setTimeout(() => resetJarvisAwake(), 1500);
-  });
+  if (speak && speak.trim()) {
+    jarvisSpeak(speak, () => { setTimeout(() => resetJarvisAwake(), 1500); });
+  } else {
+    setTimeout(() => resetJarvisAwake(), 1000);
+  }
 }
 
 // ── Meteo Open-Meteo ─────────────────────────────────────────
@@ -4645,8 +4668,10 @@ maybeGenerateMonthlyReport();
 gistToken = localStorage.getItem(GIST_SK_TOKEN)||'';
 gistId    = localStorage.getItem(GIST_SK_ID)||'';
 anthropicApiKey = localStorage.getItem(ANTHROPIC_KEY_SK)||'';
-// Popola il campo nel modal sync se già salvata
-const _akEl = document.getElementById('anthropic-key'); if (_akEl && anthropicApiKey) _akEl.value = anthropicApiKey;
+anthropicProxy  = localStorage.getItem(ANTHROPIC_PROXY_SK)||'';
+// Popola i campi nel modal sync se già salvati
+const _akEl = document.getElementById('anthropic-key');   if (_akEl && anthropicApiKey) _akEl.value = anthropicApiKey;
+const _apEl = document.getElementById('anthropic-proxy'); if (_apEl && anthropicProxy)  _apEl.value = anthropicProxy;
 setSyncStatus(gistToken ? 'idle' : 'off');
 // Se configurato, scarica subito i dati aggiornati in background
 if (gistToken && gistId) {
