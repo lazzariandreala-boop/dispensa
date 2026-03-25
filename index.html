@@ -1307,12 +1307,7 @@ select.fi                        { padding-right: 32px !important; }
     <div class="fg" style="margin-bottom:6px">
       <input class="fi" id="anthropic-key" type="password" placeholder="gsk_..." autocomplete="off" style="font-size:13px">
     </div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:6px;margin-top:4px;line-height:1.4">
-      <b style="color:var(--text)">Proxy URL</b> (opz.) — Cloudflare Worker per evitare errori CORS:
-    </div>
-    <div class="fg" style="margin-bottom:8px">
-      <input class="fi" id="anthropic-proxy" type="url" placeholder="https://jarvis-proxy.tuonome.workers.dev" autocomplete="off" style="font-size:13px">
-    </div>
+
     <button class="btn btn-s" onclick="saveGroqKey()" style="margin-bottom:0;font-size:13px;padding:9px">💾 Salva API Key Jarvis</button>
 
     <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.5">
@@ -4413,12 +4408,11 @@ Rispondi SOLO con JSON valido.`;
   try {
     jarvisHistory.push({ role: 'user', content: userText });
 
-    const endpoint = groqProxy || 'https://api.groq.com/openai/v1/chat/completions';
+    const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
     const headers = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${groqProxy ? '' : groqApiKey}`,
+      'Authorization': `Bearer ${groqApiKey}`,
     };
-    if (groqProxy) headers['x-jarvis-key'] = groqApiKey;
 
     const resp = await fetch(endpoint, {
       method: 'POST',
@@ -4572,10 +4566,14 @@ function setJarvisTranscript(txt) { const el=document.getElementById('jarvis-tra
 
 function resetJarvisAwake() {
   jarvisAwake = false;
-  const btn=document.getElementById('jarvis-btn'); const ov=document.getElementById('jarvis-overlay');
-  if(btn){btn.classList.remove('awake');btn.classList.add('listening');}
-  if(ov) ov.classList.remove('awake');
-  setJarvisStatus('In ascolto… di\' "Jarvis"'); setJarvisTranscript('');
+  const btn = document.getElementById('jarvis-btn');
+  const ov  = document.getElementById('jarvis-overlay');
+  if (btn) { btn.classList.remove('awake'); btn.classList.add('listening'); }
+  if (ov)  { ov.classList.remove('awake'); }
+  // Se l'overlay è aperto, rimane aperto e pronto — cambia solo il testo
+  const overlayOpen = ov?.classList.contains('show');
+  setJarvisStatus(overlayOpen ? 'Pronto — parla pure 🎤' : 'In ascolto… di\' "Ehi Jarvis"');
+  setJarvisTranscript('');
 }
 
 // ── Speech Recognition ───────────────────────────────────────
@@ -4599,20 +4597,23 @@ function startJarvisRecognition() {
     const text=(final||interim).trim();
     setJarvisTranscript(text);
 
-    if (!jarvisAwake) {
+    const overlayOpen = document.getElementById('jarvis-overlay')?.classList.contains('show');
+
+    if (!overlayOpen && !jarvisAwake) {
+      // Overlay chiuso: aspetta wake word per aprirlo
       if (JARVIS_WAKE.some(w => text.includes(w))) {
         jarvisAwake=true;
         const btn=document.getElementById('jarvis-btn'); const ov=document.getElementById('jarvis-overlay');
         if(btn){btn.classList.remove('listening');btn.classList.add('awake');}
-        if(ov) ov.classList.add('awake');
-        setJarvisStatus('Ti ascolto 🎤'); setJarvisTranscript('');
-        // Nessun audio alla wake word — solo feedback visivo
+        if(ov) ov.classList.add('show','awake');
+        setJarvisStatus('Pronto — parla pure 🎤'); setJarvisTranscript('');
       }
     } else {
+      // Overlay aperto: comandi diretti, nessun wake word necessario
       if (final.trim()) {
-        const userText = final.trim();
-        // Rimuovi wake word dal testo
-        const cleaned = JARVIS_WAKE.reduce((t,w)=>t.replace(new RegExp(w+'[,.]?\\s*','i'),''), userText).trim();
+        const isOnlyWake = JARVIS_WAKE.some(w => final.trim().replace(/[.,!?]/g,'').trim() === w);
+        if (isOnlyWake) { setJarvisTranscript(''); return; }
+        const cleaned = JARVIS_WAKE.reduce((t,w)=>t.replace(new RegExp('\\b'+w+'\\b[,.]?\\s*','i'),''), final.trim()).trim();
         if (!cleaned || cleaned.length < 2) return;
         setJarvisStatus('Sto pensando...');
         setJarvisTranscript(cleaned);
@@ -4620,7 +4621,7 @@ function startJarvisRecognition() {
         jarvisAskClaude(cleaned).then(parsed => jarvisHandleResponse(parsed));
       }
     }
-  };
+  };;
 
   jarvisRecog.onerror = (e) => {
     if (e.error==='no-speech') return;
@@ -4636,11 +4637,11 @@ function toggleJarvis() {
   if (jarvisActive) { stopJarvis(); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { showAlert('🎤 Non supportato su questo browser', 'err', 4000); return; }
-  jarvisActive=true; jarvisAwake=false; jarvisHistory=[];
+  jarvisActive=true; jarvisAwake=true; jarvisHistory=[];
   const btn=document.getElementById('jarvis-btn'); const ov=document.getElementById('jarvis-overlay');
-  if(btn) btn.classList.add('listening');
-  if(ov)  ov.classList.add('show');
-  setJarvisStatus('In ascolto… di\' "Jarvis"');
+  if(btn) { btn.classList.remove('listening'); btn.classList.add('awake'); }
+  if(ov)  { ov.classList.add('show','awake'); }
+  setJarvisStatus('Pronto — parla pure 🎤');
   startJarvisRecognition(); // avvio silenzioso
 }
 
@@ -4668,7 +4669,7 @@ gistId    = localStorage.getItem(GIST_SK_ID)||'';
 groqApiKey = localStorage.getItem(GROQ_KEY_SK)||'';
 groqProxy  = localStorage.getItem(GROQ_PROXY_SK)||'';
 const _akEl = document.getElementById('anthropic-key');   if (_akEl && groqApiKey)  _akEl.value = groqApiKey;
-const _apEl = document.getElementById('anthropic-proxy'); if (_apEl && groqProxy)   _apEl.value = groqProxy;
+
 setSyncStatus(gistToken ? 'idle' : 'off');
 // Se configurato, scarica subito i dati aggiornati in background
 if (gistToken && gistId) {
@@ -4763,9 +4764,9 @@ async function manualRefresh() {
     if (dy <= 0) { pulling = false; setPTR('', ''); return; }
     currentY = dy;
     if (dy < THRESHOLD) {
-      setPTR('pulling', `↓ Trascina ancora (${Math.round((THRESHOLD-dy)/THRESHOLD*100)}%)`);
+      setPTR('pulling', `Trascina ancora (${Math.round((THRESHOLD-dy)/THRESHOLD*100)}%)`);
     } else {
-      setPTR('pulling', '↑ Rilascia per aggiornare');
+      setPTR('pulling', 'Rilascia per aggiornare');
       triggered = true;
     }
   }, { passive: true });
