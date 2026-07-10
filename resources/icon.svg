@@ -1,47 +1,27 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F7A23B"/>
-      <stop offset="1" stop-color="#E8631C"/>
-    </linearGradient>
-    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#FFF3E4"/>
+      <stop offset="0" stop-color="#242833"/>
+      <stop offset="1" stop-color="#0E0F13"/>
     </linearGradient>
   </defs>
 
-  <!-- Sfondo -->
+  <!-- Sfondo scuro -->
   <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
 
   <g transform="translate(512,528)">
-    <!-- Tappo -->
-    <rect x="-165" y="-300" width="330" height="86" rx="30" fill="#FFF6EA"/>
-    <rect x="-140" y="-228" width="280" height="46" rx="16" fill="#FFE3BD"/>
+    <!-- Tappo arancione -->
+    <rect x="-165" y="-300" width="330" height="86" rx="30" fill="#F07D1E"/>
+    <rect x="-140" y="-228" width="280" height="46" rx="16" fill="#F7A23B"/>
 
-    <!-- Corpo del barattolo -->
-    <path d="M -196 -182
-             q 0 -24 34 -24
-             h 324
-             q 34 0 34 24
-             v 300
-             q 0 78 -78 78
-             h -236
-             q -78 0 -78 -78
-             z" fill="url(#glass)"/>
+    <!-- Corpo del barattolo: bianco con bordo arancione (visibile su chiaro e scuro) -->
+    <path d="M -196 -182 q 0 -24 34 -24 h 324 q 34 0 34 24 v 300 q 0 78 -78 78 h -236 q -78 0 -78 -78 z"
+          fill="#FFFFFF" stroke="#F07D1E" stroke-width="10"/>
 
-    <!-- Riflesso -->
-    <rect x="-160" y="-150" width="34" height="300" rx="17" fill="#FFFFFF" opacity="0.55"/>
-
-    <!-- Contenuto (livello dispensa) -->
-    <path d="M -196 20
-             v 96
-             q 0 78 78 78
-             h 236
-             q 78 0 78 -78
-             v -96
-             z" fill="#F19A3E" opacity="0.9"/>
-    <circle cx="-70" cy="70" r="20" fill="#E8631C"/>
-    <circle cx="10" cy="95" r="20" fill="#E8631C"/>
-    <circle cx="88" cy="66" r="20" fill="#E8631C"/>
+    <!-- Contenuto arancione -->
+    <path d="M -196 20 v 96 q 0 78 78 78 h 236 q 78 0 78 -78 v -96 z" fill="#F07D1E"/>
+    <circle cx="-70" cy="70" r="20" fill="#FFFFFF" opacity="0.85"/>
+    <circle cx="10" cy="95" r="20" fill="#FFFFFF" opacity="0.85"/>
+    <circle cx="88" cy="66" r="20" fill="#FFFFFF" opacity="0.85"/>
   </g>
 </svg>

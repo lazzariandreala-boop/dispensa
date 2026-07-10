@@ -58,6 +58,23 @@ Poi **scarica `google-services.json`** e mettilo in `android/app/google-services
 Poi **scarica `GoogleService-Info.plist`** e, in Xcode, trascinalo dentro
 `ios/App/App/` (spunta *Copy items if needed*).
 
+## ⚠️ CONFIG NATIVA GIÀ APPLICATA (se rigeneri android/ ios/, riapplicala!)
+
+Queste modifiche sono in `android/` e `ios/` (che sono in `.gitignore`). Se
+cancelli/rigeneri le cartelle native, vanno rifatte o l'app **crasha**:
+
+- **`android/variables.gradle`** → dentro `ext { }` aggiungi:
+  ```gradle
+  rgcfaIncludeGoogle = true
+  ```
+  Senza questa riga il plugin NON include `play-services-auth` e l'app crasha
+  all'avvio con `NoClassDefFoundError: ...GoogleSignIn`.
+- **`android/app/google-services.json`** → scaricato da Firebase (con SHA-1 registrato).
+- **`ios/App/App/AppDelegate.swift`** → `import FirebaseCore` + `FirebaseApp.configure()`
+  in `didFinishLaunchingWithOptions`.
+- **`ios/App/App/Info.plist`** → URL scheme = `REVERSED_CLIENT_ID` del `GoogleService-Info.plist`.
+- **`ios/App/App/GoogleService-Info.plist`** → scaricato da Firebase, aggiunto al target App in Xcode.
+
 ## 3. ⚠️ Login Google in app nativa (importante)
 
 Nel **browser** l'accesso funziona con il popup (`signInWithPopup`, già
