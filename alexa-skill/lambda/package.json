@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "ask-sdk-core": "^2.14.0",
-    "firebase-admin": "^12.7.0"
+    "firebase-admin": "^11.11.1"
   }
 }

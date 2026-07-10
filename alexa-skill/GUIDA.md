@@ -69,7 +69,8 @@ Due modi per ospitare il codice:
    `alexa-skill/lambda/`:
    - `index.js` e `detectCat.js` → incolla il contenuto
    - `package.json` → assicurati che tra le dipendenze ci siano
-     `ask-sdk-core` e `firebase-admin`
+     `ask-sdk-core` e `firebase-admin`. ⚠️ Alexa-hosted gira su **Node 16**: usa
+     `"firebase-admin": "^11.11.1"` (la v12 richiede Node ≥ 18 e il Deploy fallisce).
    - crea un file **`service-account.json`** e incollaci il JSON del service
      account (Parte 1). *(Il repo della skill è privato sul tuo account Amazon.)*
    - crea un file **`config.json`** con `{ "householdId": "IL_TUO_UID" }`
