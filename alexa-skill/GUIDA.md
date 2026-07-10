@@ -1,6 +1,6 @@
 # Guida: collegare Alexa alla Dispensa (Firebase + AWS + Alexa)
 
-Obiettivo: dire *"Alexa, chiedi a dispensa di aggiungere il latte"* e vederlo
+Obiettivo: dire *"Alexa, chiedi alla dispensa di aggiungere il latte"* e vederlo
 comparire nell'app (in tempo reale, grazie a Firestore).
 
 Architettura:
@@ -137,8 +137,9 @@ zip -r ../lambda.zip . # crea alexa-skill/lambda.zip (include node_modules)
    - Model: **Custom**
    - Hosting: **Provision your own** (usiamo la nostra Lambda).
    - Template: **Start from Scratch** → Create skill.
-3. **Invocation name**: menu *Build → Invocation* → imposta `dispensa` (tutto
-   minuscolo) → Save.
+3. **Invocation name**: menu *Build → Invocation* → imposta `la dispensa` (tutto
+   minuscolo) → Save. ⚠️ Deve essere di **almeno 2 parole** (Alexa rifiuta i nomi
+   di una sola parola come "dispensa").
 4. **Interaction model (JSON)**: menu *Build → Interaction Model → JSON Editor*
    → cancella tutto e incolla il contenuto di
    [`interaction-model.json`](interaction-model.json) → **Save Model** → **Build Model**.
@@ -157,19 +158,19 @@ zip -r ../lambda.zip . # crea alexa-skill/lambda.zip (include node_modules)
 
 ### Nel simulatore (senza Echo)
 Developer Console → tab **Test** → abilita *Development* → scrivi o parla:
-- "apri dispensa"
-- "chiedi a dispensa di aggiungere il latte"
-- "chiedi a dispensa cosa sta per scadere"
+- "apri la dispensa"
+- "chiedi alla dispensa di aggiungere il latte"
+- "chiedi alla dispensa cosa sta per scadere"
 
 Controlla la **Firestore Console**: dovresti vedere comparire i documenti in
-`households/casa/pantry`.
+`households/<il-tuo-uid>`.
 
 ### Sui tuoi Echo di casa
 Essendo loggato con lo stesso account Amazon, la skill in *Development* è **già
 attiva**. Di' semplicemente:
-- *"Alexa, apri dispensa"* poi *"aggiungi il latte"*
-- oppure in un colpo solo: *"Alexa, chiedi a dispensa di aggiungere il latte"*
-- *"Alexa, chiedi a dispensa cosa devo comprare"*
+- *"Alexa, apri la dispensa"* poi *"aggiungi il latte"*
+- oppure in un colpo solo: *"Alexa, chiedi alla dispensa di aggiungere il latte"*
+- *"Alexa, chiedi alla dispensa cosa devo comprare"*
 
 > Nota sulla frase: con una skill personalizzata serve sempre il nome
 > d'invocazione ("dispensa"). *"Alexa, aggiungi latte alla lista"* **senza**

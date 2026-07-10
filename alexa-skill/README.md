@@ -16,7 +16,7 @@ lista della spesa scrivendo su **Firestore**, lo stesso database usato dall'app.
 
 ## Cosa puoi dire ad Alexa
 
-- "Alexa, chiedi a **dispensa** di aggiungere il latte"
+- "Alexa, chiedi **alla dispensa** di aggiungere il latte"
 - "…di aggiungere 500 grammi di pasta in dispensa"
 - "…di aggiungere il pane alla lista della spesa"
 - "…di togliere il tonno dalla dispensa"
