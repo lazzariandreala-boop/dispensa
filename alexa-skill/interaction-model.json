@@ -1,0 +1,159 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "dispensa",
+      "intents": [
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.HelpIntent", "samples": [] },
+        { "name": "AMAZON.StopIntent", "samples": [] },
+        { "name": "AMAZON.NavigateHomeIntent", "samples": [] },
+        { "name": "AMAZON.FallbackIntent", "samples": [] },
+        {
+          "name": "AddPantryItemIntent",
+          "slots": [
+            { "name": "item", "type": "FoodItem" },
+            { "name": "quantity", "type": "AMAZON.NUMBER" },
+            { "name": "unit", "type": "UnitType" }
+          ],
+          "samples": [
+            "aggiungi {item} in dispensa",
+            "aggiungi {item} alla dispensa",
+            "metti {item} in dispensa",
+            "metti {item} nella dispensa",
+            "aggiungi {quantity} {unit} di {item} in dispensa",
+            "metti {quantity} {unit} di {item} in dispensa",
+            "ho comprato {item}",
+            "ho comprato {quantity} {unit} di {item}",
+            "segna {item} in dispensa",
+            "aggiungi {quantity} {item} in dispensa"
+          ]
+        },
+        {
+          "name": "AddShoppingItemIntent",
+          "slots": [
+            { "name": "item", "type": "FoodItem" }
+          ],
+          "samples": [
+            "aggiungi {item} alla lista della spesa",
+            "aggiungi {item} alla spesa",
+            "aggiungi {item} nella lista della spesa",
+            "segna {item} da comprare",
+            "devo comprare {item}",
+            "metti {item} nella lista della spesa",
+            "ricordami di comprare {item}"
+          ]
+        },
+        {
+          "name": "RemovePantryItemIntent",
+          "slots": [
+            { "name": "item", "type": "FoodItem" }
+          ],
+          "samples": [
+            "rimuovi {item} dalla dispensa",
+            "togli {item} dalla dispensa",
+            "ho finito {item}",
+            "ho consumato {item}",
+            "cancella {item} dalla dispensa"
+          ]
+        },
+        {
+          "name": "RemoveShoppingItemIntent",
+          "slots": [
+            { "name": "item", "type": "FoodItem" }
+          ],
+          "samples": [
+            "rimuovi {item} dalla lista della spesa",
+            "rimuovi {item} dalla spesa",
+            "togli {item} dalla lista della spesa",
+            "ho comprato {item} toglilo dalla lista",
+            "cancella {item} dalla spesa"
+          ]
+        },
+        {
+          "name": "CheckItemIntent",
+          "slots": [
+            { "name": "item", "type": "FoodItem" }
+          ],
+          "samples": [
+            "ho ancora {item}",
+            "c'è {item} in dispensa",
+            "abbiamo {item}",
+            "quanto {item} ho",
+            "è rimasto {item}"
+          ]
+        },
+        {
+          "name": "ListExpiringIntent",
+          "slots": [],
+          "samples": [
+            "cosa scade",
+            "cosa sta scadendo",
+            "cosa scade presto",
+            "cosa devo consumare",
+            "cosa sta per scadere"
+          ]
+        },
+        {
+          "name": "ListShoppingIntent",
+          "slots": [],
+          "samples": [
+            "cosa devo comprare",
+            "leggi la lista della spesa",
+            "cosa c'è nella lista della spesa",
+            "dimmi la lista della spesa"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "name": "UnitType",
+          "values": [
+            { "id": "g",    "name": { "value": "grammi",       "synonyms": ["grammo", "g"] } },
+            { "id": "kg",   "name": { "value": "chili",        "synonyms": ["chilo", "chilogrammi", "kg"] } },
+            { "id": "ml",   "name": { "value": "millilitri",   "synonyms": ["ml"] } },
+            { "id": "l",    "name": { "value": "litri",        "synonyms": ["litro", "l"] } },
+            { "id": "pz",   "name": { "value": "pezzi",        "synonyms": ["pezzo", "unità"] } },
+            { "id": "conf", "name": { "value": "confezione",   "synonyms": ["confezioni", "pacco", "pacchi"] } }
+          ]
+        },
+        {
+          "name": "FoodItem",
+          "values": [
+            { "name": { "value": "latte" } }, { "name": { "value": "uova" } },
+            { "name": { "value": "pane" } }, { "name": { "value": "pasta" } },
+            { "name": { "value": "riso" } }, { "name": { "value": "pollo" } },
+            { "name": { "value": "carne macinata" } }, { "name": { "value": "prosciutto" } },
+            { "name": { "value": "formaggio" } }, { "name": { "value": "mozzarella" } },
+            { "name": { "value": "parmigiano" } }, { "name": { "value": "yogurt" } },
+            { "name": { "value": "burro" } }, { "name": { "value": "panna" } },
+            { "name": { "value": "pomodori" } }, { "name": { "value": "pomodori pelati" } },
+            { "name": { "value": "insalata" } }, { "name": { "value": "patate" } },
+            { "name": { "value": "cipolle" } }, { "name": { "value": "carote" } },
+            { "name": { "value": "zucchine" } }, { "name": { "value": "melanzane" } },
+            { "name": { "value": "peperoni" } }, { "name": { "value": "spinaci" } },
+            { "name": { "value": "broccoli" } }, { "name": { "value": "funghi" } },
+            { "name": { "value": "mele" } }, { "name": { "value": "banane" } },
+            { "name": { "value": "arance" } }, { "name": { "value": "limoni" } },
+            { "name": { "value": "fragole" } }, { "name": { "value": "uva" } },
+            { "name": { "value": "salmone" } }, { "name": { "value": "tonno" } },
+            { "name": { "value": "gamberi" } }, { "name": { "value": "merluzzo" } },
+            { "name": { "value": "olio" } }, { "name": { "value": "olio d'oliva" } },
+            { "name": { "value": "aceto" } }, { "name": { "value": "sale" } },
+            { "name": { "value": "zucchero" } }, { "name": { "value": "farina" } },
+            { "name": { "value": "caffè" } }, { "name": { "value": "acqua" } },
+            { "name": { "value": "vino" } }, { "name": { "value": "birra" } },
+            { "name": { "value": "succo d'arancia" } }, { "name": { "value": "biscotti" } },
+            { "name": { "value": "cioccolato" } }, { "name": { "value": "nutella" } },
+            { "name": { "value": "marmellata" } }, { "name": { "value": "miele" } },
+            { "name": { "value": "fagioli" } }, { "name": { "value": "lenticchie" } },
+            { "name": { "value": "ceci" } }, { "name": { "value": "piselli" } },
+            { "name": { "value": "salsiccia" } }, { "name": { "value": "wurstel" } },
+            { "name": { "value": "salame" } }, { "name": { "value": "mortadella" } },
+            { "name": { "value": "tacchino" } }, { "name": { "value": "manzo" } },
+            { "name": { "value": "spaghetti" } }, { "name": { "value": "cornflakes" } }
+          ]
+        }
+      ]
+    }
+  }
+}

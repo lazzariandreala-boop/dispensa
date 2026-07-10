@@ -1,0 +1,14 @@
+{
+  "name": "dispensa-alexa-lambda",
+  "version": "1.0.0",
+  "description": "Backend Lambda per la skill Alexa Dispensa (Firestore)",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "check": "node --check index.js && node --check detectCat.js"
+  },
+  "dependencies": {
+    "ask-sdk-core": "^2.14.0",
+    "firebase-admin": "^12.7.0"
+  }
+}

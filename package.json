@@ -1,0 +1,10 @@
+{
+  "name": "dispensa",
+  "version": "1.0.0",
+  "description": "Dispensa di casa — app single-file (index.html) con assistente vocale AI (JARVIS)",
+  "private": true,
+  "scripts": {
+    "test": "node --test 'tests/**/*.test.js'",
+    "check": "node --check tests/sandbox.js && node -e \"require('./tests/sandbox.js').loadSandbox(); console.log('index.html inline JS: OK')\""
+  }
+}

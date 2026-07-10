@@ -1003,7 +1003,12 @@ select.fi                        { padding-right: 32px !important; }
 <header id="hdr">
   <h1>🫙 Dispensa</h1>
   <div style="display:flex;align-items:center;gap:7px">
+    <!-- JARVIS DISATTIVATO — sostituito dall'integrazione Alexa (vedi cartella alexa-skill/).
+         Codice mantenuto per riferimento. Per riattivarlo: rimuovi i commenti qui e in JS,
+         e imposta JARVIS_ENABLED = true.
     <button id="jarvis-btn" onclick="toggleJarvis()" title="Jarvis — assistente vocale">🎤</button>
+    -->
+    <button id="jarvis-btn" onclick="toggleJarvis()" title="Assistente vocale (disattivato — ora via Alexa)" style="display:none">🎤</button>
     <button id="refresh-btn" onclick="manualRefresh()" title="Scarica dati aggiornati dal cloud">
       <span id="refresh-ico">↻</span>
     </button>
@@ -1288,6 +1293,10 @@ select.fi                        { padding-right: 32px !important; }
       <button class="btn btn-s" onclick="clearGistConfig()" style="padding:10px 14px;color:var(--danger)">🗑</button>
     </div>
     <div class="divider"></div>
+    <!-- ===== JARVIS AI (Groq) — DISATTIVATO, sostituito da Alexa ==========
+         L'assistente vocale in-app non serve più: i comandi vocali passano
+         ora dalle Alexa di casa (vedi cartella alexa-skill/). Blocco mantenuto
+         per riferimento; per riattivarlo scommenta e imposta JARVIS_ENABLED=true.
     <div style="font-size:12px;font-weight:700;margin-bottom:6px">🤖 Jarvis AI — Groq API Key (gratuita)</div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">
       Gratuita senza limiti di crediti. Ottienila su <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a> → API Keys.
@@ -1301,6 +1310,7 @@ select.fi                        { padding-right: 32px !important; }
     <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.5">
       ⚠ Token e API key salvati solo in questo browser (localStorage). Non inviati ad altri server.
     </div>
+    ===== fine blocco JARVIS disattivato ===== -->
   </div>
 </div>
 
@@ -4766,6 +4776,18 @@ save = function() {
   scheduleSync();
 };
 
+// ================================================================
+// ⚠️  ASSISTENTE VOCALE IN-APP (JARVIS + Groq) — DISATTIVATO
+// ----------------------------------------------------------------
+// Sostituito dall'integrazione con Alexa (cartella alexa-skill/).
+// Tutto il codice sotto è MANTENUTO per riferimento ma NON attivo:
+// - i pulsanti UI che lo richiamavano sono commentati in HTML;
+// - le funzioni d'ingresso (toggleJarvis, saveGroqKey) escono subito
+//   se JARVIS_ENABLED è false.
+// Per riattivarlo: imposta JARVIS_ENABLED = true e scommenta la UI.
+// ================================================================
+const JARVIS_ENABLED = false;
+
 // ── Anthropic API Key (salvata in localStorage) ──────────────
 const GROQ_KEY_SK   = 'dispensa_groq_key';
 const GROQ_PROXY_SK = 'dispensa_groq_proxy';
@@ -4773,6 +4795,7 @@ let groqApiKey  = localStorage.getItem(GROQ_KEY_SK)   || '';
 let groqProxy   = localStorage.getItem(GROQ_PROXY_SK) || '';
 
 function saveGroqKey() {
+  if (!JARVIS_ENABLED) return; // disattivato — vedi banner sopra
   const val = document.getElementById('anthropic-key')?.value.trim();
   if (!val || (!val.startsWith('gsk_') && !val.startsWith('sk-'))) {
     showAlert('❌ Chiave non valida — deve iniziare con gsk_', 'err', 3000);
@@ -5137,6 +5160,7 @@ function startJarvisRecognition() {
 
 // ── Toggle on/off ─────────────────────────────────────────────
 function toggleJarvis() {
+  if (!JARVIS_ENABLED) return; // disattivato — comandi vocali ora via Alexa
   if (jarvisActive) { stopJarvis(); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { showAlert('🎤 Non supportato su questo browser', 'err', 4000); return; }
