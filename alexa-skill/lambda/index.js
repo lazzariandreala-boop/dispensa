@@ -1,128 +1,161 @@
 'use strict';
 /**
- * Skill Alexa "Dispensa" — backend Lambda.
- * Legge/scrive UN SOLO documento Firestore `households/{HOUSEHOLD_ID}` che
- * contiene l'intero stato dell'app ({items, shopping, additionLog, ...}),
- * lo stesso che l'app sincronizza. L'app riceve le modifiche in tempo reale
- * grazie al listener onSnapshot.
+ * Skill Alexa "Dispensa" — backend Lambda per Alexa-hosted.
  *
- * HOUSEHOLD_ID = lo UID Firebase dell'utente (lo trovi nell'app → Sync → "ID per Alexa").
+ * NON usa firebase-admin (troppo pesante per Alexa-hosted: il cold start supera
+ * il timeout di 8s e Alexa risponde "Si è verificato un problema con la risposta
+ * della Skill"). Qui parliamo con Firestore via REST API, autenticandoci con il
+ * service account tramite un JWT firmato con il modulo `crypto` di Node.
+ * Unica dipendenza npm: ask-sdk-core.
  *
- * Variabili d'ambiente (console Lambda):
- *   FIREBASE_SERVICE_ACCOUNT  = JSON del service account Firebase (stringa)
- *   HOUSEHOLD_ID              = UID utente (es. "aBcD1234...")
+ * File richiesti nella stessa cartella (NON committati):
+ *   service-account.json  -> chiave del service account Firebase
+ *   config.json           -> { "householdId": "<UID Firebase dell'utente>" }
  */
 const Alexa = require('ask-sdk-core');
-const admin = require('firebase-admin');
+const https = require('https');
+const crypto = require('crypto');
 const { detectCat, qtyDefault } = require('./detectCat');
 
-// Credenziali service account:
-//  - AWS Lambda: variabile d'ambiente FIREBASE_SERVICE_ACCOUNT (JSON)
-//  - Alexa-hosted: file ./service-account.json accanto a index.js (NON committato)
-function loadServiceAccount() {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  }
-  try { return require('./service-account.json'); }
-  catch (e) { console.error('Impossibile leggere service-account.json:', e.message); return null; }
+let SA = null;
+let HOUSEHOLD_ID = 'casa';
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try { SA = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT); } catch (e) { console.error('FIREBASE_SERVICE_ACCOUNT:', e.message); }
+} else {
+  try { SA = require('./service-account.json'); } catch (e) { console.error('service-account.json:', e.message); }
 }
-// HOUSEHOLD_ID: env var (AWS) oppure ./config.json { "householdId": "..." } (hosted)
-function loadHouseholdId() {
-  if (process.env.HOUSEHOLD_ID) return process.env.HOUSEHOLD_ID;
-  try { return require('./config.json').householdId; } catch (_) { return 'casa'; }
-}
-const HOUSEHOLD_ID = loadHouseholdId();
+if (process.env.HOUSEHOLD_ID) HOUSEHOLD_ID = process.env.HOUSEHOLD_ID;
+else { try { HOUSEHOLD_ID = require('./config.json').householdId || 'casa'; } catch (e) { /* default */ } }
+const PROJECT_ID = SA && SA.project_id;
 
-// Init Firebase in modo difensivo: un errore qui NON deve mandare in crash il
-// modulo (altrimenti Alexa dà un errore generico con output vuoto). Registriamo
-// l'errore e lo mostriamo quando serve davvero il database.
-let db = null;
-let firebaseInitError = null;
-try {
-  if (!admin.apps.length) {
-    const svc = loadServiceAccount();
-    if (!svc || !svc.project_id || !svc.private_key) {
-      throw new Error('service-account.json assente o incompleto (manca project_id/private_key)');
-    }
-    admin.initializeApp({ credential: admin.credential.cert(svc) });
-    console.log('Firebase inizializzato — progetto:', svc.project_id, '| household:', HOUSEHOLD_ID);
-  }
-  db = admin.firestore();
-} catch (e) {
-  firebaseInitError = e.message;
-  console.error('INIT FIREBASE FALLITO:', e.message);
-}
+const FS_BASE = () => `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
+const DOC_URL = () => `${FS_BASE()}/households/${HOUSEHOLD_ID}`;
 
-function getDocRef() {
-  if (!db) throw new Error('Firebase non pronto: ' + (firebaseInitError || 'inizializzazione non riuscita'));
-  return db.collection('households').doc(HOUSEHOLD_ID);
-}
-
-// ── Helper ──────────────────────────────────────────────────────
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
-
+// ── Helper generici ─────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function todayRome() {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(new Date());
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
-
 function daysTo(ds) {
   if (!ds) return null;
   const [y, m, d] = ds.split('-').map(Number);
-  const exp = Date.UTC(y, m - 1, d);
   const [ny, nm, nd] = todayRome().split('-').map(Number);
-  return Math.round((exp - Date.UTC(ny, nm - 1, nd)) / 86400000);
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(ny, nm - 1, nd)) / 86400000);
 }
-
-function cap(s) {
-  s = String(s || '').trim();
-  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-}
-
-function emptyPayload() {
-  return { items: [], shopping: [], consumptionLog: [], additionLog: [], monthlyReports: [], priceBook: {}, v: 3 };
-}
-
-function slotValue(h, name) {
-  try { return Alexa.getSlotValue(h.requestEnvelope, name) || ''; } catch (_) { return ''; }
-}
-
+function cap(s) { s = String(s || '').trim(); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function emptyPayload() { return { items: [], shopping: [], consumptionLog: [], additionLog: [], monthlyReports: [], priceBook: {}, v: 3 }; }
+function slotValue(h, name) { try { return Alexa.getSlotValue(h.requestEnvelope, name) || ''; } catch (_) { return ''; } }
+function clean(s) { return String(s == null ? '' : s).replace(/[<>&"']/g, ' ').slice(0, 300); }
 function speak(h, text, keepOpen) {
   const b = h.responseBuilder.speak(text);
   if (keepOpen) b.reprompt('Vuoi altro?');
   return b.withShouldEndSession(!keepOpen).getResponse();
 }
 
-/**
- * Legge il documento, applica `mutate(data)` e riscrive, in transazione.
- * `mutate` può ritornare una stringa da far dire ad Alexa.
- */
-async function withState(mutate) {
-  const docRef = getDocRef();
-  let phrase = '';
-  await db.runTransaction(async (tx) => {
-    const snap = await tx.get(docRef);
-    const data = snap.exists ? snap.data() : emptyPayload();
-    for (const k of Object.keys(emptyPayload())) {
-      if (data[k] === undefined) data[k] = emptyPayload()[k];
-    }
-    phrase = mutate(data) || '';
-    data.at = new Date().toISOString(); // timestamp per il last-writer-wins dell'app
-    tx.set(docRef, data);
+// ── HTTP helper (Promise, solo moduli built-in) ─────────────────
+function httpsRequest(urlStr, { method = 'GET', headers = {}, body = null } = {}) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(urlStr);
+    const req = https.request({ hostname: u.hostname, path: u.pathname + u.search, method, headers }, (res) => {
+      let data = '';
+      res.on('data', (c) => (data += c));
+      res.on('end', () => resolve({ status: res.statusCode, body: data }));
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
   });
+}
+
+// ── OAuth2: JWT firmato → access token (con cache) ──────────────
+let cachedToken = null;
+let cachedExp = 0;
+function b64url(input) {
+  return Buffer.from(input).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function getAccessToken() {
+  const now = Math.floor(Date.now() / 1000);
+  if (cachedToken && now < cachedExp - 60) return cachedToken;
+  if (!SA || !SA.client_email || !SA.private_key) throw new Error('service-account.json assente o incompleto');
+  const tokenUri = SA.token_uri || 'https://oauth2.googleapis.com/token';
+  const header = { alg: 'RS256', typ: 'JWT' };
+  const claims = { iss: SA.client_email, scope: 'https://www.googleapis.com/auth/datastore', aud: tokenUri, iat: now, exp: now + 3600 };
+  const unsigned = b64url(JSON.stringify(header)) + '.' + b64url(JSON.stringify(claims));
+  const signature = crypto.createSign('RSA-SHA256').update(unsigned).sign(SA.private_key);
+  const jwt = unsigned + '.' + b64url(signature);
+
+  const form = 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=' + encodeURIComponent(jwt);
+  const res = await httpsRequest(tokenUri, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(form) },
+    body: form,
+  });
+  const json = JSON.parse(res.body);
+  if (!json.access_token) throw new Error('Token non ottenuto: ' + res.body.slice(0, 120));
+  cachedToken = json.access_token;
+  cachedExp = now + (json.expires_in || 3600);
+  return cachedToken;
+}
+
+// ── Conversione JS ↔ formato REST di Firestore ──────────────────
+function toValue(v) {
+  if (v === null || v === undefined) return { nullValue: null };
+  if (typeof v === 'boolean') return { booleanValue: v };
+  if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+  if (typeof v === 'string') return { stringValue: v };
+  if (Array.isArray(v)) return { arrayValue: { values: v.map(toValue) } };
+  if (typeof v === 'object') return { mapValue: { fields: toFields(v) } };
+  return { stringValue: String(v) };
+}
+function toFields(obj) { const f = {}; for (const k of Object.keys(obj)) f[k] = toValue(obj[k]); return f; }
+function fromValue(val) {
+  if (!val) return null;
+  if ('nullValue' in val) return null;
+  if ('booleanValue' in val) return val.booleanValue;
+  if ('integerValue' in val) return Number(val.integerValue);
+  if ('doubleValue' in val) return val.doubleValue;
+  if ('stringValue' in val) return val.stringValue;
+  if ('timestampValue' in val) return val.timestampValue;
+  if ('arrayValue' in val) return (val.arrayValue.values || []).map(fromValue);
+  if ('mapValue' in val) return fromFields(val.mapValue.fields || {});
+  return null;
+}
+function fromFields(fields) { const o = {}; for (const k of Object.keys(fields || {})) o[k] = fromValue(fields[k]); return o; }
+
+// ── Lettura/scrittura del documento household ───────────────────
+async function readState() {
+  const token = await getAccessToken();
+  const res = await httpsRequest(DOC_URL(), { headers: { Authorization: 'Bearer ' + token } });
+  if (res.status === 404) return emptyPayload();
+  if (res.status !== 200) throw new Error('Firestore GET ' + res.status + ': ' + res.body.slice(0, 120));
+  const doc = JSON.parse(res.body);
+  const data = doc.fields ? fromFields(doc.fields) : emptyPayload();
+  for (const k of Object.keys(emptyPayload())) if (data[k] === undefined) data[k] = emptyPayload()[k];
+  return data;
+}
+async function writeState(data) {
+  const token = await getAccessToken();
+  data.at = new Date().toISOString(); // last-writer-wins per l'app
+  const body = JSON.stringify({ fields: toFields(data) });
+  const res = await httpsRequest(DOC_URL(), {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+    body,
+  });
+  if (res.status !== 200) throw new Error('Firestore PATCH ' + res.status + ': ' + res.body.slice(0, 120));
+}
+async function withState(mutate) {
+  const data = await readState();
+  const phrase = mutate(data) || '';
+  await writeState(data);
   return phrase;
 }
 
-/** Come withState ma in sola lettura. */
-async function readState() {
-  const snap = await getDocRef().get();
-  return snap.exists ? snap.data() : emptyPayload();
+// ── Handlers ────────────────────────────────────────────────────
+function is(h, intentName) {
+  return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest' && Alexa.getIntentName(h.requestEnvelope) === intentName;
 }
 
-// ── Handlers ────────────────────────────────────────────────────
 const AddPantryItemHandler = {
   canHandle: (h) => is(h, 'AddPantryItemIntent'),
   async handle(h) {
@@ -133,12 +166,10 @@ const AddPantryItemHandler = {
     const def = qtyDefault(cat);
     const qty = Number(slotValue(h, 'quantity')) || def.qty;
     const unit = slotValue(h, 'unit') || def.unit;
-
     const phrase = await withState((data) => {
       data.items.push({
-        id: uid(), name, quantity: qty, unit, category: cat,
-        expiryDate: null, originalExpiry: null, frozen: false, frozenDate: null,
-        thawedDate: null, barcode: null, addedDate: todayRome(), source: 'alexa',
+        id: uid(), name, quantity: qty, unit, category: cat, expiryDate: null, originalExpiry: null,
+        frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: todayRome(), source: 'alexa',
       });
       data.additionLog.push({ id: uid(), name, category: cat, qty, unit, price: null, date: todayRome(), source: 'alexa' });
       return `Ho aggiunto ${name} in dispensa.`;
@@ -154,12 +185,8 @@ const AddShoppingItemHandler = {
     if (!raw) return speak(h, 'Non ho capito cosa aggiungere alla lista.', true);
     const name = cap(raw);
     const phrase = await withState((data) => {
-      const dup = data.shopping.some((s) => !s.checked && (s.name || '').toLowerCase() === name.toLowerCase());
-      if (dup) return `${name} è già nella lista della spesa.`;
-      data.shopping.push({
-        id: uid(), name, category: detectCat(name), checked: false,
-        addedDate: todayRome(), hintPrice: null, hintQty: null, hintUnit: null, source: 'alexa',
-      });
+      if (data.shopping.some((s) => !s.checked && (s.name || '').toLowerCase() === name.toLowerCase())) return `${name} è già nella lista della spesa.`;
+      data.shopping.push({ id: uid(), name, category: detectCat(name), checked: false, addedDate: todayRome(), hintPrice: null, hintQty: null, hintUnit: null, source: 'alexa' });
       return `Ho aggiunto ${name} alla lista della spesa.`;
     });
     return speak(h, phrase, true);
@@ -175,9 +202,7 @@ const RemovePantryItemHandler = {
     const phrase = await withState((data) => {
       const before = data.items.length;
       data.items = data.items.filter((it) => (it.name || '').toLowerCase() !== lc);
-      return before === data.items.length
-        ? `Non ho trovato ${cap(raw)} in dispensa.`
-        : `Ho tolto ${cap(raw)} dalla dispensa.`;
+      return before === data.items.length ? `Non ho trovato ${cap(raw)} in dispensa.` : `Ho tolto ${cap(raw)} dalla dispensa.`;
     });
     return speak(h, phrase, true);
   },
@@ -192,9 +217,7 @@ const RemoveShoppingItemHandler = {
     const phrase = await withState((data) => {
       const before = data.shopping.length;
       data.shopping = data.shopping.filter((s) => !(s.name || '').toLowerCase().includes(lc));
-      return before === data.shopping.length
-        ? `Non ho trovato ${cap(raw)} nella lista.`
-        : `Ho tolto ${cap(raw)} dalla lista della spesa.`;
+      return before === data.shopping.length ? `Non ho trovato ${cap(raw)} nella lista.` : `Ho tolto ${cap(raw)} dalla lista della spesa.`;
     });
     return speak(h, phrase, true);
   },
@@ -218,14 +241,10 @@ const ListExpiringHandler = {
   canHandle: (h) => is(h, 'ListExpiringIntent'),
   async handle(h) {
     const data = await readState();
-    const soon = data.items
-      .filter((it) => !it.frozen)
-      .map((it) => ({ name: it.name, days: daysTo(it.expiryDate) }))
-      .filter((x) => x.days !== null && x.days >= 0 && x.days <= 7)
-      .sort((a, b) => a.days - b.days);
+    const soon = data.items.filter((it) => !it.frozen).map((it) => ({ name: it.name, days: daysTo(it.expiryDate) }))
+      .filter((x) => x.days !== null && x.days >= 0 && x.days <= 7).sort((a, b) => a.days - b.days);
     if (!soon.length) return speak(h, 'Non hai prodotti in scadenza nei prossimi sette giorni.', true);
-    const list = soon.map((x) => `${x.name} tra ${x.days} giorni`).join(', ');
-    return speak(h, `In scadenza: ${list}.`, true);
+    return speak(h, 'In scadenza: ' + soon.map((x) => `${x.name} tra ${x.days} giorni`).join(', ') + '.', true);
   },
 };
 
@@ -235,11 +254,10 @@ const ListShoppingHandler = {
     const data = await readState();
     const names = data.shopping.filter((s) => !s.checked).map((s) => s.name);
     if (!names.length) return speak(h, 'La lista della spesa è vuota.', true);
-    return speak(h, `Devi comprare: ${names.join(', ')}.`, true);
+    return speak(h, 'Devi comprare: ' + names.join(', ') + '.', true);
   },
 };
 
-// ── Sistema ─────────────────────────────────────────────────────
 const LaunchRequestHandler = {
   canHandle: (h) => Alexa.getRequestType(h.requestEnvelope) === 'LaunchRequest',
   handle: (h) => speak(h, 'Ciao, sono la tua dispensa. Dimmi di aggiungere o togliere prodotti, o chiedimi cosa sta per scadere.', true),
@@ -263,15 +281,10 @@ const SessionEndedHandler = {
 const ErrorHandler = {
   canHandle: () => true,
   handle(h, error) {
-    console.error('Errore skill:', error);
-    return speak(h, 'Ops, qualcosa è andato storto. Riprova tra poco.');
+    console.error('Errore skill:', error && error.stack ? error.stack : error);
+    return speak(h, 'Errore: ' + clean(error && error.message));
   },
 };
-
-function is(h, intentName) {
-  return Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest' &&
-    Alexa.getIntentName(h.requestEnvelope) === intentName;
-}
 
 exports.handler = Alexa.SkillBuilders.custom()
   .addRequestHandlers(

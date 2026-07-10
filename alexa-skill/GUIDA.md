@@ -68,9 +68,10 @@ Due modi per ospitare il codice:
    `package.json`. Sostituisci/aggiungi i file della nostra cartella
    `alexa-skill/lambda/`:
    - `index.js` e `detectCat.js` → incolla il contenuto
-   - `package.json` → assicurati che tra le dipendenze ci siano
-     `ask-sdk-core` e `firebase-admin`. ⚠️ Alexa-hosted gira su **Node 16**: usa
-     `"firebase-admin": "^11.11.1"` (la v12 richiede Node ≥ 18 e il Deploy fallisce).
+   - `package.json` → unica dipendenza `ask-sdk-core`. ⚠️ **Non** usare
+     `firebase-admin`: su Alexa-hosted è troppo pesante e va in timeout (errore
+     "Si è verificato un problema con la risposta della Skill"). Il codice parla
+     con Firestore via **REST API** usando solo moduli built-in di Node.
    - crea un file **`service-account.json`** e incollaci il JSON del service
      account (Parte 1). *(Il repo della skill è privato sul tuo account Amazon.)*
    - crea un file **`config.json`** con `{ "householdId": "IL_TUO_UID" }`

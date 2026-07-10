@@ -10,7 +10,7 @@ lista della spesa scrivendo su **Firestore**, lo stesso database usato dall'app.
 | [`GUIDA.md`](GUIDA.md) | **Guida passo-passo**: Firebase → AWS Lambda → Alexa → attivazione |
 | [`firestore-model.md`](firestore-model.md) | Modello dati condiviso app ↔ Alexa |
 | [`interaction-model.json`](interaction-model.json) | Modello di interazione (it-IT) da incollare nella Developer Console |
-| [`lambda/index.js`](lambda/index.js) | Handler della skill (ASK SDK + firebase-admin) |
+| [`lambda/index.js`](lambda/index.js) | Handler della skill (ASK SDK + Firestore via REST, no firebase-admin) |
 | [`lambda/detectCat.js`](lambda/detectCat.js) | Rilevamento categoria (allineato all'app) |
 | [`lambda/package.json`](lambda/package.json) | Dipendenze della Lambda |
 
