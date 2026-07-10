@@ -13,9 +13,11 @@
 // ================================================================
 import { initializeApp } from 'firebase/app';
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signOut, onAuthStateChanged,
 } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 // La config web di Firebase NON è segreta (è pubblica per definizione).
 const firebaseConfig = {
@@ -61,7 +63,17 @@ const Cloud = {
 
   async signIn() {
     try {
-      await signInWithPopup(auth, provider);
+      if (Capacitor.isNativePlatform()) {
+        // App nativa (Android/iOS): il popup web non funziona nel WebView.
+        // Usa il login Google nativo del plugin e passa la credenziale al JS SDK.
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        const idToken = result.credential && result.credential.idToken;
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        // Browser: popup classico.
+        await signInWithPopup(auth, provider);
+      }
     } catch (err) {
       console.error('Login error:', err);
       if (typeof window.showAlert === 'function') {
@@ -70,7 +82,10 @@ const Cloud = {
     }
   },
 
-  signOut() { return signOut(auth); },
+  async signOut() {
+    try { if (Capacitor.isNativePlatform()) await FirebaseAuthentication.signOut(); } catch (_) {}
+    return signOut(auth);
+  },
 
   /** Salva l'intero stato dell'app sul documento cloud (debounced). */
   push(payload) {
