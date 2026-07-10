@@ -1056,10 +1056,12 @@ body:not(.authed) #app-shell { display: none; }
     <button id="jarvis-btn" onclick="toggleJarvis()" title="Jarvis — assistente vocale">🎤</button>
     -->
     <button id="jarvis-btn" onclick="toggleJarvis()" title="Assistente vocale (disattivato — ora via Alexa)" style="display:none">🎤</button>
+    <!-- Refresh manuale (Gist) non più necessario: Firestore sincronizza in tempo reale.
     <button id="refresh-btn" onclick="manualRefresh()" title="Scarica dati aggiornati dal cloud">
       <span id="refresh-ico">↻</span>
     </button>
-    <button id="sync-btn" onclick="openSyncModal()" title="Sincronizzazione Gist">
+    -->
+    <button id="sync-btn" onclick="openSyncModal()" title="Account e sincronizzazione">
       <span id="sync-dot">⚪</span><span id="sync-label">Sync</span>
     </button>
   </div>
