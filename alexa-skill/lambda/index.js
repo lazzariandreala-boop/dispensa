@@ -23,19 +23,40 @@ function loadServiceAccount() {
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
   }
-  try { return require('./service-account.json'); } catch (_) { return {}; }
+  try { return require('./service-account.json'); }
+  catch (e) { console.error('Impossibile leggere service-account.json:', e.message); return null; }
 }
-if (!admin.apps.length) {
-  admin.initializeApp({ credential: admin.credential.cert(loadServiceAccount()) });
-}
-const db = admin.firestore();
 // HOUSEHOLD_ID: env var (AWS) oppure ./config.json { "householdId": "..." } (hosted)
 function loadHouseholdId() {
   if (process.env.HOUSEHOLD_ID) return process.env.HOUSEHOLD_ID;
   try { return require('./config.json').householdId; } catch (_) { return 'casa'; }
 }
 const HOUSEHOLD_ID = loadHouseholdId();
-const docRef = db.collection('households').doc(HOUSEHOLD_ID);
+
+// Init Firebase in modo difensivo: un errore qui NON deve mandare in crash il
+// modulo (altrimenti Alexa dà un errore generico con output vuoto). Registriamo
+// l'errore e lo mostriamo quando serve davvero il database.
+let db = null;
+let firebaseInitError = null;
+try {
+  if (!admin.apps.length) {
+    const svc = loadServiceAccount();
+    if (!svc || !svc.project_id || !svc.private_key) {
+      throw new Error('service-account.json assente o incompleto (manca project_id/private_key)');
+    }
+    admin.initializeApp({ credential: admin.credential.cert(svc) });
+    console.log('Firebase inizializzato — progetto:', svc.project_id, '| household:', HOUSEHOLD_ID);
+  }
+  db = admin.firestore();
+} catch (e) {
+  firebaseInitError = e.message;
+  console.error('INIT FIREBASE FALLITO:', e.message);
+}
+
+function getDocRef() {
+  if (!db) throw new Error('Firebase non pronto: ' + (firebaseInitError || 'inizializzazione non riuscita'));
+  return db.collection('households').doc(HOUSEHOLD_ID);
+}
 
 // ── Helper ──────────────────────────────────────────────────────
 function uid() {
@@ -80,6 +101,7 @@ function speak(h, text, keepOpen) {
  * `mutate` può ritornare una stringa da far dire ad Alexa.
  */
 async function withState(mutate) {
+  const docRef = getDocRef();
   let phrase = '';
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(docRef);
@@ -96,7 +118,7 @@ async function withState(mutate) {
 
 /** Come withState ma in sola lettura. */
 async function readState() {
-  const snap = await docRef.get();
+  const snap = await getDocRef().get();
   return snap.exists ? snap.data() : emptyPayload();
 }
 
