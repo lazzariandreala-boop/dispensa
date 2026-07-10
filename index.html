@@ -17,6 +17,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<!-- Firebase auth + Firestore sync (bundlato da Vite). Modulo deferred: gira dopo lo script dell'app. -->
+<script type="module" src="/src/cloud.js"></script>
 <style>
 /* ================================================
    CSS VARIABLES & GLOBAL RESET
@@ -994,9 +996,54 @@ select.fi                        { padding-right: 32px !important; }
 #jarvis-status { font-size: 13px; font-weight: 600; color: var(--text); }
 #jarvis-transcript { font-size: 12px; color: var(--text2); min-height: 16px; font-style: italic; }
 
+/* ── Login gate (schermata di accesso Google) ─────────────────── */
+#login-gate {
+  position: fixed; inset: 0; z-index: 500;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 22px; padding: 32px; text-align: center;
+  background: var(--bg, #0e0f13);
+}
+#login-gate .lg-logo { font-size: 64px; line-height: 1; }
+#login-gate h2 { font-family:'Inter',sans-serif; font-weight: 800; font-size: 22px; color: var(--text,#fff); margin: 0; }
+#login-gate p { font-size: 13px; color: var(--text2,#9aa0aa); max-width: 300px; line-height: 1.6; margin: 0; }
+#login-btn {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; color: #1f1f1f; border: none; border-radius: 12px;
+  padding: 13px 22px; font-family:'Inter',sans-serif; font-weight: 600; font-size: 15px;
+  cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,.3); transition: transform .12s;
+}
+#login-btn:active { transform: scale(.97); }
+#login-btn .g-ico {
+  display: inline-flex; width: 20px; height: 20px; border-radius: 50%;
+  background: conic-gradient(from -45deg, #ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0);
+  -webkit-mask: radial-gradient(circle 5px at center, transparent 98%, #000 100%);
+          mask: radial-gradient(circle 5px at center, transparent 98%, #000 100%);
+}
+#login-gate .lg-note { font-size: 11px; color: var(--text3,#6b7280); max-width: 320px; }
+/* Nasconde l'app finché non si è autenticati */
+body:not(.authed) #app-shell { display: none; }
+
+/* ── Riquadro account nel modal Sync ──────────────────────────── */
+.acct-box { background: var(--bg3,#1a1c22); border: 1px solid var(--border,#2a2d36); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.acct-box .acct-name { font-weight: 700; font-size: 14px; color: var(--text,#fff); }
+.acct-box .acct-email { font-size: 12px; color: var(--text2,#9aa0aa); margin-bottom: 8px; }
+.acct-box .acct-uid-row { display:flex; align-items:center; gap:8px; font-size: 11px; color: var(--text3,#6b7280); word-break: break-all; }
+.acct-box code { background: var(--bg,#0e0f13); padding: 2px 6px; border-radius: 6px; font-size: 11px; }
+#logout-btn { margin-top: 10px; background: transparent; border: 1px solid var(--danger,#e5484d); color: var(--danger,#e5484d); border-radius: 10px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+
 </style>
 </head>
 <body>
+
+<!-- ===== LOGIN GATE — accesso con Google (Firebase Auth) ===== -->
+<div id="login-gate">
+  <div class="lg-logo">🫙</div>
+  <h2>Dispensa</h2>
+  <p>Accedi con Google per salvare la tua dispensa nel cloud e ritrovarla su ogni dispositivo.</p>
+  <button id="login-btn"><span class="g-ico"></span> Accedi con Google</button>
+  <div class="lg-note">I tuoi dati restano privati sul tuo account. Servono per sincronizzare app e Alexa.</div>
+</div>
+
 <div id="app-shell">
 <div id="wrap">
 
@@ -1261,8 +1308,23 @@ select.fi                        { padding-right: 32px !important; }
       <div class="sync-title">☁️ Sincronizzazione</div>
       <button class="mclose" style="position:static" onclick="closeSyncModal(null,1)">×</button>
     </div>
-    <div class="sync-sub">I tuoi dati vengono salvati su GitHub Gist — accessibili da qualsiasi dispositivo, gratis per sempre.</div>
+    <div class="sync-sub">I tuoi dati sono salvati nel cloud (Firebase) sul tuo account Google e sincronizzati in tempo reale su tutti i dispositivi e con Alexa.</div>
 
+    <!-- Account Google collegato -->
+    <div class="acct-box">
+      <div class="acct-name" id="acct-name">Utente</div>
+      <div class="acct-email" id="acct-email"></div>
+      <div class="acct-uid-row">
+        <span>ID per Alexa:</span>
+        <code id="acct-uid">—</code>
+        <button id="copy-uid-btn" title="Copia" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:2px 6px;font-size:11px">📋</button>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Usa questo ID come <code>HOUSEHOLD_ID</code> nella Lambda di Alexa (vedi alexa-skill/GUIDA.md).</div>
+      <button id="logout-btn">Esci</button>
+    </div>
+
+    <details style="margin-bottom:6px">
+      <summary style="font-size:12px;color:var(--text3);cursor:pointer">Sync legacy GitHub Gist (opzionale)</summary>
     <div class="sync-step">
       <div class="sync-step-n">1</div>
       <div>Vai su <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong> e crea un token con scope <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">gist</code></div>
@@ -1292,6 +1354,7 @@ select.fi                        { padding-right: 32px !important; }
       <button class="btn btn-p" onclick="saveGistConfig()" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border)">💾 Salva configurazione</button>
       <button class="btn btn-s" onclick="clearGistConfig()" style="padding:10px 14px;color:var(--danger)">🗑</button>
     </div>
+    </details>
     <div class="divider"></div>
     <!-- ===== JARVIS AI (Groq) — DISATTIVATO, sostituito da Alexa ==========
          L'assistente vocale in-app non serve più: i comandi vocali passano
@@ -4664,6 +4727,11 @@ async function gistPull() {
  * Aspetta 2 secondi di inattività prima di pushare.
  */
 async function scheduleSync() {
+  // Sync primario: Firestore (quando l'utente è loggato). È già debounced in cloud.js.
+  if (window.Cloud && window.Cloud.user && typeof window.buildCloudPayload === 'function') {
+    window.Cloud.push(window.buildCloudPayload());
+  }
+  // Sync legacy opzionale su GitHub Gist (solo se configurato).
   if (!gistToken) return;
   clearTimeout(syncTimer);
   setSyncStatus('syncing');
@@ -5182,45 +5250,54 @@ function stopJarvis() {
 }
 
 function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-load();
-renderD();
-renderR();
-const _dfh=document.getElementById('disp-fixed-header'); if(_dfh) _dfh.classList.add('visible');
-updateShopBadge();
-updateSidebar();
-renderMiniCal();
-maybeGenerateMonthlyReport();
-// Init sync status
-gistToken = localStorage.getItem(GIST_SK_TOKEN)||'';
-gistId    = localStorage.getItem(GIST_SK_ID)||'';
-groqApiKey = localStorage.getItem(GROQ_KEY_SK)||'';
-groqProxy  = localStorage.getItem(GROQ_PROXY_SK)||'';
-const _akEl = document.getElementById('anthropic-key');   if (_akEl && groqApiKey)  _akEl.value = groqApiKey;
+// ================================================================
+// BOOT — l'app parte DOPO il login Google (chiamata da src/cloud.js)
+// ================================================================
 
-setSyncStatus(gistToken ? 'idle' : 'off');
-// Se configurato, scarica subito i dati aggiornati in background
-if (gistToken && gistId) {
-  gistPull().then(raw => {
-    if (!raw) return;
-    try {
-      const remote = JSON.parse(raw);
-      const localAt  = new Date(JSON.parse(localStorage.getItem(SK)||'{}').at||0);
-      const remoteAt = new Date(remote.at||0);
-      if (remoteAt > localAt) {
-        applyPayload(raw);
-        renderD(); renderR(); renderShop(); updateShopBadge(); updateSidebar();
-        showAlert('☁️ Dati aggiornati dal cloud', 'ok', 3500);
-        setSyncStatus('ok');
-        setTimeout(() => setSyncStatus('idle'), 4000);
-      }
-    } catch(e) { /* silent */ }
-  }).catch(() => { /* nessun Gist configurato o offline — silenzioso */ });
-}
-// Listino prezzi: migra eventuali prezzi già noti dagli item
-items.forEach(it => { if (it.price > 0) pbUpdate(it.name, it.price, it.quantity, it.unit, it.category); });
-// Init calendario (anno/mese corrente già impostati come default)
-calYear  = new Date().getFullYear();
-calMonth = new Date().getMonth();
+/** Stato corrente come oggetto — usato per la push su Firestore. */
+window.buildCloudPayload = function () {
+  return {
+    items, shopping, consumptionLog, additionLog, monthlyReports, priceBook,
+    v: 3, at: new Date().toISOString(),
+  };
+};
+
+/** Applica dati arrivati dal cloud (Firestore / Alexa) e ridisegna la UI. */
+window.applyCloudData = function (d) {
+  if (!d) return;
+  items          = Array.isArray(d.items)          ? d.items          : items;
+  shopping       = Array.isArray(d.shopping)       ? d.shopping       : shopping;
+  consumptionLog = Array.isArray(d.consumptionLog) ? d.consumptionLog : consumptionLog;
+  additionLog    = Array.isArray(d.additionLog)    ? d.additionLog    : additionLog;
+  monthlyReports = Array.isArray(d.monthlyReports) ? d.monthlyReports : monthlyReports;
+  priceBook      = (typeof d.priceBook === 'object' && d.priceBook && !Array.isArray(d.priceBook)) ? d.priceBook : priceBook;
+  localStorage.setItem(SK, JSON.stringify({ items, shopping, consumptionLog, additionLog, monthlyReports, priceBook, v: 3, at: d.at }));
+  renderD(); renderR(); renderShop(); updateShopBadge(); updateSidebar();
+  if (typeof renderMiniCal === 'function') renderMiniCal();
+  if (typeof refreshReportIfVisible === 'function') refreshReportIfVisible();
+  showAlert('☁️ Dispensa aggiornata dal cloud', 'ok', 2500);
+};
+
+/** Avvio dell'app: invocato da cloud.js una volta autenticati. */
+window.bootApp = function (user) {
+  load();
+  renderD();
+  renderR();
+  const _dfh = document.getElementById('disp-fixed-header'); if (_dfh) _dfh.classList.add('visible');
+  updateShopBadge();
+  updateSidebar();
+  renderMiniCal();
+  maybeGenerateMonthlyReport();
+  // Sync legacy Gist (facoltativo, solo se ancora configurato)
+  gistToken = localStorage.getItem(GIST_SK_TOKEN) || '';
+  gistId    = localStorage.getItem(GIST_SK_ID) || '';
+  setSyncStatus('idle');
+  // Listino prezzi: migra eventuali prezzi già noti dagli item
+  items.forEach(it => { if (it.price > 0) pbUpdate(it.name, it.price, it.quantity, it.unit, it.category); });
+  // Init calendario (anno/mese corrente)
+  calYear  = new Date().getFullYear();
+  calMonth = new Date().getMonth();
+};
 
 // ================================================================
 // REFRESH — manuale (pulsante) + pull-to-refresh (swipe down)

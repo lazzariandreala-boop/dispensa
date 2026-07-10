@@ -1,10 +1,26 @@
 {
   "name": "dispensa",
   "version": "1.0.0",
-  "description": "Dispensa di casa — app single-file (index.html) con assistente vocale AI (JARVIS)",
+  "description": "Dispensa di casa — app web/mobile con login Google, sync Firestore e integrazione Alexa",
   "private": true,
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "node --test 'tests/**/*.test.js'",
-    "check": "node --check tests/sandbox.js && node -e \"require('./tests/sandbox.js').loadSandbox(); console.log('index.html inline JS: OK')\""
+    "check": "node --check tests/sandbox.js && node -e \"require('./tests/sandbox.js').loadSandbox(); console.log('index.html inline JS: OK')\"",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:android": "npm run build && npx cap sync android && npx cap open android",
+    "cap:ios": "npm run build && npx cap sync ios && npx cap open ios"
+  },
+  "dependencies": {
+    "firebase": "^10.14.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/ios": "^6.2.0"
   }
 }

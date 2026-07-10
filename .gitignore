@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.claude/
+# Progetti nativi Capacitor (rigenerabili con `npx cap add`)
+android/
+ios/
+alexa-skill/lambda.zip
+alexa-skill/lambda/node_modules/
+*.log
+.DS_Store
+# Credenziali Firebase (service account) — NON committare mai
+serviceAccount*.json
+firebase-service-account*.json
+*firebase-adminsdk*.json
+**/service-account.json
+alexa-skill/lambda/config.json

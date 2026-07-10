@@ -1,0 +1,168 @@
+// ================================================================
+// cloud.js — Autenticazione Google + sincronizzazione Firestore
+// ----------------------------------------------------------------
+// Modulo caricato da index.html come <script type="module">. Gira DOPO
+// lo script classico dell'app, quindi le funzioni window.bootApp /
+// window.applyCloudData / window.buildCloudPayload esistono già.
+//
+// Modello dati: un singolo documento per utente in `households/{uid}`
+// che contiene l'intero stato dell'app ({items, shopping, ...}). Lo stesso
+// documento è quello che la skill Alexa aggiorna (HOUSEHOLD_ID = uid).
+// Strategia di sync: last-writer-wins sul timestamp `at` (come il vecchio Gist),
+// con listener realtime per ricevere le modifiche di Alexa/altri device.
+// ================================================================
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+} from 'firebase/auth';
+import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
+
+// La config web di Firebase NON è segreta (è pubblica per definizione).
+const firebaseConfig = {
+  apiKey: 'AIzaSyByGwfjsEzCxYT_7axcBgtDCm57tFqtlnE',
+  authDomain: 'dispensa-7aecb.firebaseapp.com',
+  projectId: 'dispensa-7aecb',
+  storageBucket: 'dispensa-7aecb.firebasestorage.app',
+  messagingSenderId: '731789281701',
+  appId: '1:731789281701:web:75825df4e5a8f1790fc04c',
+  measurementId: 'G-XLVQH73EF0',
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+const SK = 'dispensa_v3'; // stessa chiave localStorage dell'app
+
+let currentUser = null;
+let unsub = null;
+let pushTimer = null;
+let lastPushAt = 0; // timestamp dell'ultima nostra push, per ignorarne l'eco
+let firstSnap = true;
+
+function userDocRef(uid) {
+  return doc(db, 'households', uid);
+}
+
+function localAt() {
+  try {
+    return new Date(JSON.parse(localStorage.getItem(SK) || '{}').at || 0).getTime();
+  } catch (_) { return 0; }
+}
+
+function setStatus(state) {
+  // Riusa l'indicatore Sync esistente dell'app, se presente.
+  if (typeof window.setSyncStatus === 'function') window.setSyncStatus(state);
+}
+
+const Cloud = {
+  get user() { return currentUser; },
+
+  async signIn() {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error('Login error:', err);
+      if (typeof window.showAlert === 'function') {
+        window.showAlert('❌ Accesso non riuscito: ' + (err.code || err.message), 'err', 4000);
+      }
+    }
+  },
+
+  signOut() { return signOut(auth); },
+
+  /** Salva l'intero stato dell'app sul documento cloud (debounced). */
+  push(payload) {
+    if (!currentUser || !payload) return;
+    clearTimeout(pushTimer);
+    setStatus('syncing');
+    pushTimer = setTimeout(async () => {
+      try {
+        lastPushAt = new Date(payload.at || 0).getTime();
+        await setDoc(userDocRef(currentUser.uid), payload);
+        setStatus('ok');
+        setTimeout(() => setStatus('idle'), 3000);
+      } catch (e) {
+        console.error('Cloud push error:', e);
+        setStatus('err');
+      }
+    }, 1200);
+  },
+};
+
+window.Cloud = Cloud;
+
+// ── Gestione stato di autenticazione ────────────────────────────
+onAuthStateChanged(auth, (user) => {
+  currentUser = user || null;
+  const gate = document.getElementById('login-gate');
+
+  if (user) {
+    document.body.classList.add('authed');
+    if (gate) gate.style.display = 'none';
+
+    const emailEl = document.getElementById('acct-email');
+    if (emailEl) emailEl.textContent = user.email || '';
+    const uidEl = document.getElementById('acct-uid');
+    if (uidEl) uidEl.textContent = user.uid;
+    const nameEl = document.getElementById('acct-name');
+    if (nameEl) nameEl.textContent = user.displayName || 'Utente';
+
+    // Avvia l'app una sola volta
+    if (!window.__booted) {
+      window.__booted = true;
+      try { if (typeof window.bootApp === 'function') window.bootApp(user); } catch (e) { console.error(e); }
+    }
+
+    // Listener realtime sul documento dell'utente
+    firstSnap = true;
+    if (unsub) unsub();
+    unsub = onSnapshot(userDocRef(user.uid), (snap) => {
+      if (!snap.exists()) {
+        // Nessun dato cloud: crea il documento dallo stato locale
+        if (typeof window.buildCloudPayload === 'function') Cloud.push(window.buildCloudPayload());
+        firstSnap = false;
+        return;
+      }
+      const data = snap.data();
+      const remoteAt = new Date(data.at || 0).getTime();
+
+      if (firstSnap) {
+        firstSnap = false;
+        const lAt = localAt();
+        if (remoteAt > lAt) {
+          if (typeof window.applyCloudData === 'function') window.applyCloudData(data);
+        } else if (lAt > remoteAt) {
+          if (typeof window.buildCloudPayload === 'function') Cloud.push(window.buildCloudPayload());
+        }
+        return;
+      }
+
+      // Aggiornamenti successivi (altri device o Alexa)
+      if (remoteAt <= lastPushAt) return; // eco della nostra push → ignora
+      if (typeof window.applyCloudData === 'function') window.applyCloudData(data);
+    }, (err) => console.error('Snapshot error:', err));
+
+  } else {
+    document.body.classList.remove('authed');
+    if (gate) gate.style.display = 'flex';
+    if (unsub) { unsub(); unsub = null; }
+  }
+});
+
+// ── Aggancio dei pulsanti (il modulo è deferred: il DOM esiste già) ──
+const loginBtn = document.getElementById('login-btn');
+if (loginBtn) loginBtn.addEventListener('click', () => Cloud.signIn());
+
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) logoutBtn.addEventListener('click', () => Cloud.signOut());
+
+const copyUidBtn = document.getElementById('copy-uid-btn');
+if (copyUidBtn) copyUidBtn.addEventListener('click', () => {
+  const uid = currentUser?.uid || '';
+  if (uid && navigator.clipboard) {
+    navigator.clipboard.writeText(uid);
+    if (typeof window.showAlert === 'function') window.showAlert('✅ ID copiato', 'ok', 2000);
+  }
+});

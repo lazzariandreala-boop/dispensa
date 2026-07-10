@@ -1,71 +1,79 @@
 # Modello dati Firestore — contratto condiviso App ↔ Alexa
 
-Questo è il **contratto** che sia l'app web/mobile sia la Lambda della skill Alexa
-devono rispettare. Se cambi la forma dei dati, aggiorna **entrambi** i lati.
+Contratto rispettato sia dall'app (web/mobile) sia dalla Lambda Alexa.
+Se cambi la forma dei dati, aggiorna **entrambi** i lati.
 
-## Struttura
+## Struttura: un documento per utente
 
-Una sola "casa" (household). Tutto vive sotto un documento identificato da
-`HOUSEHOLD_ID` (default: `casa`). Ogni entità è una **collection** di documenti
-(non un array), così Alexa può aggiungere/rimuovere un singolo elemento senza
-riscrivere l'intero stato → niente conflitti, e l'app riceve l'aggiornamento in
-tempo reale.
+Tutto lo stato di un utente sta in **un solo documento**:
 
 ```
-households/{householdId}                 ← doc: metadati casa
-  ├── pantry/{itemId}                     ← prodotti in dispensa
-  ├── shopping/{itemId}                   ← lista della spesa
-  ├── additionLog/{logId}                 ← storico aggiunte
-  ├── consumptionLog/{logId}              ← storico consumi
-  └── monthlyReports/{reportId}           ← report mensili
-households/{householdId}  campo priceBook ← mappa listino prezzi
+households/{householdId}
 ```
 
-`householdId` è fisso e identico su app e Lambda (es. `"casa"`). In futuro, per
-supportare più case, diventerà l'ID utente autenticato.
-
-## Documento `pantry/{itemId}`
+dove `householdId` = **UID Firebase dell'utente** (quello mostrato nell'app in
+Sync → "ID per Alexa"). Il documento contiene l'intero payload dell'app, identico
+a quello che prima veniva salvato su Gist:
 
 ```jsonc
 {
-  "name": "Latte",            // string, capitalizzato
-  "quantity": 1,              // number
-  "unit": "l",                // string: g|kg|ml|l|pz|conf
-  "category": "latticini",    // string (vedi categorie sotto)
-  "expiryDate": "2026-07-20", // string YYYY-MM-DD | null
-  "originalExpiry": null,     // string | null (scadenza pre-congelamento)
-  "frozen": false,            // bool
-  "frozenDate": null,         // string | null
-  "thawedDate": null,         // string | null
-  "barcode": null,            // string | null
-  "addedDate": "2026-07-10",  // string YYYY-MM-DD
-  "source": "alexa",          // "app" | "alexa"  (chi l'ha creato)
-  "createdAt": 1720598400000, // number, epoch ms (per ordinamento)
-  "name_lc": "latte"          // name in minuscolo — serve per le query di Alexa
+  "items": [ /* prodotti in dispensa */ ],
+  "shopping": [ /* lista della spesa */ ],
+  "consumptionLog": [ /* storico consumi */ ],
+  "additionLog": [ /* storico aggiunte */ ],
+  "monthlyReports": [ /* report mensili */ ],
+  "priceBook": { /* listino prezzi */ },
+  "v": 3,
+  "at": "2026-07-10T12:34:56.000Z"   // timestamp ISO: usato per il last-writer-wins
 }
 ```
 
-## Documento `shopping/{itemId}`
+> **Perché un solo documento e non collection?** L'app ragiona per array in
+> memoria e sincronizza l'intero stato (come faceva col Gist). Un documento
+> singolo rende la migrazione minima e il listener `onSnapshot` aggiorna l'app
+> in tempo reale quando Alexa scrive. Per una dispensa familiare è ben sotto il
+> limite di 1 MB per documento.
+
+### Sincronizzazione (last-writer-wins)
+- Ad ogni modifica, chi scrive aggiorna `at` con l'ora corrente ISO.
+- L'app applica i dati remoti solo se `remote.at > local.at` (evita di
+  sovrascrivere modifiche più recenti) e ignora l'eco delle proprie push.
+- La Lambda scrive **in transazione** (`runTransaction`) per non perdere
+  aggiornamenti concorrenti.
+
+## Elemento di `items[]`
 
 ```jsonc
 {
-  "name": "Pane",
-  "category": "pane",
-  "checked": false,
+  "id": "abc123",            // string univoca
+  "name": "Latte",           // capitalizzato
+  "quantity": 1,
+  "unit": "l",               // g|kg|ml|l|pz|conf
+  "category": "latticini",   // vedi categorie sotto
+  "expiryDate": "2026-07-20",// YYYY-MM-DD | null
+  "originalExpiry": null,
+  "frozen": false,
+  "frozenDate": null,
+  "thawedDate": null,
+  "barcode": null,
   "addedDate": "2026-07-10",
-  "hintPrice": null,          // number | null (dal listino)
-  "hintQty": null,            // number | null
-  "hintUnit": null,           // string | null
-  "source": "alexa",
-  "createdAt": 1720598400000
+  "source": "alexa"          // "app" | "alexa"
 }
 ```
 
-## Documento `additionLog/{logId}`
+## Elemento di `shopping[]`
 
 ```jsonc
-{ "name": "Latte", "category": "latticini", "qty": 1, "unit": "l",
-  "price": null, "date": "2026-07-10", "source": "alexa" }
+{ "id": "def456", "name": "Pane", "category": "pane", "checked": false,
+  "addedDate": "2026-07-10", "hintPrice": null, "hintQty": null,
+  "hintUnit": null, "source": "alexa" }
+```
+
+## Elemento di `additionLog[]`
+
+```jsonc
+{ "id": "ghi789", "name": "Latte", "category": "latticini", "qty": 1,
+  "unit": "l", "price": null, "date": "2026-07-10", "source": "alexa" }
 ```
 
 ## Categorie valide (`category`)
@@ -73,16 +81,20 @@ supportare più case, diventerà l'ID utente autenticato.
 `carne, pesce, verdure, frutta, latticini, pasta_cereali, pane, salumi,
 condimenti, surgelati, bevande, dolci, legumi, uova, farine, scatola, generico`
 
-La categoria viene rilevata dal nome (funzione `detectCat`, condivisa e portata
-anche nella Lambda: vedi `lambda/detectCat.js`).
+Rilevate dal nome via `detectCat` (vedi `lambda/detectCat.js`, allineato all'app).
 
-## Note operative
+## Regole di sicurezza Firestore
 
-- **ID documento**: generato lato client/Lambda (`push()` o UUID). Non usare il
-  `name` come ID (nomi duplicati / caratteri non validi).
-- **Timestamp `createdAt`**: sempre epoch ms, così l'ordinamento è stabile su
-  tutti i client senza dipendere dai fusi.
-- **Deduplica**: prima di aggiungere alla spesa, la Lambda controlla se esiste
-  già un doc con lo stesso `name` (case-insensitive) non `checked`.
-- **Limite doc Firestore**: 1 MB per documento — irrilevante perché ogni
-  prodotto è un doc separato.
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /households/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
+```
+
+L'Admin SDK usato dalla Lambda **ignora** queste regole (accesso privilegiato),
+quindi Alexa scrive anche con le regole chiuse ai client non autenticati.

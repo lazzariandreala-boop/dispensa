@@ -27,24 +27,21 @@ Tempo stimato: ~1 ora la prima volta.
 3. Nel menu a sinistra: **Build → Firestore Database → Create database**.
    - Modalità: **Production mode** (le regole le mettiamo noi sotto).
    - Location: `eur3 (europe-west)` va bene.
-4. **Regole di sicurezza** (tab *Rules*). Per iniziare, dato che l'accesso passa
-   solo dalla Lambda (che usa privilegi di admin) e dall'app (per ora senza login),
-   metti regole chiuse e usa l'accesso admin dalla Lambda:
+4. **Login Google**: menu *Build → Authentication → Sign-in method* → abilita
+   **Google** come provider. (Già fatto da te ✅.)
+5. **Regole di sicurezza** (Firestore → tab *Rules*): ogni utente legge/scrive
+   solo il proprio documento. La Lambda usa l'Admin SDK che **ignora** le regole.
    ```
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
-       // App con login anonimo/utente potrà leggere/scrivere la propria casa.
-       // Per ora blocca tutto il traffico client diretto: la Lambda usa l'Admin SDK
-       // che BYPASSA queste regole.
-       match /{document=**} {
-         allow read, write: if false;
+       match /households/{uid} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
        }
      }
    }
    ```
-   > Quando in **Fase 2** l'app scriverà su Firestore col login, allenteremo le
-   > regole per l'utente autenticato. L'Admin SDK della Lambda ignora sempre le regole.
+   Incolla, poi **Publish**.
 5. **Service account** (le credenziali che userà la Lambda):
    - Icona ingranaggio ⚙️ (in alto a sx) → **Project settings → Service accounts**.
    - **Generate new private key** → scarica il file JSON. **Tienilo segreto.**
@@ -52,11 +49,42 @@ Tempo stimato: ~1 ora la prima volta.
 
 ---
 
-## Parte 2 — AWS Lambda (il "cervello" della skill)
+## Parte 2 — Il "cervello" della skill
 
-Puoi ospitare il codice della skill in due modi. **Consigliato: AWS Lambda**
-(più controllo e resta separato). In alternativa, "Alexa-hosted" ti evita AWS
-del tutto — vedi nota in fondo.
+Due modi per ospitare il codice:
+
+- **A) Alexa-hosted (Node.js) — CONSIGLIATO per iniziare / uso personale.**
+  Nessun account AWS, deploy dall'editor della Developer Console, gratis. Vedi §2-A.
+- **B) AWS Lambda (Provision your own).** Più controllo, serve account AWS.
+  Necessario se poi vuoi **venderla a terzi** con account linking. Vedi §2-B.
+
+---
+
+### §2-A · Alexa-hosted (via veloce)
+
+1. La crei direttamente nella Parte 3 scegliendo **Alexa-hosted (Node.js)** come
+   hosting (invece di "Provision your own"). Torna qui dopo aver creato la skill.
+2. Nella skill: tab **Code**. Vedi una cartella `lambda/` con `index.js` e
+   `package.json`. Sostituisci/aggiungi i file della nostra cartella
+   `alexa-skill/lambda/`:
+   - `index.js` e `detectCat.js` → incolla il contenuto
+   - `package.json` → assicurati che tra le dipendenze ci siano
+     `ask-sdk-core` e `firebase-admin`
+   - crea un file **`service-account.json`** e incollaci il JSON del service
+     account (Parte 1). *(Il repo della skill è privato sul tuo account Amazon.)*
+   - crea un file **`config.json`** con `{ "householdId": "IL_TUO_UID" }`
+     (l'UID dal menu Sync dell'app).
+3. Premi **Save** poi **Deploy**. Fatto: niente AWS.
+
+> Sicurezza: mettere il service account in un file va bene per uso personale
+> (repo privato). Se **vendi** l'app a terzi, NON si usa un service account nel
+> codice né un householdId fisso: serve l'account linking (vedi in fondo).
+
+Salta la §2-B e vai alla Parte 3.
+
+---
+
+### §2-B · AWS Lambda (Provision your own)
 
 ### 2a. Prepara il pacchetto della Lambda
 
@@ -87,7 +115,9 @@ zip -r ../lambda.zip . # crea alexa-skill/lambda.zip (include node_modules)
 7. **Variabili d'ambiente**: *Configuration → Environment variables → Edit → Add*:
    - `FIREBASE_SERVICE_ACCOUNT` = incolla **tutto** il contenuto del JSON scaricato
      dalla Parte 1 (una sola riga; incolla così com'è, è JSON valido).
-   - `HOUSEHOLD_ID` = `casa`
+   - `HOUSEHOLD_ID` = il **tuo UID Firebase**. Lo trovi così: apri l'app, fai
+     login con Google, apri il menu **Sync** → copia il valore sotto *"ID per Alexa"*.
+     (È l'ID del tuo account: così Alexa scrive sulla tua stessa dispensa.)
 8. **Trigger Alexa**: tab *Configuration → Triggers → Add trigger* → cerca
    **Alexa Skills Kit** → per ora lascia *Skill ID verification* disattivato
    (lo attiveremo dopo aver creato la skill, incollando lo Skill ID) → Add.
