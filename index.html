@@ -1031,6 +1031,75 @@ body:not(.authed) #app-shell { display: none; }
 .acct-box code { background: var(--bg,#0e0f13); padding: 2px 6px; border-radius: 6px; font-size: 11px; }
 #logout-btn { margin-top: 10px; background: transparent; border: 1px solid var(--danger,#e5484d); color: var(--danger,#e5484d); border-radius: 10px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
 
+/* ================================================================
+   💻 LAYOUT DESKTOP — nav laterale + contenuto a griglia
+   Solo dispositivi con mouse (pointer:fine): esclude iPad/tablet touch,
+   che restano sul layout precedente CON lo scanner (hanno la fotocamera).
+================================================================ */
+@media (min-width: 1100px) and (pointer: fine) {
+  body { background: #0a0b0e; }
+
+  #app-shell {
+    max-width: none; width: 100%; height: 100vh; margin: 0;
+    border: none; display: flex; padding-left: 244px;
+  }
+
+  /* ── Rail di navigazione sinistra (ex #tabs) ── */
+  #tabs {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 244px; height: 100vh;
+    flex-direction: column; justify-content: flex-start; align-items: stretch;
+    gap: 4px; padding: 88px 14px 18px;
+    background: var(--bg2); border-top: none; border-right: 1px solid var(--border);
+    z-index: 50;
+  }
+  #tabs::before {
+    content: "🫙 Dispensa"; position: absolute; top: 26px; left: 20px;
+    font-family: 'Inter', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .tb {
+    flex: none; flex-direction: row; justify-content: flex-start; gap: 13px;
+    padding: 11px 14px; border-radius: 12px; color: var(--text2); transition: all .15s;
+  }
+  .tb:hover { background: var(--bg3); color: var(--text); }
+  .tb.active { background: rgba(232,130,30,.12); color: var(--accent); }
+  .tb .ico { font-size: 19px; }
+  .tb .lbl { font-size: 14px; font-weight: 600; letter-spacing: 0; }
+  .tb-badge { position: static; margin-left: auto; top: auto; right: auto; min-width: 18px; }
+
+  /* ── Colonna contenuto ── */
+  #wrap { width: auto; max-width: none; min-width: 0; flex: 1; border: none; height: 100vh; }
+  #hdr { padding: 16px 34px; justify-content: flex-end; background: var(--bg); }
+  #hdr h1 { display: none; }
+
+  #disp-fixed-header { position: static; padding: 20px 34px 4px; background: var(--bg); }
+  #disp-fixed-header .disp-stats, #disp-fixed-header .sbox { max-width: 880px; }
+
+  #main { padding: 22px 34px 44px; max-width: 1560px; }
+
+  /* Griglie */
+  #dlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+  #rlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; }
+  #shoplist { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; align-items: start; }
+  .icard, .rcard { margin-bottom: 0; transition: border-color .15s, transform .15s; }
+  .icard:hover, .rcard:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+  /* Contieni i blocchi larghi delle altre pagine */
+  #pg-spesa > .card, #pg-spesa > div[style] { max-width: 660px; }
+  #pg-ricette .sbox, #pg-ricette .frow { max-width: 900px; }
+  #pg-calendario, #pg-listino { max-width: 1100px; }
+
+  /* ── Pannello destro (aggiunta veloce) ── */
+  #sidebar { width: 372px; flex: none; flex-shrink: 0; border-left: 1px solid var(--border); background: var(--bg); }
+  #sidebar-inner { padding: 22px 20px 44px; }
+
+  /* Scanner e roba solo-mobile: nascosti su desktop */
+  #sb-scan-section, #sb-cal-section { display: none; }
+  #fab-add { display: none !important; }
+  .scan-btn, #scanbtn, [onclick*="openScanner"] { display: none !important; }
+}
+
 </style>
 </head>
 <body>
@@ -1278,7 +1347,7 @@ body:not(.authed) #app-shell { display: none; }
     </div>
 
     <!-- Barcode scan shortcut -->
-    <div class="sb-section">
+    <div class="sb-section" id="sb-scan-section">
       <div class="sb-section-title">Scorciatoie</div>
       <button class="sb-btn" onclick="openAddModal();setTimeout(()=>openScanner(),350)">
         <span class="sb-ico">📷</span><div class="sb-txt"><span class="sb-label">Scansiona barcode</span><span class="sb-sub">Aggiungi con fotocamera</span></div><span class="sb-arrow">›</span>
@@ -1286,7 +1355,7 @@ body:not(.authed) #app-shell { display: none; }
     </div>
 
     <!-- Mini calendar -->
-    <div class="sb-section">
+    <div class="sb-section" id="sb-cal-section">
       <div class="sb-section-title">📅 Calendario acquisti</div>
       <div class="sb-mini-cal">
         <div class="sb-mini-cal-nav">
