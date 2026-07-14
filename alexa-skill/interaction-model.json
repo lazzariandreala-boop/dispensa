@@ -16,6 +16,10 @@
             { "name": "unit", "type": "UnitType" }
           ],
           "samples": [
+            "aggiungi {item}",
+            "metti {item}",
+            "aggiungi {quantity} {item}",
+            "aggiungi {quantity} {unit} di {item}",
             "aggiungi {item} in dispensa",
             "aggiungi {item} alla dispensa",
             "metti {item} in dispensa",

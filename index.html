@@ -5334,7 +5334,7 @@ window.buildCloudPayload = function () {
 };
 
 /** Applica dati arrivati dal cloud (Firestore / Alexa) e ridisegna la UI. */
-window.applyCloudData = function (d) {
+window.applyCloudData = function (d, silent) {
   if (!d) return;
   items          = Array.isArray(d.items)          ? d.items          : items;
   shopping       = Array.isArray(d.shopping)       ? d.shopping       : shopping;
@@ -5346,7 +5346,7 @@ window.applyCloudData = function (d) {
   renderD(); renderR(); renderShop(); updateShopBadge(); updateSidebar();
   if (typeof renderMiniCal === 'function') renderMiniCal();
   if (typeof refreshReportIfVisible === 'function') refreshReportIfVisible();
-  showAlert('☁️ Dispensa aggiornata dal cloud', 'ok', 2500);
+  if (!silent) showAlert('☁️ Dispensa aggiornata dal cloud', 'ok', 2500);
 };
 
 /** Avvio dell'app: invocato da cloud.js una volta autenticati. */

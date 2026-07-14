@@ -40,8 +40,10 @@ const SK = 'dispensa_v3'; // stessa chiave localStorage dell'app
 let currentUser = null;
 let unsub = null;
 let pushTimer = null;
-let lastPushAt = 0; // timestamp dell'ultima nostra push, per ignorarne l'eco
+let lastPushAt = 0;  // timestamp dell'ultima nostra push, per ignorarne l'eco
 let firstSnap = true;
+let syncReady = false; // true dopo aver riconciliato col cloud: prima non pushiamo
+                       // (altrimenti un save() all'avvio sovrascriverebbe i dati di Alexa)
 
 function userDocRef(uid) {
   return doc(db, 'households', uid);
@@ -89,7 +91,9 @@ const Cloud = {
 
   /** Salva l'intero stato dell'app sul documento cloud (debounced). */
   push(payload) {
-    if (!currentUser || !payload) return;
+    // Finché non abbiamo riconciliato col cloud all'apertura, NON scriviamo:
+    // eviterebbe che un save() di avvio sovrascriva le modifiche di Alexa.
+    if (!currentUser || !payload || !syncReady) return;
     clearTimeout(pushTimer);
     setStatus('syncing');
     pushTimer = setTimeout(async () => {
@@ -101,6 +105,9 @@ const Cloud = {
       } catch (e) {
         console.error('Cloud push error:', e);
         setStatus('err');
+        if (typeof window.showAlert === 'function') {
+          window.showAlert('⚠️ Salvataggio cloud fallito: ' + (e.code || e.message), 'err', 6000);
+        }
       }
     }, 1200);
   },
@@ -132,32 +139,37 @@ onAuthStateChanged(auth, (user) => {
 
     // Listener realtime sul documento dell'utente
     firstSnap = true;
+    syncReady = false;
     if (unsub) unsub();
     unsub = onSnapshot(userDocRef(user.uid), (snap) => {
-      if (!snap.exists()) {
-        // Nessun dato cloud: crea il documento dallo stato locale
-        if (typeof window.buildCloudPayload === 'function') Cloud.push(window.buildCloudPayload());
-        firstSnap = false;
-        return;
-      }
-      const data = snap.data();
-      const remoteAt = new Date(data.at || 0).getTime();
-
       if (firstSnap) {
         firstSnap = false;
-        const lAt = localAt();
-        if (remoteAt > lAt) {
-          if (typeof window.applyCloudData === 'function') window.applyCloudData(data);
-        } else if (lAt > remoteAt) {
+        if (!snap.exists()) {
+          // Nessun dato cloud ancora: crea il documento dallo stato locale.
+          syncReady = true;
           if (typeof window.buildCloudPayload === 'function') Cloud.push(window.buildCloudPayload());
+          return;
         }
+        // All'apertura il CLOUD è la fonte di verità: adotta i dati remoti
+        // (che possono contenere le aggiunte di Alexa o di altri device).
+        if (typeof window.applyCloudData === 'function') window.applyCloudData(snap.data(), true);
+        syncReady = true;
         return;
       }
 
-      // Aggiornamenti successivi (altri device o Alexa)
+      // Aggiornamenti successivi in tempo reale (Alexa / altri device)
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const remoteAt = new Date(data.at || 0).getTime();
       if (remoteAt <= lastPushAt) return; // eco della nostra push → ignora
       if (typeof window.applyCloudData === 'function') window.applyCloudData(data);
-    }, (err) => console.error('Snapshot error:', err));
+    }, (err) => {
+      console.error('Snapshot error:', err);
+      // permission-denied = regole Firestore che bloccano l'app (Alexa non si vedrà mai)
+      if (typeof window.showAlert === 'function') {
+        window.showAlert('⚠️ Sync cloud non attivo (' + (err.code || err.message) + '). Controlla le regole Firestore.', 'err', 8000);
+      }
+    });
 
   } else {
     document.body.classList.remove('authed');
