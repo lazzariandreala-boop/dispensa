@@ -1073,22 +1073,23 @@ body:not(.authed) #app-shell { display: none; }
   #hdr { padding: 16px 34px; justify-content: flex-end; background: var(--bg); }
   #hdr h1 { display: none; }
 
-  #disp-fixed-header { position: static; padding: 20px 34px 4px; background: var(--bg); }
-  #disp-fixed-header .disp-stats, #disp-fixed-header .sbox { max-width: 880px; }
+  /* Contenuto centrato nello spazio disponibile (tra rail e pannello destro) */
+  #disp-fixed-header { position: static; padding: 20px 40px 4px; background: var(--bg); }
+  #disp-fixed-header .disp-stats, #disp-fixed-header .sbox { max-width: 1180px; margin-left: auto; margin-right: auto; }
 
-  #main { padding: 22px 34px 44px; max-width: 1560px; }
+  #main { padding: 22px 0 44px; }
+  #main > .page { max-width: 1220px; margin-left: auto; margin-right: auto; padding-left: 40px; padding-right: 40px; }
 
   /* Griglie */
   #dlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
   #rlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; }
   #shoplist { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; align-items: start; }
+  #dlist .empty, #rlist .empty, #shoplist .empty { grid-column: 1 / -1; }
   .icard, .rcard { margin-bottom: 0; transition: border-color .15s, transform .15s; }
   .icard:hover, .rcard:hover { border-color: var(--border2); transform: translateY(-2px); }
 
-  /* Contieni i blocchi larghi delle altre pagine */
-  #pg-spesa > .card, #pg-spesa > div[style] { max-width: 660px; }
-  #pg-ricette .sbox, #pg-ricette .frow { max-width: 900px; }
-  #pg-calendario, #pg-listino { max-width: 1100px; }
+  /* Blocchi con form: centrati e di larghezza comoda */
+  #pg-spesa > .card, #pg-spesa > div[style] { max-width: 680px; margin-left: auto; margin-right: auto; }
 
   /* ── Pannello destro (aggiunta veloce) ── */
   #sidebar { width: 372px; flex: none; flex-shrink: 0; border-left: 1px solid var(--border); background: var(--bg); }
