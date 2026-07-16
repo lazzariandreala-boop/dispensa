@@ -1395,6 +1395,7 @@ body:not(.authed) #app-shell { display: none; }
       <button id="logout-btn">Esci</button>
     </div>
 
+    <!-- ===== SYNC LEGACY GITHUB GIST — RIMOSSO (ora si usa Firestore) =====
     <details style="margin-bottom:6px">
       <summary style="font-size:12px;color:var(--text3);cursor:pointer">Sync legacy GitHub Gist (opzionale)</summary>
     <div class="sync-step">
@@ -1427,6 +1428,7 @@ body:not(.authed) #app-shell { display: none; }
       <button class="btn btn-s" onclick="clearGistConfig()" style="padding:10px 14px;color:var(--danger)">🗑</button>
     </div>
     </details>
+    ===== fine sync legacy Gist ===== -->
     <div class="divider"></div>
     <!-- ===== JARVIS AI (Groq) — DISATTIVATO, sostituito da Alexa ==========
          L'assistente vocale in-app non serve più: i comandi vocali passano
@@ -4813,8 +4815,8 @@ async function scheduleSync() {
 // ── UI del modal sync ────────────────────────────────────────────
 
 function openSyncModal() {
-  document.getElementById('gist-token').value = gistToken;
-  document.getElementById('gist-id').value    = gistId;
+  const _gt = document.getElementById('gist-token'); if (_gt) _gt.value = gistToken;
+  const _gi = document.getElementById('gist-id');    if (_gi) _gi.value = gistId;
   setSyncModalStatus('', '');
   document.getElementById('sync-modal').classList.add('show');
 }
