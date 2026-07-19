@@ -17,10 +17,13 @@ lista della spesa scrivendo su **Firestore**, lo stesso database usato dall'app.
 ## Cosa puoi dire ad Alexa
 
 - "Alexa, chiedi a **mia dispensa** di aggiungere il latte"
-- "…di aggiungere 500 grammi di pasta in dispensa"
+- "…di aggiungere 500 grammi di pasta"
 - "…di aggiungere il pane alla lista della spesa"
 - "…di togliere il tonno dalla dispensa"
-- "…cosa sta per scadere"
+- "…che il latte scade il venti luglio" (imposta scadenza)
+- "…cosa scade" / "cosa è in scadenza"
+- "…cosa è scaduto"
+- "…ho ancora il latte" (controlla presenza)
 - "…cosa devo comprare"
 
 ## Stato

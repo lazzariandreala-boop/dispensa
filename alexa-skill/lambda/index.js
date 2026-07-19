@@ -150,79 +150,104 @@ async function runSkill(event, context) {
   // ── Handlers ───────────────────────────────────────────────────
   const is = (h, name) => Alexa.getRequestType(h.requestEnvelope) === 'IntentRequest' && Alexa.getIntentName(h.requestEnvelope) === name;
 
+  const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+  const sayDate = (iso) => { const p = String(iso).split('-'); return p.length === 3 ? Number(p[2]) + ' ' + MESI[Number(p[1]) - 1] : iso; };
+
   const handlers = [
     { canHandle: (h) => Alexa.getRequestType(h.requestEnvelope) === 'LaunchRequest',
-      handle: (h) => speak(h, 'Ciao, sono la tua dispensa. Dimmi di aggiungere o togliere prodotti, o chiedimi cosa sta per scadere.', true) },
+      handle: (h) => speak(h, 'Dispensa pronta. Dimmi pure.', true) },
 
     { canHandle: (h) => is(h, 'AddPantryItemIntent'),
       async handle(h) {
-        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Non ho capito quale prodotto aggiungere.', true);
+        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Quale prodotto?', true);
         const name = cap(raw), cat = detectCat(name), def = qtyDefault(cat);
         const qty = Number(slotValue(h, 'quantity')) || def.qty; const unit = slotValue(h, 'unit') || def.unit;
-        const phrase = await withState((data) => {
+        await withState((data) => {
           data.items.push({ id: uid(), name, quantity: qty, unit, category: cat, expiryDate: null, originalExpiry: null, frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: todayRome(), source: 'alexa' });
           data.additionLog.push({ id: uid(), name, category: cat, qty, unit, price: null, date: todayRome(), source: 'alexa' });
-          return `Ho aggiunto ${name} in dispensa.`;
         });
-        return speak(h, phrase, true);
+        return speak(h, `Aggiunto ${name}.`, true);
       } },
 
     { canHandle: (h) => is(h, 'AddShoppingItemIntent'),
       async handle(h) {
-        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Non ho capito cosa aggiungere alla lista.', true);
+        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Cosa aggiungo?', true);
         const name = cap(raw);
         const phrase = await withState((data) => {
-          if (data.shopping.some((s) => !s.checked && (s.name || '').toLowerCase() === name.toLowerCase())) return `${name} è già nella lista della spesa.`;
+          if (data.shopping.some((s) => !s.checked && (s.name || '').toLowerCase() === name.toLowerCase())) return `${name} c'è già.`;
           data.shopping.push({ id: uid(), name, category: detectCat(name), checked: false, addedDate: todayRome(), hintPrice: null, hintQty: null, hintUnit: null, source: 'alexa' });
-          return `Ho aggiunto ${name} alla lista della spesa.`;
+          return `${name} in lista.`;
         });
         return speak(h, phrase, true);
       } },
 
     { canHandle: (h) => is(h, 'RemovePantryItemIntent'),
       async handle(h) {
-        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Non ho capito cosa togliere.', true);
+        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Cosa tolgo?', true);
         const lc = cap(raw).toLowerCase();
-        const phrase = await withState((data) => { const b = data.items.length; data.items = data.items.filter((it) => (it.name || '').toLowerCase() !== lc); return b === data.items.length ? `Non ho trovato ${cap(raw)} in dispensa.` : `Ho tolto ${cap(raw)} dalla dispensa.`; });
+        const phrase = await withState((data) => { const b = data.items.length; data.items = data.items.filter((it) => (it.name || '').toLowerCase() !== lc); return b === data.items.length ? `Non trovo ${cap(raw)}.` : `Tolto ${cap(raw)}.`; });
         return speak(h, phrase, true);
       } },
 
     { canHandle: (h) => is(h, 'RemoveShoppingItemIntent'),
       async handle(h) {
-        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Non ho capito cosa togliere dalla lista.', true);
+        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Cosa tolgo dalla lista?', true);
         const lc = cap(raw).toLowerCase();
-        const phrase = await withState((data) => { const b = data.shopping.length; data.shopping = data.shopping.filter((s) => !(s.name || '').toLowerCase().includes(lc)); return b === data.shopping.length ? `Non ho trovato ${cap(raw)} nella lista.` : `Ho tolto ${cap(raw)} dalla lista della spesa.`; });
+        const phrase = await withState((data) => { const b = data.shopping.length; data.shopping = data.shopping.filter((s) => !(s.name || '').toLowerCase().includes(lc)); return b === data.shopping.length ? `Non c'è ${cap(raw)}.` : `Tolto ${cap(raw)}.`; });
+        return speak(h, phrase, true);
+      } },
+
+    { canHandle: (h) => is(h, 'SetExpiryIntent'),
+      async handle(h) {
+        const raw = slotValue(h, 'item'); const dslot = slotValue(h, 'date');
+        if (!raw) return speak(h, 'Quale prodotto?', true);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dslot)) return speak(h, 'Dimmi una data precisa, ad esempio il venticinque luglio.', true);
+        const lc = cap(raw).toLowerCase();
+        const phrase = await withState((data) => {
+          const found = data.items.filter((it) => (it.name || '').toLowerCase().includes(lc));
+          if (!found.length) return `Non trovo ${cap(raw)}.`;
+          found.forEach((it) => { it.expiryDate = dslot; });
+          return `Ok, ${cap(raw)} scade il ${sayDate(dslot)}.`;
+        });
         return speak(h, phrase, true);
       } },
 
     { canHandle: (h) => is(h, 'CheckItemIntent'),
       async handle(h) {
-        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Non ho capito quale prodotto cercare.', true);
+        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Quale prodotto?', true);
         const lc = cap(raw).toLowerCase(); const data = await readState();
         const found = data.items.filter((it) => (it.name || '').toLowerCase().includes(lc));
-        if (!found.length) return speak(h, `No, non hai ${cap(raw)} in dispensa.`, true);
+        if (!found.length) return speak(h, `No, ${cap(raw)} non c'è.`, true);
         const tot = found.reduce((s, it) => s + (Number(it.quantity) || 0), 0);
-        return speak(h, `Sì, hai ${tot} ${found[0].unit || ''} di ${cap(raw)} in dispensa.`, true);
+        return speak(h, `Sì, ${tot} ${found[0].unit || ''}.`, true);
       } },
 
     { canHandle: (h) => is(h, 'ListExpiringIntent'),
       async handle(h) {
         const data = await readState();
         const soon = data.items.filter((it) => !it.frozen).map((it) => ({ name: it.name, days: daysTo(it.expiryDate) })).filter((x) => x.days !== null && x.days >= 0 && x.days <= 7).sort((a, b) => a.days - b.days);
-        if (!soon.length) return speak(h, 'Non hai prodotti in scadenza nei prossimi sette giorni.', true);
-        return speak(h, 'In scadenza: ' + soon.map((x) => `${x.name} tra ${x.days} giorni`).join(', ') + '.', true);
+        if (!soon.length) return speak(h, 'Niente in scadenza.', true);
+        return speak(h, 'In scadenza: ' + soon.map((x) => `${x.name}, ${x.days === 0 ? 'oggi' : x.days + ' giorni'}`).join('; ') + '.', true);
+      } },
+
+    { canHandle: (h) => is(h, 'ListExpiredIntent'),
+      async handle(h) {
+        const data = await readState();
+        const gone = data.items.filter((it) => { const d = daysTo(it.expiryDate); return d !== null && d < 0; }).map((it) => it.name);
+        if (!gone.length) return speak(h, 'Niente di scaduto.', true);
+        return speak(h, 'Scaduti: ' + gone.join(', ') + '.', true);
       } },
 
     { canHandle: (h) => is(h, 'ListShoppingIntent'),
       async handle(h) {
         const data = await readState(); const names = data.shopping.filter((s) => !s.checked).map((s) => s.name);
-        if (!names.length) return speak(h, 'La lista della spesa è vuota.', true);
-        return speak(h, 'Devi comprare: ' + names.join(', ') + '.', true);
+        if (!names.length) return speak(h, 'Lista vuota.', true);
+        return speak(h, 'Ti serve: ' + names.join(', ') + '.', true);
       } },
 
-    { canHandle: (h) => is(h, 'AMAZON.HelpIntent'), handle: (h) => speak(h, 'Puoi dire: aggiungi latte in dispensa; aggiungi pane alla lista della spesa; oppure, cosa sta per scadere.', true) },
-    { canHandle: (h) => is(h, 'AMAZON.StopIntent') || is(h, 'AMAZON.CancelIntent'), handle: (h) => speak(h, 'A presto!') },
-    { canHandle: (h) => is(h, 'AMAZON.FallbackIntent'), handle: (h) => speak(h, 'Non ho capito. Prova a dire: aggiungi latte in dispensa.', true) },
+    { canHandle: (h) => is(h, 'AMAZON.HelpIntent'), handle: (h) => speak(h, 'Dimmi: aggiungi il latte; cosa scade; oppure, il latte scade il venti luglio.', true) },
+    { canHandle: (h) => is(h, 'AMAZON.StopIntent') || is(h, 'AMAZON.CancelIntent'), handle: (h) => speak(h, 'Ciao!') },
+    { canHandle: (h) => is(h, 'AMAZON.FallbackIntent'), handle: (h) => speak(h, 'Non ho capito. Prova: aggiungi il latte.', true) },
     { canHandle: (h) => Alexa.getRequestType(h.requestEnvelope) === 'SessionEndedRequest', handle: (h) => h.responseBuilder.getResponse() },
   ];
 

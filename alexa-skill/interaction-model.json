@@ -80,10 +80,33 @@
           ],
           "samples": [
             "ho ancora {item}",
+            "ho {item}",
+            "c'è {item}",
             "c'è {item} in dispensa",
             "abbiamo {item}",
             "quanto {item} ho",
-            "è rimasto {item}"
+            "quanto {item} è rimasto",
+            "è rimasto {item}",
+            "resta {item}",
+            "controlla se ho {item}"
+          ]
+        },
+        {
+          "name": "SetExpiryIntent",
+          "slots": [
+            { "name": "item", "type": "FoodItem" },
+            { "name": "date", "type": "AMAZON.DATE" }
+          ],
+          "samples": [
+            "imposta la scadenza di {item} al {date}",
+            "imposta la scadenza di {item} il {date}",
+            "metti la scadenza di {item} al {date}",
+            "la scadenza di {item} è il {date}",
+            "{item} scade il {date}",
+            "{item} scade {date}",
+            "segna che {item} scade il {date}",
+            "aggiungi la scadenza {date} a {item}",
+            "la scadenza di {item} è {date}"
           ]
         },
         {
@@ -93,8 +116,28 @@
             "cosa scade",
             "cosa sta scadendo",
             "cosa scade presto",
+            "cosa scade a breve",
             "cosa devo consumare",
-            "cosa sta per scadere"
+            "cosa devo mangiare presto",
+            "cosa sta per scadere",
+            "cosa è in scadenza",
+            "quali prodotti scadono",
+            "quali prodotti sono in scadenza",
+            "cosa sta per andare a male",
+            "scadenze",
+            "prodotti in scadenza"
+          ]
+        },
+        {
+          "name": "ListExpiredIntent",
+          "slots": [],
+          "samples": [
+            "cosa è scaduto",
+            "cosa c'è di scaduto",
+            "quali prodotti sono scaduti",
+            "cosa devo buttare",
+            "prodotti scaduti",
+            "ci sono prodotti scaduti"
           ]
         },
         {
@@ -104,7 +147,10 @@
             "cosa devo comprare",
             "leggi la lista della spesa",
             "cosa c'è nella lista della spesa",
-            "dimmi la lista della spesa"
+            "dimmi la lista della spesa",
+            "cosa manca",
+            "cosa serve",
+            "lista della spesa"
           ]
         }
       ],
