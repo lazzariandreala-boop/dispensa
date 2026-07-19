@@ -1,0 +1,88 @@
+/* ================================================================
+   Design System — Dispensa · dark green SaaS
+   Unico file sorgente dei design token. Le classi in index.html li usano
+   tramite var(--…). I nomi "legacy" (--accent, --bg2, …) sono ri-mappati
+   al nuovo brand verde per ricolorare l'app senza toccare ogni regola.
+================================================================ */
+:root {
+  /* ── Background ──────────────────────────────────────────────── */
+  --bg:               #0B0E12;
+  --bg-secondary:     #12161E;
+  --surface:          #191F2A;
+  --surface-elevated: #1F2734;
+
+  /* ── Brand ───────────────────────────────────────────────────── */
+  --primary:      #22C55E;
+  --primary-dark: #16A34A;
+  --primary-glow: rgba(34,197,94,.28);
+  --primary-dim:  rgba(34,197,94,.13);
+  --lime:         #84CC16;
+
+  /* ── Stati semantici ─────────────────────────────────────────── */
+  --warning:      #FACC15;
+  --warning-dark: #EAB308;
+  --danger:       #EF4444;
+  --danger-dark:  #DC2626;
+  --info:         #3B82F6;
+  --freeze:       #38BDF8;  /* "Metti in cella" / freezer */
+
+  /* ── Testo ───────────────────────────────────────────────────── */
+  --text:           #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted:     #64748B;
+
+  /* ── Bordi ───────────────────────────────────────────────────── */
+  --border:        rgba(255,255,255,.08);
+  --border-strong: rgba(255,255,255,.14);
+  --border-active: rgba(34,197,94,.5);
+
+  /* ── Ombre / glow ────────────────────────────────────────────── */
+  --shadow-card: 0 20px 40px rgba(0,0,0,.35);
+  --glow:        0 0 40px rgba(34,197,94,.25);
+
+  /* ── Radius ──────────────────────────────────────────────────── */
+  --radius-card:        20px;
+  --radius-btn:         14px;
+  --radius-input:       14px;
+  --radius-card-mobile: 18px;
+
+  /* ── Tipografia ──────────────────────────────────────────────── */
+  --font-head: 'Sora', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* ── Gradienti d'ambiente ────────────────────────────────────── */
+  --grad-primary: linear-gradient(135deg, #22C55E, #16A34A);
+  --grad-hero:    linear-gradient(145deg, #0B0E12, #101827 50%, #071A12);
+  --grad-glass:   linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  --grad-green-radial: radial-gradient(circle, rgba(34,197,94,.35), transparent 60%);
+
+  /* ── Compatibilità con i nomi variabile esistenti ────────────── */
+  --bg2: var(--bg-secondary);
+  --bg3: var(--surface);
+  --bg4: var(--surface-elevated);
+  --border2: var(--border-strong);
+  --accent: var(--primary);
+  --accent2: #4ADE80;
+  --accent-dim: var(--primary-dim);
+  --accent-glow: var(--primary-glow);
+  --text2: var(--text-secondary);
+  --text3: var(--text-muted);
+  --danger-dim: rgba(239,68,68,.13);
+  --success: var(--primary);
+  --success-dim: var(--primary-dim);
+  --success-glow: var(--primary-glow);
+  --freeze-dim: rgba(56,189,248,.13);
+  --freeze-glow: rgba(56,189,248,.28);
+  --warn: var(--warning);
+  --warn-dim: rgba(250,204,21,.13);
+  --warn-glow: rgba(250,204,21,.28);
+  --r: var(--radius-card);
+  --rs: var(--radius-btn);
+  --rc: 14px;
+  --shadow: var(--shadow-card);
+
+  /* ── Layout ──────────────────────────────────────────────────── */
+  --tabh: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}

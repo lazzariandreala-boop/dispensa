@@ -15,7 +15,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>🫙 Dispensa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Design system: token centralizzati (dark green) -->
+<link rel="stylesheet" href="/src/styles/tokens.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <!-- Firebase auth + Firestore sync (bundlato da Vite). Modulo deferred: gira dopo lo script dell'app. -->
 <script type="module" src="/src/cloud.js"></script>
@@ -23,31 +26,19 @@
 /* ================================================
    CSS VARIABLES & GLOBAL RESET
 ================================================ */
-:root {
-  --bg:#0a0a0d; --bg2:#131316; --bg3:#1b1b1f; --bg4:#232328;
-  --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
-  --accent:#f07d1e; --accent2:#fba94c;
-  --accent-dim:rgba(240,125,30,.13); --accent-glow:rgba(240,125,30,.28);
-  --text:#f0ece6; --text2:#7a7a85; --text3:#44444c;
-  --danger:#e05555; --danger-dim:rgba(224,85,85,.13);
-  --success:#44c270; --success-dim:rgba(68,194,112,.13); --success-glow:rgba(68,194,112,.28);
-  --freeze:#5b9be0; --freeze-dim:rgba(91,155,224,.13); --freeze-glow:rgba(91,155,224,.28);
-  --warn:#e8be40;   --warn-dim:rgba(232,190,64,.13);   --warn-glow:rgba(232,190,64,.28);
-  --r:18px; --rs:12px; --rc:14px;
-  --shadow:0 12px 48px rgba(0,0,0,.8);
-  --tabh:64px; --safe-bottom:env(safe-area-inset-bottom,0px);
-  --safe-top:env(safe-area-inset-top,0px);
-}
+/* I design token vivono ora in src/styles/tokens.css (caricato prima di questo <style>). */
 *, *::before, *::after {
   box-sizing: border-box; margin: 0; padding: 0;
   -webkit-tap-highlight-color: transparent;
 }
 html, body {
   height: 100%; background: var(--bg); color: var(--text);
-  font-family: 'Inter', sans-serif; font-size: 16px;
+  font-family: var(--font-body); font-size: 16px;
   overflow: hidden; -webkit-text-size-adjust: 100%;
 }
 body { display: flex; justify-content: center; }
+/* Titoli in Sora (font display del brand) */
+h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 
 /* ================================================
    LAYOUT — adattivo
