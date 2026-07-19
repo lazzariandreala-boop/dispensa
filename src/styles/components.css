@@ -1,0 +1,121 @@
+/* ================================================================
+   Component Library — Dispensa (dark green SaaS)
+   Classi riutilizzabili, prefisso .ds-  · usano i token di tokens.css.
+   Additive: non modificano le viste esistenti finché non le si adotta.
+================================================================ */
+
+/* ── Card ────────────────────────────────────────────────────── */
+.ds-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.ds-card--glass {
+  background: var(--grad-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: var(--border-strong);
+}
+.ds-card--hover:hover { transform: translateY(-3px); border-color: var(--border-strong); box-shadow: var(--shadow-card), var(--glow); }
+.ds-card__title { font-family: var(--font-head); font-weight: 700; font-size: 16px; color: var(--text); }
+.ds-card__sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── Button ──────────────────────────────────────────────────── */
+.ds-btn {
+  --_bg: var(--surface-elevated);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--font-body); font-weight: 600; font-size: 14px; line-height: 1;
+  padding: 12px 18px; border-radius: var(--radius-btn);
+  background: var(--_bg); color: var(--text); border: 1px solid var(--border);
+  cursor: pointer; user-select: none; white-space: nowrap;
+  transition: transform .12s ease, filter .15s ease, background .15s ease, border-color .15s ease;
+}
+.ds-btn:hover { border-color: var(--border-strong); }
+.ds-btn:active { transform: scale(.97); }
+.ds-btn--primary {
+  background: var(--grad-primary); color: #05140A; border: none; font-weight: 700;
+  box-shadow: 0 8px 22px rgba(34,197,94,.28);
+}
+.ds-btn--primary:hover { filter: brightness(1.06); }
+.ds-btn--ghost { background: transparent; }
+.ds-btn--danger { background: transparent; border-color: rgba(239,68,68,.4); color: var(--danger); }
+.ds-btn--danger:hover { background: rgba(239,68,68,.1); }
+.ds-btn--sm { padding: 8px 12px; font-size: 13px; border-radius: 11px; }
+.ds-btn--icon { padding: 0; width: 40px; height: 40px; border-radius: 50%; }
+.ds-btn--block { width: 100%; }
+
+/* ── Badge (stato prodotto) ──────────────────────────────────── */
+.ds-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 700; letter-spacing: .2px;
+  padding: 4px 10px; border-radius: 999px; line-height: 1;
+}
+.ds-badge--fresh   { background: var(--primary-dim);  color: #4ADE80; }
+.ds-badge--soon    { background: var(--warn-dim);     color: var(--warning); }
+.ds-badge--expired { background: var(--danger-dim);   color: #F87171; }
+.ds-badge--frozen  { background: var(--freeze-dim);   color: var(--freeze); }
+.ds-badge--info    { background: rgba(59,130,246,.13); color: var(--info); }
+.ds-badge--dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ── Progress (barra freschezza) ─────────────────────────────── */
+.ds-progress { height: 7px; border-radius: 999px; background: var(--surface-elevated); overflow: hidden; }
+.ds-progress__fill { height: 100%; border-radius: 999px; background: var(--primary); transition: width .35s ease; }
+.ds-progress__fill--soon    { background: var(--warning); }
+.ds-progress__fill--expired { background: var(--danger); }
+
+/* ── Input / Select ──────────────────────────────────────────── */
+.ds-field { display: flex; flex-direction: column; gap: 6px; }
+.ds-label { font-size: 11px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: var(--text-muted); }
+.ds-input, .ds-select {
+  width: 100%; background: var(--surface-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius-input); padding: 12px 14px;
+  color: var(--text); font-family: var(--font-body); font-size: 14px; outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  -webkit-appearance: none; appearance: none;
+}
+.ds-input::placeholder { color: var(--text-muted); }
+.ds-input:focus, .ds-select:focus { border-color: var(--border-active); box-shadow: 0 0 0 3px var(--primary-dim); }
+.ds-select { background-image: linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%), linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%); background-position: calc(100% - 18px) center, calc(100% - 13px) center; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; padding-right: 34px; }
+
+/* ── Avatar ──────────────────────────────────────────────────── */
+.ds-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; display: inline-flex; align-items: center; justify-content: center; background: var(--grad-primary); color: #05140A; font-family: var(--font-head); font-weight: 700; font-size: 15px; }
+.ds-avatar--ring { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary-dim); }
+
+/* ── MetricCard (KPI) ────────────────────────────────────────── */
+.ds-metric {
+  position: relative; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-card); padding: 18px 18px 16px;
+  transition: transform .18s ease, border-color .18s ease;
+}
+.ds-metric:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+.ds-metric::after { /* glow d'accento in alto a destra */
+  content: ""; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px;
+  background: var(--grad-green-radial); opacity: .6; pointer-events: none;
+}
+.ds-metric--soon::after    { background: radial-gradient(circle, rgba(250,204,21,.30), transparent 60%); }
+.ds-metric--expired::after { background: radial-gradient(circle, rgba(239,68,68,.30), transparent 60%); }
+.ds-metric--info::after    { background: radial-gradient(circle, rgba(59,130,246,.30), transparent 60%); }
+.ds-metric__head { display: flex; align-items: center; justify-content: space-between; }
+.ds-metric__icon { width: 36px; height: 36px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; background: var(--surface-elevated); border: 1px solid var(--border); }
+.ds-metric__value { font-family: var(--font-head); font-weight: 800; font-size: 34px; line-height: 1; margin-top: 12px; color: var(--text); }
+.ds-metric__label { font-size: 12px; color: var(--text-secondary); margin-top: 5px; }
+.ds-metric__hint { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── ChartCard ───────────────────────────────────────────────── */
+.ds-chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 18px 20px; }
+.ds-chart-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.ds-chart-card__title { font-family: var(--font-head); font-weight: 700; font-size: 15px; color: var(--text); }
+.ds-chart-card__body { min-height: 160px; }
+
+/* ── Modal ───────────────────────────────────────────────────── */
+.ds-modal-overlay { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(3,6,10,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.ds-modal-overlay.show { opacity: 1; pointer-events: all; }
+.ds-modal { width: 100%; max-width: 440px; background: var(--surface-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 22px; transform: translateY(10px) scale(.98); transition: transform .2s ease; }
+.ds-modal-overlay.show .ds-modal { transform: none; }
+
+/* ── Icon chip (contenitore emoji alimento) ──────────────────── */
+.ds-food-ico { width: 46px; height: 46px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; background: var(--surface-elevated); border: 1px solid var(--border); flex-shrink: 0; }
