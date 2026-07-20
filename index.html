@@ -129,6 +129,30 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .dash-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 900px) { .dash-kpis { grid-template-columns: 1fr 1fr; } .dash-charts { grid-template-columns: 1fr; } .dash-title { font-size: 22px; } }
 
+/* ── Product Smart Card (Fase 5) ── */
+.pcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 14px 16px; margin-bottom: 10px; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.pcard:hover { transform: translateY(-2px); border-color: var(--border-strong); box-shadow: var(--shadow-card); }
+.pcard.expired  { border-color: rgba(239,68,68,.35); }
+.pcard.expiring { border-color: rgba(250,204,21,.32); }
+.pcard.frozen   { border-color: rgba(56,189,248,.30); }
+.pcard__top { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.pcard__info { flex: 1; min-width: 0; }
+.pcard__name { font-weight: 700; font-size: 15px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcard__meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; text-transform: capitalize; }
+.pcard__price { color: var(--primary); font-weight: 600; }
+.pcard__fresh { margin-top: 13px; }
+.pcard__fresh-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+.pcard__exp { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.pcard__exp.soon { color: var(--warning); }
+.pcard__exp.expired { color: var(--danger); }
+.pcard__exp.ok { color: var(--primary); }
+.pcard__pct { font-size: 11px; color: var(--text-muted); }
+.pcard__bar { display: flex; align-items: center; gap: 10px; }
+.pcard__bar .ds-progress { flex: 1; }
+.pcard__step { width: 27px; height: 27px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface-elevated); color: var(--text-secondary); font-size: 17px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
+.pcard__step:hover { border-color: var(--primary); color: var(--primary); }
+.pcard .iactions { margin: 13px -16px -14px; border-radius: 0 0 var(--radius-card) var(--radius-card); background: var(--bg-secondary); border-top: 1px solid var(--border); }
+
 /* Bottom tab bar */
 #tabs {
   height: var(--tabh); background: var(--bg2);
@@ -1109,8 +1133,7 @@ body:not(.authed) #app-shell { display: none; }
   #rlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; }
   #shoplist { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; align-items: start; }
   #dlist .empty, #rlist .empty, #shoplist .empty { grid-column: 1 / -1; }
-  .icard, .rcard { margin-bottom: 0; transition: border-color .15s, transform .15s; }
-  .icard:hover, .rcard:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .pcard, .rcard { margin-bottom: 0; }
 
   /* Blocchi con form: centrati e di larghezza comoda */
   #pg-spesa > .card, #pg-spesa > div[style] { max-width: 680px; margin-left: auto; margin-right: auto; }
@@ -2925,31 +2948,37 @@ function renderD() {
     else if (d !== null && d < 0)    cc = 'expired';
     else if (d !== null && d <= 3)   cc = 'expiring';
 
-    const fbFrozen  = it.frozen     ? `<span class="badge fr" style="margin-left:5px">❄</span>` : '';
-    const fbThawed  = it.thawedDate ? `<span class="badge wn" style="margin-left:4px">🌡</span>` : '';
+    // Badge di stato (fase 5)
+    let badge = '';
+    if (it.frozen)                      badge = '<span class="ds-badge ds-badge--frozen">❄ Cella</span>';
+    else if (d !== null && d < 0)       badge = '<span class="ds-badge ds-badge--expired">Scaduto</span>';
+    else if (d === 0)                   badge = '<span class="ds-badge ds-badge--soon">Oggi</span>';
+    else if (d !== null && d <= 3)      badge = '<span class="ds-badge ds-badge--soon">Presto</span>';
+    else if (d !== null && d <= 7)      badge = '<span class="ds-badge ds-badge--soon">In settimana</span>';
+    else if (it.expiryDate)             badge = '<span class="ds-badge ds-badge--fresh">Fresco</span>';
+    const cooked = it.isCucinato ? '<span class="ds-badge" style="background:rgba(167,139,250,.13);color:#a78bfa">🍳</span>' : '';
+    const consumed = it.consumed || 0;
+    const fillCls = consumed >= 75 ? 'ds-progress__fill--expired' : consumed >= 40 ? 'ds-progress__fill--soon' : '';
 
-    // Bottone congela/scongela contestuale
-    const freezeBtn = it.frozen
-      ? `<button class="abtn wn" onclick="thawItem('${it.id}',event)">🌡 Scongela</button>`
-      : `<button class="abtn fr" onclick="freezeItem('${it.id}',event)">❄ Congela</button>`;
-
-    return `<div class="icard ${cc}" id="ic-${it.id}">
-  <div class="irow" onclick="toggleAct('${it.id}')">
-    <div class="iico">${ico(it.category)}</div>
-    <div class="iinfo">
-      <div class="iname">${escHtml(it.name)}${it.frozen?'<span class="badge fr" style="margin-left:5px">❄</span>':''}${it.isCucinato?'<span class="badge" style="margin-left:5px;background:rgba(167,139,250,.1);color:#a78bfa;border:1px solid rgba(167,139,250,.3)">🍳</span>':''}</div>
-      <div class="imeta">${getCatIco(it.category)} ${it.category||'generico'} · ${it.quantity} ${it.unit}${it.price>0?` · <span style="color:var(--success)">€${parseFloat(it.price).toFixed(2)}</span>`:''}</div>
-      ${it.expiryDate?`<div class="iexp ${ec}">${et}</div>`:`<div class="iexp" style="color:var(--text3)">Nessuna scadenza</div>`}
+    return `<div class="pcard ${cc}" id="ic-${it.id}">
+  <div class="pcard__top" onclick="toggleAct('${it.id}')">
+    <div class="ds-food-ico">${ico(it.category)}</div>
+    <div class="pcard__info">
+      <div class="pcard__name">${escHtml(it.name)} ${cooked}</div>
+      <div class="pcard__meta">${it.category || 'generico'} · ${it.quantity} ${it.unit}${it.price > 0 ? ` · <span class="pcard__price">€${parseFloat(it.price).toFixed(2)}</span>` : ''}</div>
     </div>
-    <div style="color:var(--text3);font-size:13px;padding:4px">›</div>
+    ${badge}
   </div>
-  <div class="iprog-wrap">
-    <button class="iprog-btn" onclick="changeConsumed('${it.id}',-10,event)" title="Meno consumato">−</button>
-    <div class="iprog-bar-bg">
-      <div class="iprog-bar-fill" style="width:${it.consumed||0}%;background:${(it.consumed||0)>=75?'var(--danger)':(it.consumed||0)>=40?'var(--warn)':'var(--success)'}"></div>
+  <div class="pcard__fresh">
+    <div class="pcard__fresh-head">
+      <span class="pcard__exp ${ec}">${it.expiryDate ? et : 'Nessuna scadenza'}</span>
+      <span class="pcard__pct">${consumed}% consumato</span>
     </div>
-    <span class="iprog-pct">${it.consumed||0}%</span>
-    <button class="iprog-btn" onclick="changeConsumed('${it.id}',10,event)" title="Più consumato">+</button>
+    <div class="pcard__bar">
+      <button class="pcard__step" onclick="changeConsumed('${it.id}',-10,event)" title="Meno consumato">−</button>
+      <div class="ds-progress"><div class="ds-progress__fill ${fillCls}" style="width:${consumed}%"></div></div>
+      <button class="pcard__step" onclick="changeConsumed('${it.id}',10,event)" title="Più consumato">+</button>
+    </div>
   </div>
   <div class="iactions" id="ia-${it.id}">
     <button class="abtn ok" onclick="consumeItem('${it.id}',event)">🍴 Finito</button>
