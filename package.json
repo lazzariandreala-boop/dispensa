@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^6.3.1",
+    "apexcharts": "^6.3.0",
     "firebase": "^10.14.1"
   },
   "devDependencies": {

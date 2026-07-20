@@ -23,6 +23,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <!-- Firebase auth + Firestore sync (bundlato da Vite). Modulo deferred: gira dopo lo script dell'app. -->
 <script type="module" src="/src/cloud.js"></script>
+<!-- ApexCharts (globale, per la Dashboard) -->
+<script type="module" src="/src/charts.js"></script>
 <style>
 /* ================================================
    CSS VARIABLES & GLOBAL RESET
@@ -118,6 +120,14 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .page { display: none; padding: 14px 14px 0; animation: fi .2s ease; }
 .page.active { display: block; }
 @keyframes fi { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
+
+/* ── Dashboard (Fase 4) ── */
+.dash-hero { margin-bottom: 20px; }
+.dash-title { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.5px; line-height: 1.15; }
+.dash-sub { color: var(--text-secondary); margin-top: 5px; font-size: 14px; }
+.dash-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+.dash-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 900px) { .dash-kpis { grid-template-columns: 1fr 1fr; } .dash-charts { grid-template-columns: 1fr; } .dash-title { font-size: 22px; } }
 
 /* Bottom tab bar */
 #tabs {
@@ -1179,13 +1189,9 @@ body:not(.authed) #app-shell { display: none; }
 
 <div id="main">
 
-  <!-- ===== TAB: DASHBOARD (contenuto in Fase 4) ===== -->
+  <!-- ===== TAB: DASHBOARD ===== -->
   <div id="pg-dashboard" class="page">
-    <div class="ds-card" style="text-align:center;padding:48px 24px">
-      <div style="font-size:40px">📊</div>
-      <div class="ds-card__title" style="margin-top:10px">Dashboard</div>
-      <div class="ds-card__sub">Panoramica e grafici — in arrivo</div>
-    </div>
+    <div id="dash-root"></div>
   </div>
 
   <!-- ===== TAB: DISPENSA ===== -->
@@ -2822,9 +2828,11 @@ function goTab(name, el) {
   // Mostra/nascondi header fisso dispensa
   const dfh = document.getElementById('disp-fixed-header');
   if (dfh) dfh.classList.toggle('visible', name === 'dispensa');
+  if (name === 'dashboard') renderDashboard();
   if (name === 'dispensa')  renderD();
   if (name === 'ricette')   renderR();
   if (name === 'spesa')     renderShop();
+  if (name === 'statistiche' && typeof renderStatistiche === 'function') renderStatistiche();
   // Chiudi scanner se si cambia tab
   if (scanRunning) closeScanner();
 }
@@ -3464,6 +3472,72 @@ function closeRestock(e, force) {
 function goTabById(name) {
   const tabBtn = document.querySelector(`#tabs .tb[onclick*="'${name}'"]`);
   if (tabBtn) goTab(name, tabBtn);
+}
+
+// ----------------------------------------------------------------
+// DASHBOARD (Fase 4) — KPI + grafici ApexCharts
+// ----------------------------------------------------------------
+let _dashCharts = [];
+function _dashArea(elId, name, labels, data, color) {
+  const el = document.getElementById(elId);
+  if (!el || !window.ApexCharts) return null;
+  const c = new window.ApexCharts(el, {
+    chart: { type: 'area', height: 200, toolbar: { show: false }, zoom: { enabled: false },
+      fontFamily: "'Inter',sans-serif", foreColor: '#94A3B8', animations: { easing: 'easeinout', speed: 650 } },
+    series: [{ name, data }],
+    colors: [color],
+    dataLabels: { enabled: false },
+    stroke: { curve: 'smooth', width: 3 },
+    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: .4, opacityTo: 0, stops: [0, 95] } },
+    grid: { borderColor: 'rgba(255,255,255,.06)', strokeDashArray: 4, padding: { left: 6, right: 8, top: -6 } },
+    xaxis: { categories: labels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { fontSize: '11px' } } },
+    yaxis: { labels: { formatter: (v) => Math.round(v), style: { fontSize: '11px' } }, min: 0 },
+    tooltip: { theme: 'dark' },
+    markers: { size: 0, hover: { size: 5 } },
+  });
+  c.render();
+  return c;
+}
+
+function renderDashboard() {
+  const root = document.getElementById('dash-root');
+  if (!root) return;
+
+  // KPI dai dati reali
+  const total   = items.length;
+  const soon    = items.filter(it => { const d = daysTo(it.expiryDate); return !it.frozen && d !== null && d >= 0 && d <= 7; }).length;
+  const expired = items.filter(it => { const d = daysTo(it.expiryDate); return d !== null && d < 0; }).length;
+  const toBuy   = shopping.filter(s => !s.checked).length;
+
+  // Serie settimanale (ultimi 7 giorni)
+  const DOW = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d; });
+  const keyOf = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const labels = days.map(d => DOW[d.getDay()]);
+  const keys = days.map(keyOf);
+  const consumi = keys.map(k => consumptionLog.filter(e => e.date === k).length);
+  const valore  = keys.map(k => additionLog.filter(e => e.date === k).reduce((s, e) => s + (parseFloat(e.price) || 0), 0));
+
+  root.innerHTML = `
+    <div class="dash-hero">
+      <h1 class="dash-title">La tua dispensa, sempre sotto controllo</h1>
+      <p class="dash-sub">Tutto quello che hai, quando ne hai bisogno.</p>
+    </div>
+    <div class="dash-kpis">
+      <div class="ds-metric"><div class="ds-metric__head"><div class="ds-metric__icon">🥗</div></div><div class="ds-metric__value">${total}</div><div class="ds-metric__label">Ingredienti</div><div class="ds-metric__hint">in dispensa</div></div>
+      <div class="ds-metric ds-metric--soon"><div class="ds-metric__head"><div class="ds-metric__icon">⏰</div></div><div class="ds-metric__value">${soon}</div><div class="ds-metric__label">In scadenza</div><div class="ds-metric__hint">entro 7 giorni</div></div>
+      <div class="ds-metric ds-metric--expired"><div class="ds-metric__head"><div class="ds-metric__icon">⚠️</div></div><div class="ds-metric__value">${expired}</div><div class="ds-metric__label">Scaduti</div><div class="ds-metric__hint">da controllare</div></div>
+      <div class="ds-metric ds-metric--info"><div class="ds-metric__head"><div class="ds-metric__icon">🛒</div></div><div class="ds-metric__value">${toBuy}</div><div class="ds-metric__label">Da comprare</div><div class="ds-metric__hint">in lista spesa</div></div>
+    </div>
+    <div class="dash-charts">
+      <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Consumi settimanali</div><span class="ds-badge ds-badge--fresh">7 giorni</span></div><div id="chart-consumi"></div></div>
+      <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Valore aggiunto (€)</div><span class="ds-badge ds-badge--info">7 giorni</span></div><div id="chart-valore"></div></div>
+    </div>`;
+
+  _dashCharts.forEach(c => { try { c.destroy(); } catch (e) {} });
+  _dashCharts = [];
+  _dashCharts.push(_dashArea('chart-consumi', 'Consumi', labels, consumi, '#22C55E'));
+  _dashCharts.push(_dashArea('chart-valore', 'Valore €', labels, valore, '#3B82F6'));
 }
 
 /** Auto-rileva categoria nel form aggiunta rapida sidebar */
@@ -5423,6 +5497,13 @@ window.bootApp = function (user) {
   // Init calendario (anno/mese corrente)
   calYear  = new Date().getFullYear();
   calMonth = new Date().getMonth();
+  // Su desktop (mouse) l'app atterra sulla Dashboard; su mobile resta su Dispensa.
+  try {
+    if (window.matchMedia && window.matchMedia('(min-width:1100px) and (pointer:fine)').matches) {
+      const _db = document.querySelector('.tb[onclick*="dashboard"]');
+      if (_db) goTab('dashboard', _db);
+    }
+  } catch (e) {}
 };
 
 // ================================================================
