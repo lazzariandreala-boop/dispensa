@@ -130,6 +130,11 @@ onAuthStateChanged(auth, (user) => {
     if (uidEl) uidEl.textContent = user.uid;
     const nameEl = document.getElementById('acct-name');
     if (nameEl) nameEl.textContent = user.displayName || 'Utente';
+    // Profilo nella sidebar desktop
+    const navName = document.getElementById('nav-name');
+    if (navName) navName.textContent = user.displayName || (user.email || 'Utente').split('@')[0];
+    const navAv = document.getElementById('nav-avatar');
+    if (navAv) navAv.textContent = (user.displayName || user.email || 'U').trim().charAt(0).toUpperCase();
 
     // Avvia l'app una sola volta
     if (!window.__booted) {
