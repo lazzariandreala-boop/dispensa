@@ -170,6 +170,30 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .sugg-item__sub { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
 .sugg-item__arrow { color: var(--text-muted); font-size: 16px; }
 
+/* ── Statistiche (Fase 7) ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: stretch; }
+.stats-donut { display: flex; align-items: center; justify-content: center; padding: 10px; }
+.stats-summary { display: flex; flex-direction: column; justify-content: center; }
+.stat-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 6px; border-bottom: 1px solid var(--border); }
+.stat-row:last-child { border-bottom: none; }
+.stat-row__lbl { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 9px; }
+.stat-row__ico { font-size: 16px; }
+.stat-row__val { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: var(--text); }
+.stat-row__val--green { color: var(--primary); }
+.stat-row__val--red { color: var(--danger); }
+@media (max-width: 900px) { .stats-grid { grid-template-columns: 1fr; } }
+
+/* ── Recipe card v2 (Fase 7) ── */
+.rcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; box-shadow: none; overflow: visible; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.rcard:hover { transform: translateY(-2px); border-color: var(--border-strong); box-shadow: var(--shadow-card); }
+.rcard__top { display: flex; align-items: center; gap: 12px; }
+.rcard__ico { font-size: 22px; }
+.rcard__info { flex: 1; min-width: 0; }
+.rcard__name { font-family: var(--font-body); font-weight: 700; font-size: 15px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcard__meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.rcard__foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.rcard__ingr { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+
 /* Bottom tab bar */
 #tabs {
   height: var(--tabh); background: var(--bg2);
@@ -1240,13 +1264,9 @@ body:not(.authed) #app-shell { display: none; }
     <div id="dlist"></div>
   </div>
 
-  <!-- ===== TAB: STATISTICHE (contenuto in Fase 7) ===== -->
+  <!-- ===== TAB: STATISTICHE ===== -->
   <div id="pg-statistiche" class="page">
-    <div class="ds-card" style="text-align:center;padding:48px 24px">
-      <div style="font-size:40px">📈</div>
-      <div class="ds-card__title" style="margin-top:10px">Statistiche</div>
-      <div class="ds-card__sub">Sprechi evitati, risparmio, dispensa ottimizzata — in arrivo</div>
-    </div>
+    <div id="stats-root"></div>
   </div>
 
   <!-- ===== TAB: RICETTE ===== -->
@@ -3270,23 +3290,22 @@ function renderR() {
 
   el.innerHTML = list.map(r => {
     const ok = canMake(r), ok1 = canMake1(r);
-    const badge = ok
-      ? `<span style="color:var(--success);font-size:12px">✓ Tutto ok</span>`
-      : ok1
-        ? `<span style="color:var(--warn);font-size:12px">⚡ Per 1 pers.</span>`
-        : '';
+    const st = ok
+      ? '<span class="ds-badge ds-badge--fresh">✓ Fattibile</span>'
+      : ok1 ? '<span class="ds-badge ds-badge--soon">⚡ Per 1</span>' : '';
     return `<div class="rcard" onclick="openR('${r.id}')">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-    <div>
-      <div class="rname">${r.icon} ${escHtml(r.name)}</div>
-      <div class="rcat ${r.cat}">${CAT_L[r.cat] || r.cat}</div>
+  <div class="rcard__top">
+    <div class="ds-food-ico rcard__ico">${r.icon}</div>
+    <div class="rcard__info">
+      <div class="rcard__name">${escHtml(r.name)}</div>
+      <div class="rcard__meta">⏱ ${r.time} min · ${r.diff}</div>
     </div>
-    <div style="text-align:right;flex-shrink:0">
-      <div style="font-size:12px;color:var(--text2)">⏱ ${r.time}min · ${r.diff}</div>
-      <div style="margin-top:3px">${badge}</div>
-    </div>
+    ${st}
   </div>
-  <div class="ringr">${r.ingredients.slice(0,5).map(i => i.name).join(', ')}${r.ingredients.length > 5 ? ` +${r.ingredients.length-5}` : ''}</div>
+  <div class="rcard__foot">
+    <span class="ds-badge ds-badge--info">${CAT_L[r.cat] || r.cat}</span>
+    <span class="rcard__ingr">${r.ingredients.slice(0, 4).map(i => i.name).join(', ')}${r.ingredients.length > 4 ? ` +${r.ingredients.length - 4}` : ''}</span>
+  </div>
 </div>`;
   }).join('');
 }
@@ -3614,6 +3633,62 @@ function renderSbSuggest() {
       <span class="sugg-item__arrow">›</span></div>`;
   }
   el.innerHTML = html ? `<div class="sb-section-title">Suggerimenti</div>${html}` : '';
+}
+
+// ----------------------------------------------------------------
+// STATISTICHE (Fase 7) — donut "Dispensa ottimizzata" + riepilogo
+// ----------------------------------------------------------------
+let _statChart = null;
+function _radialBar(elId, pct) {
+  const el = document.getElementById(elId);
+  if (!el || !window.ApexCharts) return null;
+  const c = new window.ApexCharts(el, {
+    chart: { type: 'radialBar', height: 300, fontFamily: "'Inter',sans-serif" },
+    series: [pct],
+    colors: ['#22C55E'],
+    plotOptions: { radialBar: {
+      hollow: { size: '64%' },
+      track: { background: 'rgba(255,255,255,.06)', strokeWidth: '100%' },
+      dataLabels: {
+        name: { show: true, offsetY: 24, color: '#94A3B8', fontSize: '13px' },
+        value: { show: true, offsetY: -14, color: '#F8FAFC', fontSize: '42px', fontWeight: 800, fontFamily: "'Sora',sans-serif", formatter: (v) => Math.round(v) + '%' },
+      },
+    } },
+    fill: { type: 'gradient', gradient: { shade: 'dark', type: 'horizontal', gradientToColors: ['#16A34A'], stops: [0, 100] } },
+    stroke: { lineCap: 'round' },
+    labels: ['Dispensa ottimizzata'],
+  });
+  c.render();
+  return c;
+}
+
+function renderStatistiche() {
+  const root = document.getElementById('stats-root');
+  if (!root) return;
+  const total = items.length;
+  const expired = items.filter(it => { const d = daysTo(it.expiryDate); return d !== null && d < 0; }).length;
+  const ottim = total ? Math.round((1 - expired / total) * 100) : 100;
+  const usati = consumptionLog.length;
+  const sprechi = consumptionLog.reduce((s, e) => { const p = pbGet(e.name); return s + (p && p.price ? parseFloat(p.price) : 0); }, 0);
+  const valore = items.reduce((s, it) => { const p = pbGet(it.name); const pr = it.price || (p && p.price) || 0; return s + (parseFloat(pr) || 0); }, 0);
+
+  root.innerHTML = `
+    <div class="dash-hero">
+      <h1 class="dash-title">Statistiche</h1>
+      <p class="dash-sub">Sprechi evitati, risparmio e dispensa ottimizzata.</p>
+    </div>
+    <div class="stats-grid">
+      <div class="ds-chart-card stats-donut"><div id="stat-donut"></div></div>
+      <div class="ds-card stats-summary">
+        <div class="stat-row"><span class="stat-row__lbl"><span class="stat-row__ico">🍴</span> Ingredienti utilizzati</span><span class="stat-row__val">${usati}</span></div>
+        <div class="stat-row"><span class="stat-row__lbl"><span class="stat-row__ico">♻️</span> Sprechi evitati</span><span class="stat-row__val stat-row__val--green">€${sprechi.toFixed(2)}</span></div>
+        <div class="stat-row"><span class="stat-row__lbl"><span class="stat-row__ico">💰</span> Valore in dispensa</span><span class="stat-row__val">€${valore.toFixed(2)}</span></div>
+        <div class="stat-row"><span class="stat-row__lbl"><span class="stat-row__ico">⚠️</span> Prodotti scaduti</span><span class="stat-row__val stat-row__val--red">${expired}</span></div>
+      </div>
+    </div>`;
+
+  if (_statChart) { try { _statChart.destroy(); } catch (e) {} }
+  _statChart = _radialBar('stat-donut', ottim);
 }
 
 /** Auto-rileva categoria nel form aggiunta rapida sidebar */
