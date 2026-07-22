@@ -239,6 +239,10 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .app-loader__text { position: relative; font-family: var(--font-head); font-weight: 600; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-secondary); }
 @keyframes jarspin { to { transform: rotate(360deg); } }
 
+/* Bottoni-icona nell'header (Statistiche + Impostazioni) */
+.hdr-icon-btn, #sync-btn { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; gap: 0; font-size: 18px; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: all .18s; flex-shrink: 0; white-space: normal; }
+.hdr-icon-btn:hover, #sync-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--surface-elevated); }
+
 /* Bottom tab bar */
 #tabs {
   height: var(--tabh); background: var(--bg2);
@@ -246,7 +250,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
   flex-shrink: 0; padding-bottom: var(--safe-bottom);
 }
 .tb {
-  flex: 1 0 58px; display: flex; flex-direction: column; align-items: center;
+  flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 3px; border: none; background: none;
   color: var(--text3); cursor: pointer; font-family: 'Inter', sans-serif;
   transition: color .2s; position: relative;
@@ -266,9 +270,8 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 /* Nav: struttura sidebar. Su mobile brand/footer/voci-desktop sono nascosti;
    la barra in basso mostra solo .nav-items con i 5 tab principali. */
 .nav-brand, .nav-footer { display: none; }
-/* Mobile: tutti i tab visibili in ordine desktop, barra scorrevole in orizzontale */
-#tabs .nav-items { display: flex; flex: 1; height: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-#tabs .nav-items::-webkit-scrollbar { display: none; }
+.nav-desk { display: none; } /* Statistiche/Impostazioni: solo sidebar desktop (su mobile sono nell'header) */
+#tabs .nav-items { display: flex; flex: 1; height: 100%; min-width: 0; }
 
 /* ================================================
    COMPONENTI CONDIVISI
@@ -1272,9 +1275,8 @@ body:not(.authed) #app-shell { display: none; }
       <span id="refresh-ico">↻</span>
     </button>
     -->
-    <button id="sync-btn" onclick="openSyncModal()" title="Account e sincronizzazione">
-      <span id="sync-dot">⚪</span><span id="sync-label">Sync</span>
-    </button>
+    <button class="hdr-icon-btn" onclick="goTabById('statistiche')" title="Statistiche">📈</button>
+    <button id="sync-btn" class="hdr-icon-btn" onclick="openSyncModal()" title="Impostazioni e sincronizzazione">⚙️</button>
   </div>
 </header>
 <div id="ptr-indicator"><span id="ptr-spinner" style="display:none"></span><span id="ptr-text">Trascina per aggiornare</span></div>
@@ -1425,12 +1427,12 @@ body:not(.authed) #app-shell { display: none; }
 
   <!-- Voci di navigazione -->
   <div class="nav-items">
-    <button class="tb nav-desk" onclick="goTab('dashboard',this)"><span class="ico">📊</span><span class="lbl">Dashboard</span></button>
+    <button class="tb" onclick="goTab('dashboard',this)"><span class="ico">📊</span><span class="lbl">Dashboard</span></button>
     <button class="tb active" onclick="goTab('dispensa',this)"><span class="ico">🫙</span><span class="lbl">Dispensa</span></button>
     <button class="tb" onclick="goTab('ricette',this)"><span class="ico">👨‍🍳</span><span class="lbl">Ricette</span></button>
     <button class="tb" onclick="goTab('spesa',this)" id="tb-spesa"><span class="ico">🛒</span><span class="lbl">Spesa</span><span class="tb-badge" id="spesa-badge"></span></button>
     <button class="tb" onclick="goTab('calendario',this)"><span class="ico">📅</span><span class="lbl">Calendario</span></button>
-    <button class="tb nav-desk" onclick="goTab('listino',this)"><span class="ico">📒</span><span class="lbl">Listino</span></button>
+    <button class="tb" onclick="goTab('listino',this)"><span class="ico">📒</span><span class="lbl">Listino</span></button>
     <button class="tb nav-desk" onclick="goTab('statistiche',this)"><span class="ico">📈</span><span class="lbl">Statistiche</span></button>
     <button class="tb nav-desk" onclick="openSyncModal()"><span class="ico">⚙️</span><span class="lbl">Impostazioni</span></button>
   </div>
@@ -5062,9 +5064,9 @@ function setSyncStatus(state) {
     err:     { dot:'🔴', lbl:'Errore',     cls:'err' },
   };
   const s = map[state] || map.idle;
-  dot.textContent = s.dot;
-  lbl.textContent = s.lbl;
-  btn.className   = s.cls;
+  if (dot) dot.textContent = s.dot;
+  if (lbl) lbl.textContent = s.lbl;
+  btn.className   = 'hdr-icon-btn ' + s.cls;
   btn.id = 'sync-btn';
 }
 
