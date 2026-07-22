@@ -194,6 +194,43 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .rcard__foot { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
 .rcard__ingr { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
 
+/* ── Fase 8 · polish ── */
+/* Empty state */
+.empty { padding: 56px 20px; }
+.empty .eico { font-size: 46px; opacity: .9; }
+.empty .etit { font-family: var(--font-head); font-weight: 700; color: var(--text-secondary); }
+
+/* Spesa · item come card */
+.shop-group { margin-bottom: 16px; }
+.shop-cat-label { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--text-muted); margin: 0 2px 8px; }
+.shop-item { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; transition: border-color .15s, opacity .2s; }
+.shop-item:hover { border-color: var(--border-strong); }
+.shop-item.checked { opacity: .55; }
+.shop-check { width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--border-strong); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #05140A; font-size: 14px; font-weight: 800; flex-shrink: 0; transition: all .15s; }
+.shop-check.checked { background: var(--primary); border-color: var(--primary); }
+.shop-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.shop-item.checked .shop-name { text-decoration: line-through; color: var(--text-secondary); }
+.shop-del { width: 28px; height: 28px; border-radius: 8px; border: none; background: transparent; color: var(--text-muted); font-size: 18px; cursor: pointer; flex-shrink: 0; transition: all .15s; }
+.shop-del:hover { color: var(--danger); background: rgba(239,68,68,.12); }
+.shop-restock, .shop-undo { border: 1px solid var(--border); background: var(--surface-elevated); color: var(--text-secondary); border-radius: 9px; padding: 6px 9px; font-size: 12px; cursor: pointer; transition: all .15s; }
+.shop-restock:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Micro-interazioni */
+.btn:active, .sq-add:active, .chip:active, .scard:active { transform: scale(.97); }
+.cal-nav-btn { transition: all .15s; }
+.cal-nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Sheet "Altro" (mobile) */
+.nav-mob { display: flex; }
+.more-sheet { position: fixed; inset: 0; z-index: 210; display: flex; align-items: flex-end; background: rgba(3,6,10,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .2s; }
+.more-sheet.show { opacity: 1; pointer-events: all; }
+.more-sheet__panel { width: 100%; background: var(--surface-elevated); border-top: 1px solid var(--border-strong); border-radius: 22px 22px 0 0; padding: 10px 16px calc(20px + var(--safe-bottom)); transform: translateY(100%); transition: transform .28s cubic-bezier(.22,1,.36,1); }
+.more-sheet.show .more-sheet__panel { transform: none; }
+.more-sheet__handle { width: 40px; height: 4px; border-radius: 999px; background: var(--border-strong); margin: 6px auto 14px; }
+.more-sheet__item { display: flex; align-items: center; gap: 13px; width: 100%; background: transparent; border: none; color: var(--text); font-family: var(--font-body); font-size: 15px; font-weight: 500; padding: 14px 8px; cursor: pointer; border-radius: 12px; text-align: left; }
+.more-sheet__item:hover, .more-sheet__item:active { background: var(--surface); }
+.more-sheet__ico { font-size: 20px; }
+
 /* Bottom tab bar */
 #tabs {
   height: var(--tabh); background: var(--bg2);
@@ -1136,6 +1173,7 @@ body:not(.authed) #app-shell { display: none; }
   /* Voci */
   .nav-items { flex-direction: column; gap: 3px; flex: 1; height: auto; overflow-y: auto; padding: 4px 12px 8px; }
   .nav-desk { display: flex; }
+  .nav-mob { display: none; }
   .tb {
     flex: none; flex-direction: row; justify-content: flex-start; gap: 13px;
     padding: 11px 13px; border-radius: 12px; color: var(--text-secondary); transition: all .15s;
@@ -1377,9 +1415,10 @@ body:not(.authed) #app-shell { display: none; }
     <button class="tb" onclick="goTab('ricette',this)"><span class="ico">👨‍🍳</span><span class="lbl">Ricette</span></button>
     <button class="tb" onclick="goTab('spesa',this)" id="tb-spesa"><span class="ico">🛒</span><span class="lbl">Spesa</span><span class="tb-badge" id="spesa-badge"></span></button>
     <button class="tb" onclick="goTab('calendario',this)"><span class="ico">📅</span><span class="lbl">Calendario</span></button>
-    <button class="tb" onclick="goTab('listino',this)"><span class="ico">📒</span><span class="lbl">Listino</span></button>
+    <button class="tb nav-desk" onclick="goTab('listino',this)"><span class="ico">📒</span><span class="lbl">Listino</span></button>
     <button class="tb nav-desk" onclick="goTab('statistiche',this)"><span class="ico">📈</span><span class="lbl">Statistiche</span></button>
     <button class="tb nav-desk" onclick="openSyncModal()"><span class="ico">⚙️</span><span class="lbl">Impostazioni</span></button>
+    <button class="tb nav-mob" onclick="openMoreSheet()"><span class="ico">⋯</span><span class="lbl">Altro</span></button>
   </div>
 
   <!-- Footer sidebar (solo desktop): profilo + upgrade -->
@@ -1496,6 +1535,17 @@ body:not(.authed) #app-shell { display: none; }
 </aside>
 
 </div><!-- #app-shell -->
+
+<!-- ===== SHEET "ALTRO" (solo mobile) ===== -->
+<div id="more-sheet" class="more-sheet" onclick="closeMoreSheet(event)">
+  <div class="more-sheet__panel">
+    <div class="more-sheet__handle"></div>
+    <button class="more-sheet__item" onclick="goTabById('dashboard');closeMoreSheet(null,1)"><span class="more-sheet__ico">📊</span> Dashboard</button>
+    <button class="more-sheet__item" onclick="goTabById('statistiche');closeMoreSheet(null,1)"><span class="more-sheet__ico">📈</span> Statistiche</button>
+    <button class="more-sheet__item" onclick="goTabById('listino');closeMoreSheet(null,1)"><span class="more-sheet__ico">📒</span> Listino</button>
+    <button class="more-sheet__item" onclick="closeMoreSheet(null,1);openSyncModal()"><span class="more-sheet__ico">⚙️</span> Impostazioni</button>
+  </div>
+</div>
 
 <!-- ===== SYNC GIST MODAL ===== -->
 <div id="sync-modal" class="sync-modal" onclick="closeSyncModal(event)">
@@ -3544,6 +3594,14 @@ function closeRestock(e, force) {
 function goTabById(name) {
   const tabBtn = document.querySelector(`#tabs .tb[onclick*="'${name}'"]`);
   if (tabBtn) goTab(name, tabBtn);
+}
+
+/** Sheet "Altro" (mobile): accesso a Dashboard/Statistiche/Listino/Impostazioni */
+function openMoreSheet() { document.getElementById('more-sheet')?.classList.add('show'); }
+function closeMoreSheet(e, force) {
+  if (force || e?.target === document.getElementById('more-sheet')) {
+    document.getElementById('more-sheet')?.classList.remove('show');
+  }
 }
 
 // ----------------------------------------------------------------
