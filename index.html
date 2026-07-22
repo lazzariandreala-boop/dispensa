@@ -231,6 +231,14 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .more-sheet__item:hover, .more-sheet__item:active { background: var(--surface); }
 .more-sheet__ico { font-size: 20px; }
 
+/* Loader globale (barattolo rotante) */
+#app-loader { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: rgba(11,14,18,.92); backdrop-filter: blur(34px); -webkit-backdrop-filter: blur(34px); transition: opacity .4s ease; }
+#app-loader.hide { opacity: 0; pointer-events: none; }
+#app-loader::before { content: ""; position: absolute; width: 360px; height: 360px; background: var(--grad-green-radial); filter: blur(50px); opacity: .55; pointer-events: none; }
+.app-loader__jar { font-size: 66px; position: relative; animation: jarspin 1.15s cubic-bezier(.55,.15,.45,.85) infinite; }
+.app-loader__text { position: relative; font-family: var(--font-head); font-weight: 600; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-secondary); }
+@keyframes jarspin { to { transform: rotate(360deg); } }
+
 /* Bottom tab bar */
 #tabs {
   height: var(--tabh); background: var(--bg2);
@@ -238,7 +246,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
   flex-shrink: 0; padding-bottom: var(--safe-bottom);
 }
 .tb {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
+  flex: 1 0 58px; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 3px; border: none; background: none;
   color: var(--text3); cursor: pointer; font-family: 'Inter', sans-serif;
   transition: color .2s; position: relative;
@@ -258,8 +266,9 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 /* Nav: struttura sidebar. Su mobile brand/footer/voci-desktop sono nascosti;
    la barra in basso mostra solo .nav-items con i 5 tab principali. */
 .nav-brand, .nav-footer { display: none; }
-.nav-desk { display: none; }
-#tabs .nav-items { display: flex; flex: 1; height: 100%; min-width: 0; }
+/* Mobile: tutti i tab visibili in ordine desktop, barra scorrevole in orizzontale */
+#tabs .nav-items { display: flex; flex: 1; height: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+#tabs .nav-items::-webkit-scrollbar { display: none; }
 
 /* ================================================
    COMPONENTI CONDIVISI
@@ -1231,6 +1240,12 @@ body:not(.authed) #app-shell { display: none; }
 </head>
 <body>
 
+<!-- ===== LOADER GLOBALE (mostrato finché l'auth non è risolta) ===== -->
+<div id="app-loader">
+  <div class="app-loader__jar">🫙</div>
+  <div class="app-loader__text">Loading</div>
+</div>
+
 <!-- ===== LOGIN GATE — accesso con Google (Firebase Auth) ===== -->
 <div id="login-gate">
   <div class="lg-logo">🫙</div>
@@ -1418,7 +1433,6 @@ body:not(.authed) #app-shell { display: none; }
     <button class="tb nav-desk" onclick="goTab('listino',this)"><span class="ico">📒</span><span class="lbl">Listino</span></button>
     <button class="tb nav-desk" onclick="goTab('statistiche',this)"><span class="ico">📈</span><span class="lbl">Statistiche</span></button>
     <button class="tb nav-desk" onclick="openSyncModal()"><span class="ico">⚙️</span><span class="lbl">Impostazioni</span></button>
-    <button class="tb nav-mob" onclick="openMoreSheet()"><span class="ico">⋯</span><span class="lbl">Altro</span></button>
   </div>
 
   <!-- Footer sidebar (solo desktop): profilo + upgrade -->
@@ -5822,6 +5836,9 @@ document.getElementById('rsheet').addEventListener('touchmove', e => {
 // Init mini calendar
 sbCalYear=new Date().getFullYear(); sbCalMonth=new Date().getMonth();
 renderSbCal();
+
+// Fallback: se l'auth non si risolve (offline / errore), togli comunque il loader.
+setTimeout(function(){ var l=document.getElementById('app-loader'); if(l) l.classList.add('hide'); }, 5000);
 
 </script>
 </body>

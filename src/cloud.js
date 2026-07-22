@@ -118,6 +118,8 @@ window.Cloud = Cloud;
 // ── Gestione stato di autenticazione ────────────────────────────
 onAuthStateChanged(auth, (user) => {
   currentUser = user || null;
+  // Auth risolta: nascondi il loader globale (evita il flash della schermata di login).
+  document.getElementById('app-loader')?.classList.add('hide');
   const gate = document.getElementById('login-gate');
 
   if (user) {
