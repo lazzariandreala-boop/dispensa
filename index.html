@@ -805,6 +805,35 @@ select option { background: #1b1b1f; color: #f0ece6; }
 @keyframes toast-out { to{opacity:0;transform:scale(.88)} }
 #alert { display: none !important; }
 
+/* Popup centrato per errori/avvisi: chiudibile con OK, auto-chiusura dopo 3s */
+#app-popup {
+  position: fixed; inset: 0; z-index: 600;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  background: rgba(3,6,10,.6);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; pointer-events: none; transition: opacity .2s ease;
+}
+#app-popup.show { opacity: 1; pointer-events: auto; }
+.app-popup__box {
+  width: 100%; max-width: 340px; text-align: center;
+  background: var(--surface-elevated, #171a1f);
+  border: 1px solid var(--border-strong, rgba(255,255,255,.14));
+  border-radius: 20px; padding: 26px 22px 20px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.6);
+  transform: translateY(10px) scale(.96); transition: transform .22s cubic-bezier(.2,1,.35,1);
+}
+#app-popup.show .app-popup__box { transform: none; }
+.app-popup__icon { font-size: 42px; line-height: 1; }
+.app-popup__msg { font-size: 15px; color: var(--text); margin: 14px 4px 20px; line-height: 1.5; word-break: break-word; }
+.app-popup__ok {
+  width: 100%; padding: 13px; border: none; border-radius: 14px;
+  background: var(--grad-primary, #22C55E); color: #05140A;
+  font-family: var(--font-body, inherit); font-weight: 700; font-size: 15px; cursor: pointer;
+  transition: transform .1s ease, filter .15s ease;
+}
+.app-popup__ok:hover { filter: brightness(1.06); }
+.app-popup__ok:active { transform: scale(.97); }
+
 /* ═══════════════ FAB ═══════════════ */
 #fab-add {
   position: fixed; bottom: calc(var(--tabh) + 16px); right: 18px;
@@ -1293,6 +1322,13 @@ body:not(.authed) #app-shell { display: none; }
 </div>
 
 <div id="toast-container"></div>
+<div id="app-popup" onclick="if(event.target===this)closePopup()">
+  <div class="app-popup__box" role="alertdialog" aria-modal="true">
+    <div class="app-popup__icon" id="app-popup-icon">⚠️</div>
+    <div class="app-popup__msg" id="app-popup-msg"></div>
+    <button type="button" class="app-popup__ok" onclick="closePopup()">OK</button>
+  </div>
+</div>
 <div id="alert"></div>
 <div id="disp-fixed-header">
   <div class="disp-stats">
@@ -2921,7 +2957,24 @@ function detectCat(name) {
 // ----------------------------------------------------------------
 
 const _toastIcons = {ok:'✅',err:'❌',warn:'⚠️',info:'ℹ️'};
+let _popupTmr = null;
+function closePopup() {
+  clearTimeout(_popupTmr);
+  document.getElementById('app-popup')?.classList.remove('show');
+}
+function showPopup(msg, type='warn', ms=3000) {
+  const ov = document.getElementById('app-popup');
+  if (!ov) return;
+  const cleanMsg = msg.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF}✅❌⚠️ℹ️🗑📋❄🌡🍴🛒€📥]+\s*/u, '');
+  document.getElementById('app-popup-icon').textContent = type === 'err' ? '❌' : '⚠️';
+  document.getElementById('app-popup-msg').textContent = cleanMsg;
+  ov.classList.add('show');
+  clearTimeout(_popupTmr);
+  _popupTmr = setTimeout(closePopup, ms || 3000); // auto-chiusura dopo 3s se non si preme OK
+}
 function showAlert(msg, type='warn', ms=3000) {
+  // Errori e avvisi → popup centrato con OK (invece del toast in basso semi-trasparente)
+  if (type === 'err' || type === 'warn') { showPopup(msg, type, 3000); return; }
   const c = document.getElementById('toast-container');
   if (!c) return;
   const t = document.createElement('div');
@@ -5739,30 +5792,15 @@ window.bootApp = function (user) {
 /** Scarica i dati dal Gist e aggiorna l'app */
 async function manualRefresh() {
   const btn = document.getElementById('refresh-btn');
-  if (!gistToken || !gistId) {
-    showAlert('⚙️ Configura prima la sincronizzazione (pulsante Sync)', 'warn', 3000);
-    return;
-  }
   btn && btn.classList.add('spinning');
-  setSyncStatus('syncing');
   try {
-    const raw = await gistPull();
-    if (!raw) throw new Error('nessun dato');
-    const remote = JSON.parse(raw);
-    const localAt  = new Date(JSON.parse(localStorage.getItem(SK)||'{}').at||0);
-    const remoteAt = new Date(remote.at||0);
-    applyPayload(raw);
-    renderD(); renderR(); renderShop(); updateShopBadge(); updateSidebar(); refreshReportIfVisible();
-    const msg = remoteAt > localAt
-      ? `☁️ Dati aggiornati (${remoteAt.toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'})})`
-      : '✅ Già aggiornato';
-    showAlert(msg, 'ok', 3000);
-    setSyncStatus('ok');
-    setTimeout(() => setSyncStatus('idle'), 4000);
-  } catch(e) {
-    showAlert('❌ Impossibile raggiungere il cloud', 'err', 3000);
-    setSyncStatus('err');
-    setTimeout(() => setSyncStatus('idle'), 4000);
+    // I dati sono già sincronizzati in tempo reale da Firestore: basta ricaricare
+    // dallo stato locale (aggiornato dal listener) e ridisegnare la vista corrente.
+    load();
+    renderD(); renderR(); renderShop(); updateShopBadge(); updateSidebar();
+    if (typeof renderMiniCal === 'function') renderMiniCal();
+    if (typeof refreshReportIfVisible === 'function') refreshReportIfVisible();
+    showAlert('✅ Aggiornato', 'ok', 1600);
   } finally {
     btn && btn.classList.remove('spinning');
   }
