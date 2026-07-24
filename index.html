@@ -99,9 +99,12 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 }
 #hdr h1 {
   font-family: 'Inter', sans-serif; font-weight: 800; font-size: 22px;
-  letter-spacing: -.5px;
+  letter-spacing: -.5px; display: flex; align-items: center; gap: 8px;
+}
+#hdr h1 .hdr-jar { font-size: 24px; line-height: 1; } /* logo nel suo colore originale (non tinto dal gradiente) */
+#hdr h1 .hdr-name {
   background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 
 /* Alert banner */
@@ -1292,7 +1295,7 @@ body:not(.authed) #app-shell { display: none; }
 <div id="wrap">
 
 <header id="hdr">
-  <h1>🫙 Dispensa</h1>
+  <h1><span class="hdr-jar">🫙</span><span class="hdr-name">Dispensa</span></h1>
   <div style="display:flex;align-items:center;gap:7px">
     <!-- JARVIS DISATTIVATO — sostituito dall'integrazione Alexa (vedi cartella alexa-skill/).
          Codice mantenuto per riferimento. Per riattivarlo: rimuovi i commenti qui e in JS,
