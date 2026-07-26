@@ -134,6 +134,17 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 
 /* ── Product Smart Card (Fase 5) ── */
 .pcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 14px 16px; margin-bottom: 10px; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+/* Swipe (stile Gmail) sulle card dispensa */
+.swipe-row { position: relative; overflow: hidden; margin-bottom: 10px; border-radius: var(--radius-card); }
+.swipe-row .pcard { margin-bottom: 0; position: relative; z-index: 2; touch-action: pan-y; transition: transform .22s cubic-bezier(.2,.8,.3,1); }
+.swipe-row.dragging .pcard { transition: none; }
+.swipe-bg { position: absolute; top: 0; bottom: 0; width: 60%; display: flex; align-items: center; z-index: 1; }
+.swipe-bg--finish { left: 0; justify-content: flex-start; padding-left: 8px; background: linear-gradient(90deg, #16A34A, rgba(22,163,74,.35)); }
+.swipe-bg--del    { right: 0; justify-content: flex-end;   padding-right: 8px; background: linear-gradient(90deg, rgba(220,38,38,.35), #DC2626); }
+.swipe-finish { display: inline-flex; align-items: center; gap: 7px; border: none; background: transparent; color: #04140A; font-weight: 800; font-size: 14px; padding: 10px 14px; cursor: pointer; }
+.swipe-trash { width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,.2); color: #fff; font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.swipe-row.open-del .pcard    { transform: translateX(-84px); }
+.swipe-row.open-finish .pcard { transform: translateX(84px); }
 .pcard:hover { transform: translateY(-2px); border-color: var(--border-strong); box-shadow: var(--shadow-card); }
 .pcard.expired  { border-color: rgba(239,68,68,.35); }
 .pcard.expiring { border-color: rgba(250,204,21,.32); }
@@ -245,7 +256,8 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 /* Bottoni-icona nell'header (Statistiche + Impostazioni) */
 .hdr-icon-btn, #sync-btn { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; gap: 0; font-size: 18px; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: all .18s; flex-shrink: 0; white-space: normal; }
 .hdr-icon-btn:hover, #sync-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--surface-elevated); }
-#sync-btn { font-size: 21px; } /* l'emoji ingranaggio rende più piccola: la ingrandisco */
+#sync-btn { font-size: 24px; } /* l'emoji ingranaggio rende più piccola: la ingrandisco */
+.hdr-icon-btn.hdr-stat-btn { font-size: 16px; } /* 📈 rende più grande: la riduco per pareggiare l'ingranaggio */
 
 /* Bottom tab bar */
 #tabs {
@@ -744,6 +756,15 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .sync-box { background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:22px 20px;width:100%;max-width:420px; }
 .sync-title { font-family:'Inter',sans-serif;font-weight:800;font-size:18px;margin-bottom:4px; }
 .sync-sub { font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.5; }
+.info-body { max-height:min(62vh,560px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:4px; }
+.info-sec { margin-bottom:16px; }
+.info-h { font-family:var(--font-head,'Inter');font-weight:800;font-size:14px;margin-bottom:6px;color:var(--text); }
+.info-body p { font-size:12.5px;color:var(--text2);line-height:1.55;margin:0 0 6px; }
+.info-body ul { margin:0 0 6px;padding-left:2px;list-style:none; }
+.info-body li { font-size:12.5px;color:var(--text2);line-height:1.7; }
+.info-body b { color:var(--text); }
+.shop-total { display:flex;align-items:center;justify-content:space-between;padding:14px 16px;margin-bottom:14px;border-radius:14px;background:linear-gradient(135deg,rgba(34,197,94,.14),rgba(22,163,74,.06));border:1px solid rgba(34,197,94,.3);font-size:13px;font-weight:600;color:var(--text2); }
+.shop-total__val { font-family:var(--font-head,'Inter');font-weight:800;font-size:20px;color:var(--success); }
 .sync-step { display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6; }
 .sync-step-n { background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px; }
 .sync-status { margin:14px 0;padding:10px 12px;border-radius:var(--rs);font-size:12px;font-weight:600;display:none; }
@@ -1308,7 +1329,8 @@ body:not(.authed) #app-shell { display: none; }
       <span id="refresh-ico">↻</span>
     </button>
     -->
-    <button class="hdr-icon-btn" onclick="goTabById('statistiche')" title="Statistiche">📈</button>
+    <button class="hdr-icon-btn hdr-info-btn" onclick="openInfoModal()" title="Come funziona l'app">ℹ️</button>
+    <button class="hdr-icon-btn hdr-stat-btn" onclick="goTabById('statistiche')" title="Statistiche">📈</button>
     <button id="sync-btn" class="hdr-icon-btn" onclick="openSyncModal()" title="Impostazioni e sincronizzazione">⚙️</button>
   </div>
 </header>
@@ -1324,6 +1346,39 @@ body:not(.authed) #app-shell { display: none; }
   <button onclick="stopJarvis()" style="margin-top:4px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:5px 14px;color:var(--text2);font-size:12px;cursor:pointer">✕ Chiudi</button>
 </div>
 
+<div id="info-modal" class="sync-modal" onclick="closeInfoModal(event)">
+  <div class="sync-box" style="max-width:440px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="sync-title">ℹ️ Come funziona Dispensa</div>
+      <button class="mclose" style="position:static" onclick="closeInfoModal(null,1)">×</button>
+    </div>
+    <div class="sync-sub">Una guida rapida a tutte le sezioni e ai gesti dell'app.</div>
+    <div class="info-body">
+      <div class="info-sec"><div class="info-h">🫙 Dispensa</div>
+        <p>L'elenco di ciò che hai in casa. <b>Tocca una card</b> per aprire le azioni:</p>
+        <ul>
+          <li>🍴 <b>Finito</b> — rimuove l'alimento e lo mette in lista spesa</li>
+          <li>🛒 <b>Spesa</b> — lo aggiunge al carrello senza rimuoverlo</li>
+          <li>❄ <b>Congela</b> / 🌡 <b>Scongela</b> — sposta in/da cella (congelatore)</li>
+          <li>€ <b>Prezzo</b> — imposta il prezzo dell'articolo</li>
+          <li>🍳 <b>Piatto</b> — segna che l'hai usato per cucinare</li>
+          <li>✏️ <b>Modifica</b> · 📋 <b>Copia</b> · 🗑 <b>Elimina</b></li>
+        </ul>
+        <p><b>Gesti (swipe):</b> trascina la card verso <b>sinistra</b> ← per eliminarla (stile Gmail), verso <b>destra</b> → per segnarla come finita e metterla nel carrello. La barra <b>− / +</b> indica quanto l'hai consumata.</p>
+      </div>
+      <div class="info-sec"><div class="info-h">📊 Dashboard</div>
+        <p>Colpo d'occhio su ingredienti, scadenze, scaduti e lista spesa. <b>Tocca una card</b> per saltare alla sezione filtrata.</p></div>
+      <div class="info-sec"><div class="info-h">👨‍🍳 Ricette</div>
+        <p>Ricette fattibili con ciò che hai. Accanto a ogni ingrediente mancante trovi 🛒 per aggiungerlo al carrello con la quantità giusta.</p></div>
+      <div class="info-sec"><div class="info-h">🛒 Spesa</div>
+        <p>La lista della spesa. Se almeno un articolo ha un prezzo, in alto vedi il <b>totale stimato</b>.</p></div>
+      <div class="info-sec"><div class="info-h">📅 Calendario</div>
+        <p>Cosa hai acquistato/aggiunto giorno per giorno. Puoi aggiungere o modificare voci, e usare la <b>📷 Scansione scontrino</b> per inserire automaticamente la spesa.</p></div>
+      <div class="info-sec"><div class="info-h">🎙️ Alexa</div>
+        <p>Collega la skill "mia dispensa" (ID account nelle impostazioni ⚙️) e usa comandi vocali: «aggiungi il latte», «sposta in congelatore i peperoni», «che ricette posso fare?».</p></div>
+    </div>
+  </div>
+</div>
 <div id="toast-container"></div>
 <div id="app-popup" onclick="if(event.target===this)closePopup()">
   <div class="app-popup__box" role="alertdialog" aria-modal="true">
@@ -3117,17 +3172,20 @@ function renderD() {
 
     // Badge di stato (fase 5)
     let badge = '';
-    if (it.frozen)                      badge = '<span class="ds-badge ds-badge--frozen">❄ Cella</span>';
-    else if (d !== null && d < 0)       badge = '<span class="ds-badge ds-badge--expired">Scaduto</span>';
-    else if (d === 0)                   badge = '<span class="ds-badge ds-badge--soon">Oggi</span>';
-    else if (d !== null && d <= 3)      badge = '<span class="ds-badge ds-badge--soon">Presto</span>';
-    else if (d !== null && d <= 7)      badge = '<span class="ds-badge ds-badge--soon">In settimana</span>';
-    else if (it.expiryDate)             badge = '<span class="ds-badge ds-badge--fresh">Fresco</span>';
+    if (it.frozen)                      badge = '<span class="exp-chip exp-chip--frozen">❄ Cella</span>';
+    else if (d !== null && d < 0)       badge = '<span class="exp-chip exp-chip--expired">Scaduto</span>';
+    else if (d === 0)                   badge = '<span class="exp-chip exp-chip--soon">Oggi</span>';
+    else if (d !== null && d <= 3)      badge = `<span class="exp-chip exp-chip--soon">${d}g</span>`;
+    else if (d !== null && d <= 7)      badge = `<span class="exp-chip exp-chip--soon">${d}g</span>`;
+    else if (it.expiryDate)             badge = '<span class="exp-chip exp-chip--fresh">Fresco</span>';
     const cooked = it.isCucinato ? '<span class="ds-badge" style="background:rgba(167,139,250,.13);color:#a78bfa">🍳</span>' : '';
     const consumed = it.consumed || 0;
     const fillCls = consumed >= 75 ? 'ds-progress__fill--expired' : consumed >= 40 ? 'ds-progress__fill--soon' : '';
 
-    return `<div class="pcard ${cc}" id="ic-${it.id}">
+    return `<div class="swipe-row" data-id="${it.id}">
+  <div class="swipe-bg swipe-bg--finish"><button class="swipe-finish" onclick="consumeItem('${it.id}',event)">🛒 In spesa</button></div>
+  <div class="swipe-bg swipe-bg--del"><button class="swipe-trash" onclick="delItem('${it.id}',event)" title="Elimina">🗑</button></div>
+  <div class="pcard ${cc}" id="ic-${it.id}">
   <div class="pcard__top" onclick="toggleAct('${it.id}')">
     <div class="ds-food-ico">${ico(it.category)}</div>
     <div class="pcard__info">
@@ -3157,12 +3215,89 @@ function renderD() {
     <button class="abtn ac" onclick="copyItem('${it.id}',event)" style="color:var(--accent2);border-color:rgba(249,168,76,.3)">📋 Copia</button>
     <button class="abtn dn" onclick="delItem('${it.id}',event)">🗑 Elimina</button>
   </div>
+</div>
 </div>`;
   }).join('');
+  initSwipe();
 }
+
+// ── Swipe gestures sulle card dispensa (stile Gmail) ──────────────
+let _swipe = null;
+let _swipeEndAt = 0;
+const SW_OPEN = 66;   // soglia mezzo-swipe: la card resta aperta col bottone visibile
+const SW_FULL = 0.45; // frazione della larghezza oltre cui l'azione parte diretta
+
+function closeSwipes(except) {
+  document.querySelectorAll('.swipe-row.open-del,.swipe-row.open-finish').forEach(r => {
+    if (r === except) return;
+    r.classList.remove('open-del', 'open-finish');
+    const c = r.querySelector('.pcard'); if (c) c.style.transform = '';
+  });
+}
+function initSwipe() {
+  const list = document.getElementById('dlist');
+  if (!list || list._swipeInit) return;
+  list._swipeInit = true;
+  list.addEventListener('pointerdown', swStart);
+  list.addEventListener('pointermove', swMove, { passive: false });
+  list.addEventListener('pointerup', swEnd);
+  list.addEventListener('pointercancel', swEnd);
+}
+function swStart(e) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const row = e.target.closest('.swipe-row');
+  const card = row && row.querySelector('.pcard');
+  if (!row || !card) return;
+  // non iniziare lo swipe se si tocca un pulsante/azione della card
+  if (e.target.closest('.iactions') || e.target.closest('.pcard__bar') || e.target.closest('.swipe-bg') || e.target.closest('button')) return;
+  const wasDel = row.classList.contains('open-del');
+  const wasFin = row.classList.contains('open-finish');
+  _swipe = { row, card, x0: e.clientX, y0: e.clientY, base: wasDel ? -84 : wasFin ? 84 : 0, dx: wasDel ? -84 : wasFin ? 84 : 0, w: row.offsetWidth || 320, decided: false, isSwipe: false };
+}
+function swMove(e) {
+  if (!_swipe) return;
+  const dx = e.clientX - _swipe.x0, dy = e.clientY - _swipe.y0;
+  if (!_swipe.decided) {
+    if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+    if (Math.abs(dy) > Math.abs(dx)) { _swipe = null; return; } // è uno scroll verticale
+    _swipe.decided = true; _swipe.isSwipe = true;
+    _swipe.row.classList.add('dragging');
+    _swipe.row.classList.remove('open-del', 'open-finish');
+    closeSwipes(_swipe.row);
+    try { _swipe.card.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+  if (e.cancelable) e.preventDefault();
+  let x = _swipe.base + dx;
+  x = Math.max(-_swipe.w * 0.85, Math.min(_swipe.w * 0.85, x));
+  _swipe.dx = x;
+  _swipe.card.style.transform = `translateX(${x}px)`;
+}
+function swEnd() {
+  if (!_swipe) return;
+  const s = _swipe; _swipe = null;
+  s.row.classList.remove('dragging');
+  if (!s.isSwipe) {
+    // tap senza trascinamento: se la card era aperta, chiudila
+    if (s.base !== 0) { s.row.classList.remove('open-del', 'open-finish'); s.card.style.transform = ''; _swipeEndAt = Date.now(); }
+    return;
+  }
+  _swipeEndAt = Date.now();
+  const id = s.row.getAttribute('data-id');
+  const full = s.w * SW_FULL;
+  s.card.style.transform = '';
+  if (s.dx <= -full) { delItem(id, null); return; }        // swipe completo ← : elimina
+  if (s.dx >=  full) { consumeItem(id, null); return; }    // swipe completo → : finito → carrello
+  if (s.dx <= -SW_OPEN) { s.row.classList.add('open-del'); return; }    // mezzo ← : resta aperto (cestino)
+  if (s.dx >=  SW_OPEN) { s.row.classList.add('open-finish'); return; } // mezzo → : resta aperto (in spesa)
+}
+// Chiudi le card swipe aperte toccando altrove
+document.addEventListener('pointerdown', (e) => {
+  if (!e.target.closest('.swipe-row.open-del') && !e.target.closest('.swipe-row.open-finish')) closeSwipes(null);
+}, true);
 
 /** Apre/chiude la barra azioni di un item (chiude gli altri) */
 function toggleAct(id) {
+  if (Date.now() - _swipeEndAt < 350) return; // ignora il "click" generato da uno swipe
   const el = document.getElementById('ia-' + id);
   // Chiude tutti gli altri aperti
   document.querySelectorAll('.iactions.open').forEach(e => {
@@ -3212,7 +3347,7 @@ function delItem(id, e) {
   if (!it) return;
   items = items.filter(x => x.id !== id);
   save(); renderD(); renderR();
-  showAlert('🗑 Eliminato', 'warn');
+  showAlert('🗑 Eliminato', 'ok', 1600);
 }
 
 /**
@@ -3460,10 +3595,10 @@ function openR(id) {
 
   const mamboHtml = r.mambo && r.mambo.length
     ? `<div class="mambo-box">
-<div class="mambo-title">🤖 Cecotec Mambo Touch</div>
+<div class="mambo-title">🤖 Robot da Cucina</div>
 ${r.mambo.map((s,idx) => `<div class="step" style="margin-bottom:9px"><div class="step-num" style="background:var(--freeze)">${idx+1}</div><div class="stxt">${s}</div></div>`).join('')}
 </div>`
-    : `<div class="mambo-box" style="opacity:.5;font-size:13px;color:var(--text2)">🤖 Questa ricetta richiede wok/forno — non replicabile nel Mambo.</div>`;
+    : `<div class="mambo-box" style="opacity:.5;font-size:13px;color:var(--text2)">🤖 Questa ricetta richiede wok/forno — non replicabile col robot da cucina.</div>`;
 
   document.getElementById('rbody').innerHTML = `
 <div style="font-family:'Inter',sans-serif;font-weight:800;font-size:20px;margin-bottom:4px">${r.icon} ${escHtml(r.name)}</div>
@@ -3524,7 +3659,13 @@ function renderShop() {
     return a.localeCompare(b);
   });
 
-  el.innerHTML = catOrder.map(cat => {
+  // Totale stimato: mostrato solo se almeno un articolo ha un prezzo indicato
+  const pricedTotal = shopping.reduce((sum, s) => sum + (parseFloat(s.hintPrice) > 0 ? parseFloat(s.hintPrice) : 0), 0);
+  const totalBanner = pricedTotal > 0
+    ? `<div class="shop-total"><span>🧾 Totale stimato</span><span class="shop-total__val">€${pricedTotal.toFixed(2)}</span></div>`
+    : '';
+
+  el.innerHTML = totalBanner + catOrder.map(cat => {
     const groupItems = groups[cat];
     // Ordina: non-checked prima, checked dopo
     const sorted = [...groupItems].sort((a, b) => (a.checked ? 1 : -1) - (b.checked ? 1 : -1));
@@ -3536,8 +3677,8 @@ function renderShop() {
     <span class="shop-name">${escHtml(s.name)}</span>
     ${(s.hintPrice||s.hintQty) && !s.checked ? `<div style="font-size:10px;color:var(--accent2);margin-top:2px">${[s.hintPrice?'€'+parseFloat(s.hintPrice).toFixed(2):null,s.hintQty?(s.hintQty+' '+(s.hintUnit||'pz')):null].filter(Boolean).join(' · ')}</div>` : ''}
   </div>
-  ${s.checked ? `<button class="shop-undo" onclick="toggleShopItem('${s.id}')" title="Rimuovi spunta">↩</button><button class="shop-restock" onclick="openRestock('${s.id}')">📥 Dispensa</button>` : ''}
-  <button class="shop-del" onclick="deleteShopItem('${s.id}')" title="Rimuovi">×</button>
+  ${s.checked ? `<button class="shop-restock" onclick="openRestock('${s.id}')">📥 Dispensa</button>` : ''}
+  <button class="shop-del" onclick="deleteShopItem('${s.id}')" title="Elimina">🗑</button>
 </div>`).join('');
     return `<div class="shop-group">
   <div class="shop-cat-label"><span>${label}</span></div>
@@ -3669,6 +3810,13 @@ function goTabById(name) {
   if (tabBtn) goTab(name, tabBtn);
 }
 
+/** Vai alla Dispensa applicando un filtro (usato dalle card della Dashboard) */
+function goDispFilter(f) {
+  goTabById('dispensa');
+  const map = { tutti: 'sc-tutti', scaduti: 'sc-scaduti', presto: 'sc-presto', frozen: 'sc-frozen' };
+  setDF(f, document.getElementById(map[f]));
+}
+
 /** Sheet "Altro" (mobile): accesso a Dashboard/Statistiche/Listino/Impostazioni */
 function openMoreSheet() { document.getElementById('more-sheet')?.classList.add('show'); }
 function closeMoreSheet(e, force) {
@@ -3727,10 +3875,10 @@ function renderDashboard() {
       <p class="dash-sub">Tutto quello che hai, quando ne hai bisogno.</p>
     </div>
     <div class="dash-kpis">
-      <div class="ds-metric"><div class="ds-metric__head"><div class="ds-metric__icon">🥗</div></div><div class="ds-metric__value">${total}</div><div class="ds-metric__label">Ingredienti</div><div class="ds-metric__hint">in dispensa</div></div>
-      <div class="ds-metric ds-metric--soon"><div class="ds-metric__head"><div class="ds-metric__icon">⏰</div></div><div class="ds-metric__value">${soon}</div><div class="ds-metric__label">In scadenza</div><div class="ds-metric__hint">entro 7 giorni</div></div>
-      <div class="ds-metric ds-metric--expired"><div class="ds-metric__head"><div class="ds-metric__icon">⚠️</div></div><div class="ds-metric__value">${expired}</div><div class="ds-metric__label">Scaduti</div><div class="ds-metric__hint">da controllare</div></div>
-      <div class="ds-metric ds-metric--info"><div class="ds-metric__head"><div class="ds-metric__icon">🛒</div></div><div class="ds-metric__value">${toBuy}</div><div class="ds-metric__label">Da comprare</div><div class="ds-metric__hint">in lista spesa</div></div>
+      <div class="ds-metric" role="button" tabindex="0" onclick="goDispFilter('tutti')"><div class="ds-metric__head"><div class="ds-metric__value">${total}</div><div class="ds-metric__icon">🥗</div></div><div class="ds-metric__label">Ingredienti</div><div class="ds-metric__hint">in dispensa</div></div>
+      <div class="ds-metric ds-metric--soon" role="button" tabindex="0" onclick="goDispFilter('presto')"><div class="ds-metric__head"><div class="ds-metric__value">${soon}</div><div class="ds-metric__icon">⏰</div></div><div class="ds-metric__label">In scadenza</div><div class="ds-metric__hint">entro 7 giorni</div></div>
+      <div class="ds-metric ds-metric--expired" role="button" tabindex="0" onclick="goDispFilter('scaduti')"><div class="ds-metric__head"><div class="ds-metric__value">${expired}</div><div class="ds-metric__icon">⚠️</div></div><div class="ds-metric__label">Scaduti</div><div class="ds-metric__hint">da controllare</div></div>
+      <div class="ds-metric ds-metric--info" role="button" tabindex="0" onclick="goTabById('spesa')"><div class="ds-metric__head"><div class="ds-metric__value">${toBuy}</div><div class="ds-metric__icon">🛒</div></div><div class="ds-metric__label">Da comprare</div><div class="ds-metric__hint">in lista spesa</div></div>
     </div>
     <div class="dash-charts">
       <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Consumi settimanali</div><span class="ds-badge ds-badge--fresh">7 giorni</span></div><div id="chart-consumi"></div></div>
@@ -4868,10 +5016,15 @@ function changeConsumed(id, delta, e) {
   save();
   const card = document.getElementById('ic-'+id);
   if(card) {
-    const fill = card.querySelector('.iprog-bar-fill');
-    const pct  = card.querySelector('.iprog-pct');
-    if(fill) { fill.style.width=it.consumed+'%'; fill.style.background=it.consumed>=75?'var(--danger)':it.consumed>=40?'var(--warn)':'var(--success)'; }
-    if(pct)  pct.textContent = it.consumed+'%';
+    const c = it.consumed;
+    const fill = card.querySelector('.ds-progress__fill');
+    const pct  = card.querySelector('.pcard__pct');
+    if(fill) {
+      fill.style.width = c+'%';
+      fill.classList.toggle('ds-progress__fill--expired', c>=75);
+      fill.classList.toggle('ds-progress__fill--soon', c>=40 && c<75);
+    }
+    if(pct) pct.textContent = c+'% consumato';
   }
   if(it.consumed>=100) setTimeout(()=>consumeItem(id,null), 300);
 }
@@ -5222,6 +5375,13 @@ async function scheduleSync() {
 
 // ── UI del modal sync ────────────────────────────────────────────
 
+function openInfoModal() {
+  document.getElementById('info-modal').classList.add('show');
+}
+function closeInfoModal(e, force) {
+  if (force || e?.target === document.getElementById('info-modal'))
+    document.getElementById('info-modal').classList.remove('show');
+}
 function openSyncModal() {
   const _gt = document.getElementById('gist-token'); if (_gt) _gt.value = gistToken;
   const _gi = document.getElementById('gist-id');    if (_gi) _gi.value = gistId;
