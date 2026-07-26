@@ -138,7 +138,10 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .swipe-row { position: relative; overflow: hidden; margin-bottom: 10px; border-radius: var(--radius-card); }
 .swipe-row .pcard { margin-bottom: 0; position: relative; z-index: 2; touch-action: pan-y; transition: transform .22s cubic-bezier(.2,.8,.3,1); }
 .swipe-row.dragging .pcard { transition: none; }
-.swipe-bg { position: absolute; top: 0; bottom: 0; width: 60%; display: flex; align-items: center; z-index: 1; }
+.swipe-bg { position: absolute; top: 0; bottom: 0; width: 60%; display: flex; align-items: center; z-index: 1; opacity: 0; }
+/* Gli sfondi si vedono SOLO mentre trascino quella card, o quando resta aperta */
+.swipe-row.dragging .swipe-bg--del,    .swipe-row.open-del .swipe-bg--del       { opacity: 1; }
+.swipe-row.dragging .swipe-bg--finish, .swipe-row.open-finish .swipe-bg--finish { opacity: 1; }
 .swipe-bg--finish { left: 0; justify-content: flex-start; padding-left: 8px; background: linear-gradient(90deg, #16A34A, rgba(22,163,74,.35)); }
 .swipe-bg--del    { right: 0; justify-content: flex-end;   padding-right: 8px; background: linear-gradient(90deg, rgba(220,38,38,.35), #DC2626); }
 .swipe-finish { display: inline-flex; align-items: center; gap: 7px; border: none; background: transparent; color: #04140A; font-weight: 800; font-size: 14px; padding: 10px 14px; cursor: pointer; }
@@ -258,6 +261,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .hdr-icon-btn:hover, #sync-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--surface-elevated); }
 #sync-btn { font-size: 24px; } /* l'emoji ingranaggio rende più piccola: la ingrandisco */
 .hdr-icon-btn.hdr-stat-btn { font-size: 16px; } /* 📈 rende più grande: la riduco per pareggiare l'ingranaggio */
+.hdr-icon-btn.hdr-info-btn { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; font-size: 19px; }
 
 /* Bottom tab bar */
 #tabs {
@@ -1363,7 +1367,7 @@ body:not(.authed) #app-shell { display: none; }
       <span id="refresh-ico">↻</span>
     </button>
     -->
-    <button class="hdr-icon-btn hdr-info-btn" onclick="openInfoModal()" title="Come funziona l'app">ℹ️</button>
+    <button class="hdr-icon-btn hdr-info-btn" onclick="openInfoModal()" title="Come funziona l'app">i</button>
     <button class="hdr-icon-btn hdr-stat-btn" onclick="goTabById('statistiche')" title="Statistiche">📈</button>
     <button id="sync-btn" class="hdr-icon-btn" onclick="openSyncModal()" title="Impostazioni e sincronizzazione">⚙️</button>
   </div>
@@ -1389,16 +1393,17 @@ body:not(.authed) #app-shell { display: none; }
     <div class="sync-sub">Una guida rapida a tutte le sezioni e ai gesti dell'app.</div>
     <div class="info-body">
       <div class="info-sec"><div class="info-h">🫙 Dispensa</div>
-        <p>L'elenco di ciò che hai in casa. <b>Tocca una card</b> per aprire le azioni:</p>
+        <p>L'elenco di ciò che hai in casa. In alto a destra di ogni card, il <b>chip colorato</b> mostra la scadenza (verde = ok, arancione = presto, rosso = scaduto, azzurro = in cella, grigio = nessuna scadenza). <b>Tocca una card</b> per aprire le azioni:</p>
         <ul>
-          <li>🍴 <b>Finito</b> — rimuove l'alimento e lo mette in lista spesa</li>
-          <li>🛒 <b>Spesa</b> — lo aggiunge al carrello senza rimuoverlo</li>
-          <li>❄ <b>Congela</b> / 🌡 <b>Scongela</b> — sposta in/da cella (congelatore)</li>
-          <li>€ <b>Prezzo</b> — imposta il prezzo dell'articolo</li>
-          <li>🍳 <b>Piatto</b> — segna che l'hai usato per cucinare</li>
-          <li>✏️ <b>Modifica</b> · 📋 <b>Copia</b> · 🗑 <b>Elimina</b></li>
+          <li>🍴 <b>Finito</b> — toglie l'alimento dalla dispensa e lo aggiunge in automatico alla lista della spesa, così ti ricordi di ricomprarlo.</li>
+          <li>🛒 <b>Spesa</b> — lo aggiunge al carrello <b>senza</b> rimuoverlo dalla dispensa.</li>
+          <li>❄ <b>Congela</b> — sposta l'alimento in cella (congelatore): esce dal conteggio "in scadenza" e la scadenza resta di fatto sospesa finché è congelato.</li>
+          <li>🌡 <b>Scongela</b> — riporta l'alimento dalla cella alla dispensa: torna attivo e la scadenza riprende a valere.</li>
+          <li>€ <b>Prezzo</b> — imposti/aggiorni il prezzo (usato per il totale della spesa e le statistiche di risparmio).</li>
+          <li>🍳 <b>Piatto</b> — segni che hai usato l'alimento per cucinare un piatto.</li>
+          <li>✏️ <b>Modifica</b> — cambi nome, quantità, categoria e scadenza · 📋 <b>Copia</b> — duplichi la voce · 🗑 <b>Elimina</b> — la rimuovi definitivamente.</li>
         </ul>
-        <p><b>Gesti (swipe):</b> trascina la card verso <b>sinistra</b> ← per eliminarla (stile Gmail), verso <b>destra</b> → per segnarla come finita e metterla nel carrello. La barra <b>− / +</b> indica quanto l'hai consumata.</p>
+        <p><b>Scorri la card (swipe):</b> verso <b>sinistra ←</b> per <b>eliminarla</b> (a metà resta il cestino da toccare, fino in fondo la elimina subito); verso <b>destra →</b> per segnarla <b>finita</b> e metterla nel carrello. La barra <b>− / +</b> indica quanto l'hai consumata (al 100% viene segnata come finita).</p>
       </div>
       <div class="info-sec"><div class="info-h">📊 Dashboard</div>
         <p>Colpo d'occhio su ingredienti, scadenze, scaduti e lista spesa. <b>Tocca una card</b> per saltare alla sezione filtrata.</p></div>
@@ -3271,13 +3276,18 @@ function renderD() {
     else if (d !== null && d <= 3)   cc = 'expiring';
 
     // Badge di stato (fase 5)
-    let badge = '';
-    if (it.frozen)                      badge = '<span class="exp-chip exp-chip--frozen">❄ Cella</span>';
-    else if (d !== null && d < 0)       badge = '<span class="exp-chip exp-chip--expired">Scaduto</span>';
-    else if (d === 0)                   badge = '<span class="exp-chip exp-chip--soon">Oggi</span>';
-    else if (d !== null && d <= 3)      badge = `<span class="exp-chip exp-chip--soon">${d}g</span>`;
-    else if (d !== null && d <= 7)      badge = `<span class="exp-chip exp-chip--soon">${d}g</span>`;
-    else if (it.expiryDate)             badge = '<span class="exp-chip exp-chip--fresh">Fresco</span>';
+    // Chip scadenza in alto a destra: mostra SEMPRE lo stato (anche "Nessuna scadenza")
+    let badge;
+    if (it.frozen)        badge = '<span class="exp-chip exp-chip--frozen">❄ Cella</span>';
+    else if (d === null)  badge = '<span class="exp-chip exp-chip--none">Nessuna scadenza</span>';
+    else if (d < 0)       badge = '<span class="exp-chip exp-chip--expired">Scaduto</span>';
+    else if (d === 0)     badge = '<span class="exp-chip exp-chip--soon">Oggi</span>';
+    else if (d <= 7)      badge = `<span class="exp-chip exp-chip--soon">${d}g</span>`;
+    else {
+      const [yy, mm, dd] = it.expiryDate.split('-').map(Number);
+      const sd = new Date(yy, mm - 1, dd).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' });
+      badge = `<span class="exp-chip exp-chip--fresh">${sd}</span>`;
+    }
     const cooked = it.isCucinato ? '<span class="ds-badge" style="background:rgba(167,139,250,.13);color:#a78bfa">🍳</span>' : '';
     const consumed = it.consumed || 0;
     const fillCls = consumed >= 75 ? 'ds-progress__fill--expired' : consumed >= 40 ? 'ds-progress__fill--soon' : '';
@@ -3296,8 +3306,7 @@ function renderD() {
   </div>
   <div class="pcard__fresh">
     <div class="pcard__fresh-head">
-      <span class="pcard__exp ${ec}">${it.expiryDate ? et : 'Nessuna scadenza'}</span>
-      <span class="pcard__pct">${consumed}% consumato</span>
+      <span class="pcard__pct" style="margin-left:auto">${consumed}% consumato</span>
     </div>
     <div class="pcard__bar">
       <button class="pcard__step" onclick="changeConsumed('${it.id}',-10,event)" title="Meno consumato">−</button>
