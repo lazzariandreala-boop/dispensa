@@ -3618,19 +3618,28 @@ function findIng(name, key) {
 }
 
 /** Verifica se ci sono ingredienti per 2 persone */
+/**
+ * Verifica se l'articolo in dispensa basta per l'ingrediente richiesto.
+ * Se le unità coincidono confronta le quantità; se sono diverse (es. "3 pz"
+ * di spaghetti vs "180 g") non è confrontabile → basta la presenza.
+ */
+function hasEnough(m, amt, unit) {
+  if (!m) return false;
+  const mu = String(m.unit || '').toLowerCase().trim();
+  const iu = String(unit || '').toLowerCase().trim();
+  // Unità entrambe specificate ma diverse (es. "3 pz" vs "180 g") → non
+  // confrontabili: basta che l'articolo sia presente.
+  if (mu && iu && mu !== iu) return true;
+  // Stessa unità (o unità non indicata) → confronta le quantità.
+  return (Number(m.quantity) || 0) >= amt;
+}
 function canMake(recipe) {
-  return recipe.ingredients.every(ing => {
-    const m = findIng(ing.name, ing.key);
-    return m && m.quantity >= ing.amt;
-  });
+  return recipe.ingredients.every(ing => hasEnough(findIng(ing.name, ing.key), ing.amt, ing.unit));
 }
 
 /** Verifica se ci sono ingredienti per almeno 1 persona (≥50%) */
 function canMake1(recipe) {
-  return recipe.ingredients.every(ing => {
-    const m = findIng(ing.name, ing.key);
-    return m && m.quantity >= ing.amt * 0.5;
-  });
+  return recipe.ingredients.every(ing => hasEnough(findIng(ing.name, ing.key), ing.amt * 0.5, ing.unit));
 }
 
 /** Ridisegna lista ricette */
@@ -3689,7 +3698,7 @@ function openR(id) {
 
   const ingrHtml = r.ingredients.map(ing => {
     const m   = findIng(ing.name, ing.key);
-    const has = m && m.quantity >= ing.amt * portions;
+    const has = hasEnough(m, ing.amt * portions, ing.unit);
     return `<div class="ingr-item">
   <div class="idot ${has ? 'ok' : 'miss'}"></div>
   <span style="${has ? '' : 'color:var(--danger)'}">${escHtml(ing.name)}</span>
