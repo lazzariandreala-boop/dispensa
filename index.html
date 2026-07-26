@@ -1439,11 +1439,11 @@ body:not(.authed) #app-shell { display: none; }
       <button class="mclose" style="position:static" onclick="closeCalEntry(null,1)">×</button>
     </div>
     <div class="ce-form">
-      <label>Nome<input id="ce-name" type="text" placeholder="Es. Latte"></label>
+      <label>Nome<input id="ce-name" type="text" placeholder="Es. Latte" oninput="onCeNameInput()"></label>
       <label>Categoria<select id="ce-cat"></select></label>
       <div class="ce-row">
         <label style="flex:1">Quantità<input id="ce-qty" type="number" min="0" step="0.1" value="1"></label>
-        <label style="width:90px">Unità<input id="ce-unit" type="text" value="pz"></label>
+        <label style="width:90px">Unità<input id="ce-unit" type="text" value="pz" onchange="this.dataset.userSet='1'"></label>
       </div>
       <div class="ce-row">
         <label style="flex:1">Prezzo €<input id="ce-price" type="number" min="0" step="0.01" placeholder="—"></label>
@@ -2062,7 +2062,7 @@ body:not(.authed) #app-shell { display: none; }
       <div class="fr2">
         <div class="fg"><label class="fl">Quantità *</label><input class="fi" id="fq" type="number" min="0" step="any" placeholder="1"></div>
         <div class="fg"><label class="fl">Unità</label>
-          <select class="fi" id="fu"><option value="pz">pz</option><option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="l">l</option><option value="conf">conf.</option></select>
+          <select class="fi" id="fu" onchange="this.dataset.userSet='1'"><option value="pz">pz</option><option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="l">l</option><option value="conf">conf.</option></select>
         </div>
       </div>
       <div class="fg"><label class="fl">Categoria</label>
@@ -3104,6 +3104,32 @@ function applyQtyDefault(cat, qtyId, unitId) {
   const d = CAT_QTY_DEFAULTS[cat]||CAT_QTY_DEFAULTS.generico;
   const qEl=document.getElementById(qtyId); const uEl=document.getElementById(unitId);
   if(qEl&&!qEl.value) qEl.value=d.qty; if(uEl&&!uEl.value) uEl.value=d.unit;
+}
+
+// Unità di misura tipica per tipo di alimento (parola chiave → unità).
+// Usata come default "in prima battuta"; l'utente può sempre cambiarla.
+const UNIT_KEYWORDS = [
+  { u: 'l',  w: ['latte', 'acqua', 'succo', 'vino', 'birra', 'olio', 'aceto', 'brodo', 'bibita', 'coca', 'aranciata', 'spremuta'] },
+  { u: 'g',  w: ['pasta', 'spaghetti', 'riso', 'farina', 'carne', 'macinat', 'bistecca', 'pollo', 'tacchino', 'manzo', 'maiale', 'pesce', 'salmone', 'tonno', 'merluzzo', 'gamberi', 'prosciutto', 'salame', 'mortadella', 'pancetta', 'guanciale', 'speck', 'formaggio', 'parmigiano', 'pecorino', 'grana', 'biscotti', 'zucchero', 'caffè', 'fagioli', 'lenticchie', 'ceci', 'piselli', 'spinaci', 'funghi', 'insalata', 'zucchine', 'melanzane', 'peperoni', 'pomodori', 'carote', 'legumi'] },
+  { u: 'pz', w: ['pane', 'uovo', 'uova', 'banana', 'banane', 'mela', 'mele', 'pera', 'pere', 'arancia', 'arance', 'limone', 'limoni', 'pizza', 'yogurt', 'mozzarella', 'baguette', 'panino', 'piadina', 'focaccia', 'brioche', 'cornetto', 'croissant', 'wurstel', 'vasetto'] },
+  { u: 'kg', w: ['patate'] },
+  { u: 'conf', w: ['cracker', 'cereali', 'cornflakes', 'fette biscottate', 'merendine'] },
+];
+/** Unità tipica per un alimento (parola chiave, poi default della categoria). */
+function detectUnit(name, cat) {
+  const n = String(name || '').toLowerCase().trim();
+  if (n) for (const r of UNIT_KEYWORDS) if (r.w.some(w => n.includes(w))) return r.u;
+  return (CAT_QTY_DEFAULTS[cat] || CAT_QTY_DEFAULTS.generico).unit;
+}
+/** Imposta l'unità di default dal tipo di alimento, se l'utente non l'ha scelta. */
+function autoUnit(nameElId, catElId, unitElId) {
+  const uEl = document.getElementById(unitElId);
+  if (!uEl || uEl.dataset.userSet === '1') return; // scelta manuale: non toccare
+  const name = (document.getElementById(nameElId)?.value || '').trim();
+  if (typeof pbGet === 'function' && pbGet(name)) return; // storico: rispetta l'unità già usata
+  const cat = document.getElementById(catElId)?.value || detectCat(name);
+  const u = detectUnit(name, cat);
+  if (u) uEl.value = u;
 }
 
 /** Rileva la categoria da un nome prodotto */
@@ -4271,9 +4297,12 @@ function onNameInput() {
     if(ch){ch.textContent=(c!=='generico'&&lbl)?`Categoria rilevata: ${lbl}`:'';ch.style.display=ch.textContent?'block':'none';}
     // Precompila prezzo, qtà e unità dal priceBook
     pbAutofill('fn', 'fprice', 'fq', 'fu', 'pb-hint-add');
+    // Unità di default dal tipo di alimento (pasta→g, pane→pz, latte→l…)
+    autoUnit('fn', 'fc', 'fu');
   } else {
     document.getElementById('cat-hint').textContent = '';
     const h = document.getElementById('pb-hint-add'); if(h) h.textContent='';
+    const u = document.getElementById('fu'); if (u) u.dataset.userSet = ''; // reset per la prossima voce
   }
 }
 
@@ -4953,6 +4982,9 @@ function openCalEntry(ds, id) {
   document.getElementById('ce-price').value = e && e.price ? e.price : '';
   document.getElementById('ce-exp').value   = e && e.expiryDate ? e.expiryDate : '';
   document.getElementById('ce-source').value = e ? (e.source || 'dispensa') : 'dispensa';
+  // In modifica l'unità già presente è una scelta dell'utente → preservala.
+  // In aggiunta lascia che venga suggerita dal tipo di alimento.
+  document.getElementById('ce-unit').dataset.userSet = id ? '1' : '';
   document.getElementById('ce-pantry-row').style.display = id ? 'none' : 'flex'; // solo in aggiunta
   document.getElementById('ce-pantry').checked = true;
   document.getElementById('cal-entry-modal').classList.add('show');
@@ -4961,6 +4993,14 @@ function openCalEntry(ds, id) {
 function closeCalEntry(e, force) {
   if (force || e?.target === document.getElementById('cal-entry-modal'))
     document.getElementById('cal-entry-modal').classList.remove('show');
+}
+/** Nel modale calendario: rileva categoria e unità di default mentre si scrive il nome */
+function onCeNameInput() {
+  const name = document.getElementById('ce-name').value.trim();
+  if (name.length >= 2) {
+    document.getElementById('ce-cat').value = detectCat(name);
+    autoUnit('ce-name', 'ce-cat', 'ce-unit');
+  }
 }
 function saveCalEntry() {
   if (!_calEntry) return;
