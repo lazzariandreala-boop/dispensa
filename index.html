@@ -671,15 +671,21 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .cal-day.has-events.has-spend::after { background:var(--success); }
 .cal-day.other-month { color:var(--text3); }
 .cal-day.selected { background:var(--accent)!important;color:#fff!important; }
-.cal-day-detail { background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;min-height:80px; }
-.cal-day-detail-title { font-family:'Inter',sans-serif;font-weight:700;font-size:14px;margin-bottom:10px; }
-.cal-event-row { display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border); }
-.cal-event-row:last-child { border-bottom:none; }
-.cal-event-ico { font-size:16px;flex-shrink:0; }
-.cal-event-txt { flex:1;font-size:13px; }
+.cal-day-detail { background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;min-height:80px; }
+.cal-detail-label { font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:6px; }
+.cal-day-detail-title { font-family:'Inter',sans-serif;font-weight:700;font-size:15px;margin-bottom:12px; }
+.cal-event-row { display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border); }
+.cal-event-row:last-of-type { border-bottom:none; }
+.cal-event-ico { font-size:18px;flex-shrink:0; }
+.cal-event-txt { flex:1;min-width:0;font-size:13px;display:flex;flex-direction:column;gap:7px; }
+.cal-event-name { display:flex;align-items:baseline;gap:8px;flex-wrap:wrap; }
 .cal-event-price { font-size:12px;color:var(--success);font-family:'Inter',sans-serif;font-weight:700;white-space:nowrap; }
-.cal-event-del { background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;transition:color .15s; }
+.cal-event-cart { background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--accent,#22C55E);cursor:pointer;font-size:14px;padding:6px 8px;flex-shrink:0;transition:all .15s; }
+.cal-event-cart:hover { background:rgba(34,197,94,.12);border-color:var(--accent,#22C55E); }
+.cal-event-edit { background:transparent;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:4px 4px;flex-shrink:0; }
+.cal-event-del { background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;transition:color .15s;flex-shrink:0; }
 .cal-event-del:hover { color:var(--danger); }
+.cal-src--out { background:rgba(239,68,68,.14);color:#f87171; }
 .cal-totspend { text-align:right;font-size:13px;color:var(--success);font-family:'Inter',sans-serif;font-weight:700;margin-top:8px; }
 .cal-empty-day { text-align:center;color:var(--text3);font-size:13px;padding:20px 0; }
 
@@ -5042,23 +5048,31 @@ function renderCalDayDetail(ds) {
 
   el.style.display = 'block';
 
-  const srcChip = (s) => s === 'spesa'     ? '<span class="cal-src cal-src--buy">🛒 Acquistato</span>'
-                       : s === 'scontrino' ? '<span class="cal-src cal-src--rcpt">🧾 Scontrino</span>'
-                       :                     '<span class="cal-src cal-src--pantry">🫙 In dispensa</span>';
+  // Stato attuale: se l'articolo è ancora in dispensa → "In dispensa",
+  // altrimenti → "Esaurito" con pulsante per rimetterlo nel carrello.
+  const inPantry = (name) => items.some(it => (it.name || '').toLowerCase() === name.toLowerCase());
   const totalSpesa = events.reduce((s,e) => s + (e.price||0), 0);
-  const rows = events.map(e => `
+  const rows = events.map(e => {
+    const here = inPantry(e.name);
+    const chip = here
+      ? '<span class="cal-src cal-src--pantry">🫙 In dispensa</span>'
+      : '<span class="cal-src cal-src--out">⚠️ Esaurito</span>';
+    return `
     <div class="cal-event-row">
       <div class="cal-event-ico">${getCatIco(e.category)}</div>
       <div class="cal-event-txt">
-        <div><strong>${escHtml(e.name)}</strong><span style="color:var(--text2);font-size:12px;margin-left:6px">${e.qty} ${e.unit}</span></div>
-        <div style="margin-top:3px">${srcChip(e.source)}</div>
+        <div class="cal-event-name"><strong>${escHtml(e.name)}</strong><span style="color:var(--text2);font-size:12px">${e.qty} ${e.unit}</span></div>
+        <div>${chip}</div>
       </div>
       ${e.price ? `<div class="cal-event-price">€${e.price.toFixed(2)}</div>` : ''}
+      ${!here ? `<button class="cal-event-cart" onclick="addCalItemToCart('${e.id}')" title="Aggiungi al carrello">🛒</button>` : ''}
       <button class="cal-event-edit" onclick="openCalEntry('${ds}','${e.id}')" title="Modifica">✏️</button>
       <button class="cal-event-del" onclick="calDeleteEvent('${e.id}')" title="Rimuovi">×</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   el.innerHTML = `
+    <div class="cal-detail-label">Articoli acquistati o aggiunti in questa data</div>
     <div class="cal-day-detail-title">📅 ${dateLabel} · <span style="color:var(--text2);font-size:13px;font-weight:400">${events.length ? events.length + ' aggiunt' + (events.length===1?'o':'i') : 'nessuna voce'}</span></div>
     ${events.length ? rows : '<div style="color:var(--text2);font-size:13px;padding:8px 0">Nessun articolo segnato in questo giorno.</div>'}
     ${totalSpesa > 0 ? `<div class="cal-totspend">Spesa totale: €${totalSpesa.toFixed(2)}</div>` : ''}
@@ -5264,6 +5278,23 @@ function confirmReceiptItems() {
   renderD();
   closeReceipt(null, 1);
   showAlert(`✅ ${keep.length} prodotti aggiunti da scontrino`, 'ok', 2800);
+}
+
+/** Aggiunge al carrello un articolo esaurito, direttamente dal calendario */
+function addCalItemToCart(id) {
+  const e = additionLog.find(a => a.id === id);
+  if (!e) return;
+  const existing = shopping.find(s => s.name.toLowerCase() === e.name.toLowerCase());
+  if (existing) {
+    existing.checked = false; existing.hintQty = e.qty; existing.hintUnit = e.unit;
+    if (e.price) existing.hintPrice = e.price;
+  } else {
+    shopping.push({ id: uid(), name: e.name, category: e.category || 'generico', checked: false, addedDate: today(), hintQty: e.qty, hintUnit: e.unit, hintPrice: e.price || null });
+  }
+  save();
+  updateShopBadge();
+  renderShop();
+  showAlert(`🛒 "${e.name}" aggiunto alla spesa`, 'ok', 1800);
 }
 
 /** Ritorna emoji icona categoria */
