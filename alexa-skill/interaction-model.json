@@ -13,23 +13,29 @@
           "slots": [
             { "name": "item", "type": "FoodItem" },
             { "name": "quantity", "type": "AMAZON.NUMBER" },
-            { "name": "unit", "type": "UnitType" }
+            { "name": "unit", "type": "UnitType" },
+            { "name": "date", "type": "AMAZON.DATE" }
           ],
           "samples": [
-            "aggiungi {item}",
-            "metti {item}",
-            "aggiungi {quantity} {item}",
-            "aggiungi {quantity} {unit} di {item}",
             "aggiungi {item} in dispensa",
             "aggiungi {item} alla dispensa",
             "metti {item} in dispensa",
             "metti {item} nella dispensa",
-            "aggiungi {quantity} {unit} di {item} in dispensa",
-            "metti {quantity} {unit} di {item} in dispensa",
+            "segna {item} in dispensa",
             "ho comprato {item}",
             "ho comprato {quantity} {unit} di {item}",
-            "segna {item} in dispensa",
-            "aggiungi {quantity} {item} in dispensa"
+            "aggiungi {quantity} {unit} di {item}",
+            "aggiungi {quantity} {unit} di {item} in dispensa",
+            "metti {quantity} {unit} di {item} in dispensa",
+            "aggiungi {quantity} {item} in dispensa",
+            "aggiungi {item} che scade il {date}",
+            "aggiungi {item} che scade {date}",
+            "aggiungi {item} con scadenza {date}",
+            "aggiungi {item} con scadenza il {date}",
+            "aggiungi {item} in dispensa che scade il {date}",
+            "aggiungi {item} in dispensa con scadenza {date}",
+            "metti {item} in dispensa che scade il {date}",
+            "aggiungi in dispensa {item} che scade il {date}"
           ]
         },
         {
@@ -38,6 +44,11 @@
             { "name": "item", "type": "FoodItem" }
           ],
           "samples": [
+            "aggiungi {item}",
+            "metti {item}",
+            "aggiungi {item} al carrello",
+            "metti {item} nel carrello",
+            "aggiungi {item} alla lista",
             "aggiungi {item} alla lista della spesa",
             "aggiungi {item} alla spesa",
             "aggiungi {item} nella lista della spesa",
@@ -45,6 +56,44 @@
             "devo comprare {item}",
             "metti {item} nella lista della spesa",
             "ricordami di comprare {item}"
+          ]
+        },
+        {
+          "name": "FreezeItemIntent",
+          "slots": [
+            { "name": "item", "type": "FoodItem" }
+          ],
+          "samples": [
+            "congela {item}",
+            "congela i {item}",
+            "metti in congelatore {item}",
+            "metti {item} in congelatore",
+            "sposta in congelatore {item}",
+            "sposta in congelatore i {item}",
+            "sposta {item} in congelatore",
+            "metti in freezer {item}",
+            "sposta in cella {item}",
+            "sposta {item} in cella",
+            "metti {item} in cella"
+          ]
+        },
+        {
+          "name": "UnfreezeItemIntent",
+          "slots": [
+            { "name": "item", "type": "FoodItem" }
+          ],
+          "samples": [
+            "scongela {item}",
+            "scongela i {item}",
+            "sto scongelando {item}",
+            "sto scongelando i {item}",
+            "rimuovi dal congelatore {item}",
+            "rimuovi dal congelatore i {item}",
+            "togli dal congelatore {item}",
+            "togli {item} dal congelatore",
+            "rimuovi dalla cella {item}",
+            "togli dalla cella {item}",
+            "tira fuori {item} dal congelatore"
           ]
         },
         {
@@ -102,11 +151,52 @@
             "imposta la scadenza di {item} il {date}",
             "metti la scadenza di {item} al {date}",
             "la scadenza di {item} è il {date}",
+            "aggiungi la data di scadenza a {item}",
+            "aggiungi la data di scadenza alle {item}",
+            "aggiungi la scadenza a {item}",
             "{item} scade il {date}",
             "{item} scade {date}",
+            "le {item} scadono il {date}",
             "segna che {item} scade il {date}",
             "aggiungi la scadenza {date} a {item}",
             "la scadenza di {item} è {date}"
+          ]
+        },
+        {
+          "name": "ListRecipesIntent",
+          "slots": [
+            { "name": "region", "type": "CuisineType" }
+          ],
+          "samples": [
+            "che ricette posso fare",
+            "quali ricette posso fare",
+            "quale ricetta posso fare",
+            "che ricetta posso fare",
+            "che ricette posso fare con quello che ho",
+            "che ricette posso fare con quello che ho in dispensa",
+            "cosa posso cucinare",
+            "cosa posso preparare",
+            "che ricette {region} posso fare",
+            "quali ricette {region} posso fare",
+            "quali ricette {region} posso farmi",
+            "dammi una ricetta {region}",
+            "che piatti {region} posso fare"
+          ]
+        },
+        {
+          "name": "CanMakeRecipeIntent",
+          "slots": [
+            { "name": "recipe", "type": "RecipeName" }
+          ],
+          "samples": [
+            "posso fare {recipe}",
+            "posso farmi {recipe}",
+            "posso farmi una {recipe}",
+            "posso preparare {recipe}",
+            "riesco a fare {recipe}",
+            "ho gli ingredienti per {recipe}",
+            "ho tutto per fare {recipe}",
+            "posso cucinare {recipe}"
           ]
         },
         {
@@ -167,6 +257,35 @@
           ]
         },
         {
+          "name": "CuisineType",
+          "values": [
+            { "id": "italiana",    "name": { "value": "italiana",    "synonyms": ["italiane", "italiano", "italiani", "nostrane"] } },
+            { "id": "europea",     "name": { "value": "europea",     "synonyms": ["europee", "europeo", "europei"] } },
+            { "id": "asiatica",    "name": { "value": "asiatica",    "synonyms": ["asiatiche", "asiatico", "asiatici", "orientali", "orientale"] } },
+            { "id": "cinese",      "name": { "value": "cinese",      "synonyms": ["cinesi"] } },
+            { "id": "giapponese",  "name": { "value": "giapponese",  "synonyms": ["giapponesi"] } }
+          ]
+        },
+        {
+          "name": "RecipeName",
+          "values": [
+            { "name": { "value": "spaghetti alle vongole", "synonyms": ["pasta alle vongole", "pasta con le vongole", "spaghetti con le vongole", "una pasta con le vongole", "vongole"] } },
+            { "name": { "value": "pasta al pomodoro", "synonyms": ["pasta col pomodoro", "una pasta al pomodoro", "spaghetti al pomodoro"] } },
+            { "name": { "value": "carbonara", "synonyms": ["una carbonara", "pasta alla carbonara", "spaghetti alla carbonara"] } },
+            { "name": { "value": "pasta al pesto", "synonyms": ["pasta col pesto", "trofie al pesto"] } },
+            { "name": { "value": "pasta aglio e olio", "synonyms": ["aglio e olio", "spaghetti aglio e olio"] } },
+            { "name": { "value": "risotto ai funghi", "synonyms": ["risotto coi funghi", "un risotto ai funghi"] } },
+            { "name": { "value": "frittata", "synonyms": ["una frittata", "frittata di uova"] } },
+            { "name": { "value": "insalata di pollo", "synonyms": ["un'insalata di pollo"] } },
+            { "name": { "value": "zuppa di lenticchie", "synonyms": ["una zuppa di lenticchie", "lenticchie in umido"] } },
+            { "name": { "value": "ratatouille", "synonyms": ["una ratatouille", "verdure alla ratatouille"] } },
+            { "name": { "value": "omelette", "synonyms": ["un'omelette"] } },
+            { "name": { "value": "riso alla cantonese", "synonyms": ["riso cantonese", "un riso alla cantonese"] } },
+            { "name": { "value": "riso al salmone", "synonyms": ["riso col salmone"] } },
+            { "name": { "value": "pollo al curry", "synonyms": ["un pollo al curry", "curry di pollo"] } }
+          ]
+        },
+        {
           "name": "FoodItem",
           "values": [
             { "name": { "value": "latte" } }, { "name": { "value": "uova" } },
@@ -187,6 +306,9 @@
             { "name": { "value": "fragole" } }, { "name": { "value": "uva" } },
             { "name": { "value": "salmone" } }, { "name": { "value": "tonno" } },
             { "name": { "value": "gamberi" } }, { "name": { "value": "merluzzo" } },
+            { "name": { "value": "vongole" } }, { "name": { "value": "guanciale" } },
+            { "name": { "value": "pecorino" } }, { "name": { "value": "basilico" } },
+            { "name": { "value": "aglio" } }, { "name": { "value": "prezzemolo" } },
             { "name": { "value": "olio" } }, { "name": { "value": "olio d'oliva" } },
             { "name": { "value": "aceto" } }, { "name": { "value": "sale" } },
             { "name": { "value": "zucchero" } }, { "name": { "value": "farina" } },

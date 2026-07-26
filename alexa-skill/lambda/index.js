@@ -153,20 +153,49 @@ async function runSkill(event, context) {
   const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
   const sayDate = (iso) => { const p = String(iso).split('-'); return p.length === 3 ? Number(p[2]) + ' ' + MESI[Number(p[1]) - 1] : iso; };
 
+  // ── Ricette (dataset compatto per i comandi vocali) ─────────────
+  // r = regione (italiana|europea|cinese|giapponese|asiatica); ingr = ingredienti chiave
+  const RECIPES = [
+    { n: 'spaghetti alle vongole', r: 'italiana', ingr: ['spaghetti', 'vongole', 'olio', 'aglio'] },
+    { n: 'pasta al pomodoro', r: 'italiana', ingr: ['pasta', 'pomodori', 'olio'] },
+    { n: 'carbonara', r: 'italiana', ingr: ['spaghetti', 'uova', 'guanciale', 'pecorino'] },
+    { n: 'pasta al pesto', r: 'italiana', ingr: ['pasta', 'basilico', 'parmigiano', 'olio'] },
+    { n: 'pasta aglio e olio', r: 'italiana', ingr: ['pasta', 'aglio', 'olio'] },
+    { n: 'risotto ai funghi', r: 'italiana', ingr: ['riso', 'funghi', 'cipolle', 'parmigiano'] },
+    { n: 'frittata', r: 'italiana', ingr: ['uova', 'formaggio'] },
+    { n: 'insalata di pollo', r: 'italiana', ingr: ['pollo', 'insalata', 'pomodori'] },
+    { n: 'zuppa di lenticchie', r: 'europea', ingr: ['lenticchie', 'carote', 'cipolle'] },
+    { n: 'ratatouille', r: 'europea', ingr: ['zucchine', 'melanzane', 'peperoni', 'pomodori'] },
+    { n: 'omelette', r: 'europea', ingr: ['uova', 'formaggio', 'burro'] },
+    { n: 'riso alla cantonese', r: 'cinese', ingr: ['riso', 'uova', 'piselli', 'prosciutto'] },
+    { n: 'riso al salmone', r: 'giapponese', ingr: ['riso', 'salmone'] },
+    { n: 'pollo al curry', r: 'asiatica', ingr: ['pollo', 'cipolle', 'riso'] },
+  ];
+  function itemPresent(data, kw) {
+    kw = String(kw).toLowerCase();
+    return (data.items || []).some((it) => { const n = (it.name || '').toLowerCase(); return n && (n.includes(kw) || kw.includes(n)); });
+  }
+  function recipeStatus(data, rec) {
+    const missing = rec.ingr.filter((k) => !itemPresent(data, k));
+    return { ok: missing.length === 0, missing };
+  }
+
   const handlers = [
     { canHandle: (h) => Alexa.getRequestType(h.requestEnvelope) === 'LaunchRequest',
-      handle: (h) => speak(h, 'Dispensa pronta. Dimmi pure.', true) },
+      handle: (h) => speak(h, 'Pronta, dimmi pure.', true) },
 
     { canHandle: (h) => is(h, 'AddPantryItemIntent'),
       async handle(h) {
         const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Quale prodotto?', true);
         const name = cap(raw), cat = detectCat(name), def = qtyDefault(cat);
         const qty = Number(slotValue(h, 'quantity')) || def.qty; const unit = slotValue(h, 'unit') || def.unit;
+        const dslot = slotValue(h, 'date');
+        const exp = /^\d{4}-\d{2}-\d{2}$/.test(dslot) ? dslot : null;
         await withState((data) => {
-          data.items.push({ id: uid(), name, quantity: qty, unit, category: cat, expiryDate: null, originalExpiry: null, frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: todayRome(), source: 'alexa' });
+          data.items.push({ id: uid(), name, quantity: qty, unit, category: cat, expiryDate: exp, originalExpiry: null, frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: todayRome(), source: 'alexa' });
           data.additionLog.push({ id: uid(), name, category: cat, qty, unit, price: null, date: todayRome(), source: 'alexa' });
         });
-        return speak(h, `Aggiunto ${name}.`, true);
+        return speak(h, exp ? `Aggiunto ${name} in dispensa, scade il ${sayDate(exp)}.` : `Aggiunto ${name} in dispensa.`, true);
       } },
 
     { canHandle: (h) => is(h, 'AddShoppingItemIntent'),
@@ -245,7 +274,70 @@ async function runSkill(event, context) {
         return speak(h, 'Ti serve: ' + names.join(', ') + '.', true);
       } },
 
-    { canHandle: (h) => is(h, 'AMAZON.HelpIntent'), handle: (h) => speak(h, 'Dimmi: aggiungi il latte; cosa scade; oppure, il latte scade il venti luglio.', true) },
+    { canHandle: (h) => is(h, 'FreezeItemIntent'),
+      async handle(h) {
+        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Cosa metto in congelatore?', true);
+        const lc = cap(raw).toLowerCase();
+        const phrase = await withState((data) => {
+          const found = data.items.filter((it) => (it.name || '').toLowerCase().includes(lc));
+          if (!found.length) return `Non trovo ${cap(raw)} in dispensa.`;
+          found.forEach((it) => { it.frozen = true; it.frozenDate = todayRome(); it.thawedDate = null; });
+          return `Ok, ${cap(raw)} in congelatore.`;
+        });
+        return speak(h, phrase, true);
+      } },
+
+    { canHandle: (h) => is(h, 'UnfreezeItemIntent'),
+      async handle(h) {
+        const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Cosa scongelo?', true);
+        const lc = cap(raw).toLowerCase();
+        const phrase = await withState((data) => {
+          const found = data.items.filter((it) => (it.name || '').toLowerCase().includes(lc) && it.frozen);
+          if (!found.length) return `${cap(raw)} non è in congelatore.`;
+          found.forEach((it) => { it.frozen = false; it.thawedDate = todayRome(); });
+          return `Ok, ${cap(raw)} scongelato.`;
+        });
+        return speak(h, phrase, true);
+      } },
+
+    { canHandle: (h) => is(h, 'ListRecipesIntent'),
+      async handle(h) {
+        const data = await readState();
+        let region = slotValue(h, 'region').toLowerCase();
+        // risolvi il valore canonico dello slot se disponibile
+        try {
+          const res = h.requestEnvelope.request.intent.slots.region.resolutions.resolutionsPerAuthority[0];
+          if (res && res.status.code === 'ER_SUCCESS_MATCH') region = res.values[0].value.name.toLowerCase();
+        } catch (_) {}
+        const inRegion = (r) => !region ? true
+          : region === 'asiatica' ? ['asiatica', 'cinese', 'giapponese'].includes(r.r)
+          : r.r === region;
+        const doable = RECIPES.filter((r) => inRegion(r) && recipeStatus(data, r).ok).map((r) => r.n);
+        if (!doable.length) {
+          return speak(h, region ? `Con quello che hai non puoi fare ricette ${region}. Ti manca sempre qualche ingrediente.`
+                                 : 'Al momento ti manca qualche ingrediente per le ricette che conosco.', true);
+        }
+        const label = region ? ` ${region}` : '';
+        return speak(h, `Con quello che hai in dispensa puoi fare${label}: ${doable.slice(0, 6).join(', ')}.`, true);
+      } },
+
+    { canHandle: (h) => is(h, 'CanMakeRecipeIntent'),
+      async handle(h) {
+        const raw = slotValue(h, 'recipe'); if (!raw) return speak(h, 'Quale ricetta?', true);
+        let rn = raw.toLowerCase();
+        try {
+          const res = h.requestEnvelope.request.intent.slots.recipe.resolutions.resolutionsPerAuthority[0];
+          if (res && res.status.code === 'ER_SUCCESS_MATCH') rn = res.values[0].value.name.toLowerCase();
+        } catch (_) {}
+        const rec = RECIPES.find((r) => r.n === rn) || RECIPES.find((r) => rn.includes(r.n) || r.n.includes(rn));
+        if (!rec) return speak(h, `Non conosco la ricetta ${cap(raw)}.`, true);
+        const data = await readState();
+        const st = recipeStatus(data, rec);
+        if (st.ok) return speak(h, `Sì! Hai tutto per ${rec.n}. Vuoi che ti dica la ricetta passo passo?`, true);
+        return speak(h, `No, per ${rec.n} ti manca ${st.missing.join(', ')}.`, true);
+      } },
+
+    { canHandle: (h) => is(h, 'AMAZON.HelpIntent'), handle: (h) => speak(h, 'Dimmi: aggiungi il latte per la spesa; aggiungi il latte in dispensa che scade domani; congela i peperoni; oppure, che ricette posso fare.', true) },
     { canHandle: (h) => is(h, 'AMAZON.StopIntent') || is(h, 'AMAZON.CancelIntent'), handle: (h) => speak(h, 'Ciao!') },
     { canHandle: (h) => is(h, 'AMAZON.FallbackIntent'), handle: (h) => speak(h, 'Non ho capito. Prova: aggiungi il latte.', true) },
     { canHandle: (h) => Alexa.getRequestType(h.requestEnvelope) === 'SessionEndedRequest', handle: (h) => h.responseBuilder.getResponse() },
