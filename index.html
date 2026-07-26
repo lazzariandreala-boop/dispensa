@@ -450,6 +450,9 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .idot.ok   { background: var(--success); }
 .idot.miss { background: var(--danger); }
 .iqt { margin-left: auto; color: var(--text2); font-size: 12px; flex-shrink: 0; }
+.ingr-cart { flex-shrink: 0; width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface-elevated, rgba(255,255,255,.04)); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.ingr-cart:hover { border-color: var(--accent, #22C55E); background: rgba(34,197,94,.12); }
+.ingr-cart:active { transform: scale(.92); }
 
 /* Passaggi ricetta */
 .step     { display: flex; gap: 11px; margin-bottom: 12px; }
@@ -765,6 +768,9 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .info-body b { color:var(--text); }
 .shop-total { display:flex;align-items:center;justify-content:space-between;padding:14px 16px;margin-bottom:14px;border-radius:14px;background:linear-gradient(135deg,rgba(34,197,94,.14),rgba(22,163,74,.06));border:1px solid rgba(34,197,94,.3);font-size:13px;font-weight:600;color:var(--text2); }
 .shop-total__val { font-family:var(--font-head,'Inter');font-weight:800;font-size:20px;color:var(--success); }
+.ds-chart-card__tools { display:flex;align-items:center;gap:8px; }
+.chart-info { width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;padding:0; }
+.chart-info:hover { border-color:var(--accent,#22C55E);color:var(--accent,#22C55E); }
 .sync-step { display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6; }
 .sync-step-n { background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px; }
 .sync-status { margin:14px 0;padding:10px 12px;border-radius:var(--rs);font-size:12px;font-weight:600;display:none; }
@@ -1377,6 +1383,16 @@ body:not(.authed) #app-shell { display: none; }
       <div class="info-sec"><div class="info-h">🎙️ Alexa</div>
         <p>Collega la skill "mia dispensa" (ID account nelle impostazioni ⚙️) e usa comandi vocali: «aggiungi il latte», «sposta in congelatore i peperoni», «che ricette posso fare?».</p></div>
     </div>
+  </div>
+</div>
+<div id="tip-modal" class="sync-modal" onclick="closeTip(event)">
+  <div class="sync-box" style="max-width:380px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="sync-title" id="tip-title">Info</div>
+      <button class="mclose" style="position:static" onclick="closeTip(null,1)">×</button>
+    </div>
+    <div class="info-body" id="tip-body" style="max-height:50vh"></div>
+    <button class="app-popup__ok" style="margin-top:16px" onclick="closeTip(null,1)">OK</button>
   </div>
 </div>
 <div id="toast-container"></div>
@@ -3586,6 +3602,7 @@ function openR(id) {
   <span style="${has ? '' : 'color:var(--danger)'}">${escHtml(ing.name)}</span>
   ${!m ? '<span style="font-size:11px;color:var(--danger);margin-left:4px">mancante</span>' : ''}
   <span class="iqt">${ing.amt * portions} ${ing.unit}</span>
+  <button class="ingr-cart" title="Aggiungi alla spesa (${ing.amt * portions} ${ing.unit})" onclick="addIngToCart('${encodeURIComponent(ing.name)}',${ing.amt * portions},'${ing.unit}')">🛒</button>
 </div>`;
   }).join('');
 
@@ -3613,6 +3630,24 @@ ${portionWarn}
 ${mamboHtml}`;
 
   document.getElementById('rmodal').classList.add('show');
+}
+
+/** Aggiunge un ingrediente di una ricetta al carrello con la quantità necessaria */
+function addIngToCart(name, qty, unit) {
+  name = decodeURIComponent(name || '').trim();
+  if (!name) return;
+  const existing = shopping.find(s => s.name.toLowerCase() === name.toLowerCase());
+  if (existing) {
+    existing.checked = false;
+    existing.hintQty = qty; existing.hintUnit = unit;
+    showAlert(`"${name}" già in lista — quantità aggiornata`, 'ok', 1600);
+  } else {
+    shopping.push({ id: uid(), name, category: 'generico', checked: false, addedDate: today(), hintQty: qty, hintUnit: unit });
+    showAlert(`🛒 "${name}" aggiunto alla spesa`, 'ok', 1600);
+  }
+  save();
+  updateShopBadge();
+  renderShop();
 }
 
 /** Chiude il modal ricetta */
@@ -3881,8 +3916,8 @@ function renderDashboard() {
       <div class="ds-metric ds-metric--info" role="button" tabindex="0" onclick="goTabById('spesa')"><div class="ds-metric__head"><div class="ds-metric__value">${toBuy}</div><div class="ds-metric__icon">🛒</div></div><div class="ds-metric__label">Da comprare</div><div class="ds-metric__hint">in lista spesa</div></div>
     </div>
     <div class="dash-charts">
-      <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Consumi settimanali</div><span class="ds-badge ds-badge--fresh">7 giorni</span></div><div id="chart-consumi"></div></div>
-      <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Valore aggiunto (€)</div><span class="ds-badge ds-badge--info">7 giorni</span></div><div id="chart-valore"></div></div>
+      <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Consumi settimanali</div><div class="ds-chart-card__tools"><span class="ds-badge ds-badge--fresh">7 giorni</span><button class="chart-info" onclick="openTip('consumi')" title="Cosa mostra questo grafico">i</button></div></div><div id="chart-consumi"></div></div>
+      <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Valore aggiunto (€)</div><div class="ds-chart-card__tools"><span class="ds-badge ds-badge--info">7 giorni</span><button class="chart-info" onclick="openTip('valore')" title="Cosa mostra questo grafico">i</button></div></div><div id="chart-valore"></div></div>
     </div>`;
 
   _dashCharts.forEach(c => { try { c.destroy(); } catch (e) {} });
@@ -3957,7 +3992,7 @@ function renderStatistiche() {
       <p class="dash-sub">Sprechi evitati, risparmio e dispensa ottimizzata.</p>
     </div>
     <div class="stats-grid">
-      <div class="ds-chart-card stats-donut"><div id="stat-donut"></div></div>
+      <div class="ds-chart-card stats-donut" style="position:relative"><button class="chart-info" style="position:absolute;top:12px;right:12px;z-index:2" onclick="openTip('ottim')" title="Cosa mostra questo grafico">i</button><div id="stat-donut"></div></div>
       <div class="ds-card stats-summary">
         <div class="stat-row"><span class="stat-row__lbl"><span class="stat-row__ico">🍴</span> Ingredienti utilizzati</span><span class="stat-row__val">${usati}</span></div>
         <div class="stat-row"><span class="stat-row__lbl"><span class="stat-row__ico">♻️</span> Sprechi evitati</span><span class="stat-row__val stat-row__val--green">€${sprechi.toFixed(2)}</span></div>
@@ -5375,6 +5410,21 @@ async function scheduleSync() {
 
 // ── UI del modal sync ────────────────────────────────────────────
 
+const CHART_TIPS = {
+  consumi: ['📉 Consumi settimanali', "<p>Quante voci hai segnato come <b>finite/consumate</b> ogni giorno negli ultimi 7 giorni. Ti mostra il ritmo con cui svuoti la dispensa.</p>"],
+  valore:  ['💶 Valore aggiunto (€)', "<p>La spesa in € degli alimenti <b>aggiunti</b> ogni giorno negli ultimi 7 giorni, calcolata dai prezzi che inserisci. Utile per capire quanto stai spendendo.</p>"],
+  ottim:   ['🎯 Dispensa ottimizzata', "<p>La percentuale di alimenti <b>non scaduti e non in scadenza</b> sul totale in dispensa. Più è alta, meno rischi di buttare cibo.</p>"],
+};
+function openTip(key) {
+  const t = CHART_TIPS[key]; if (!t) return;
+  document.getElementById('tip-title').textContent = t[0];
+  document.getElementById('tip-body').innerHTML = t[1];
+  document.getElementById('tip-modal').classList.add('show');
+}
+function closeTip(e, force) {
+  if (force || e?.target === document.getElementById('tip-modal'))
+    document.getElementById('tip-modal').classList.remove('show');
+}
 function openInfoModal() {
   document.getElementById('info-modal').classList.add('show');
 }
