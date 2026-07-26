@@ -771,6 +771,34 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .ds-chart-card__tools { display:flex;align-items:center;gap:8px; }
 .chart-info { width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;padding:0; }
 .chart-info:hover { border-color:var(--accent,#22C55E);color:var(--accent,#22C55E); }
+/* Calendario: chip origine, edit, add, form modale */
+.cal-src { display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px; }
+.cal-src--buy    { background:rgba(34,197,94,.14);color:#22C55E; }
+.cal-src--rcpt   { background:rgba(59,130,246,.14);color:#60A5FA; }
+.cal-src--pantry { background:rgba(148,163,184,.14);color:var(--text2); }
+.cal-event-edit { background:transparent;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:2px 4px;flex-shrink:0; }
+.cal-event-edit:hover { filter:brightness(1.3); }
+.cal-add-btn { width:100%;margin-top:12px;padding:11px;border:1px dashed var(--border-strong,rgba(255,255,255,.2));border-radius:12px;background:transparent;color:var(--accent,#22C55E);font-weight:700;font-size:13px;cursor:pointer; }
+.cal-add-btn:hover { background:rgba(34,197,94,.08);border-color:var(--accent,#22C55E); }
+.ce-form { display:flex;flex-direction:column;gap:12px; }
+.ce-form label { display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--text2); }
+.ce-form input:not([type=checkbox]), .ce-form select { padding:10px 12px;border-radius:11px;border:1px solid var(--border);background:var(--surface,rgba(255,255,255,.04));color:var(--text);font-size:14px;font-family:inherit; }
+.ce-row { display:flex;gap:10px; }
+.ce-check { flex-direction:row!important;align-items:center;gap:8px!important;font-weight:500!important; }
+.ce-check input { width:18px;height:18px; }
+/* Scansione scontrino */
+.scan-receipt-btn { width:100%;margin-bottom:14px;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 6px 18px rgba(37,99,235,.35); }
+.scan-receipt-btn:active { transform:scale(.98); }
+.receipt-status { font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5; }
+.receipt-status.loading::before { content:'';display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent,#22C55E);border-radius:50%;animation:spin-dot .8s linear infinite;margin-right:8px;vertical-align:-2px; }
+.receipt-list { display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto; }
+.rcpt-row { display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:11px; }
+.rcpt-row input[type=checkbox]{ width:18px;height:18px;flex-shrink:0; }
+.rcpt-ico { flex-shrink:0; }
+.rcpt-name { flex:1;min-width:0;padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:var(--surface,rgba(255,255,255,.04));color:var(--text);font-size:13px; }
+.rcpt-qty { width:52px;padding:7px 5px;border-radius:8px;border:1px solid var(--border);background:var(--surface,rgba(255,255,255,.04));color:var(--text);font-size:13px; }
+.rcpt-price { width:62px;padding:7px 5px;border-radius:8px;border:1px solid var(--border);background:var(--surface,rgba(255,255,255,.04));color:var(--text);font-size:13px; }
+.receipt-total { font-size:15px;font-weight:800;color:var(--text);margin:14px 0 10px;text-align:right; }
 .sync-step { display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6; }
 .sync-step-n { background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px; }
 .sync-status { margin:14px 0;padding:10px 12px;border-radius:var(--rs);font-size:12px;font-weight:600;display:none; }
@@ -1385,6 +1413,47 @@ body:not(.authed) #app-shell { display: none; }
     </div>
   </div>
 </div>
+<div id="receipt-modal" class="sync-modal" onclick="closeReceipt(event)">
+  <div class="sync-box" style="max-width:440px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sync-title">🧾 Scansione scontrino</div>
+      <button class="mclose" style="position:static" onclick="closeReceipt(null,1)">×</button>
+    </div>
+    <div id="receipt-status" class="receipt-status"></div>
+    <div id="receipt-list" class="receipt-list"></div>
+    <div id="receipt-actions" style="display:none">
+      <div class="receipt-total" id="receipt-total"></div>
+      <button class="app-popup__ok" onclick="confirmReceiptItems()">Aggiungi selezionati</button>
+    </div>
+  </div>
+</div>
+<div id="cal-entry-modal" class="sync-modal" onclick="closeCalEntry(event)">
+  <div class="sync-box" style="max-width:400px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sync-title" id="cal-entry-title">➕ Aggiungi articolo</div>
+      <button class="mclose" style="position:static" onclick="closeCalEntry(null,1)">×</button>
+    </div>
+    <div class="ce-form">
+      <label>Nome<input id="ce-name" type="text" placeholder="Es. Latte"></label>
+      <label>Categoria<select id="ce-cat"></select></label>
+      <div class="ce-row">
+        <label style="flex:1">Quantità<input id="ce-qty" type="number" min="0" step="0.1" value="1"></label>
+        <label style="width:90px">Unità<input id="ce-unit" type="text" value="pz"></label>
+      </div>
+      <div class="ce-row">
+        <label style="flex:1">Prezzo €<input id="ce-price" type="number" min="0" step="0.01" placeholder="—"></label>
+        <label style="flex:1">Scadenza<input id="ce-exp" type="date"></label>
+      </div>
+      <label>Tipo<select id="ce-source">
+        <option value="dispensa">🫙 Aggiunto in dispensa</option>
+        <option value="spesa">🛒 Acquistato</option>
+        <option value="scontrino">🧾 Da scontrino</option>
+      </select></label>
+      <label class="ce-check" id="ce-pantry-row"><input id="ce-pantry" type="checkbox" checked> Aggiungi anche alla dispensa</label>
+      <button class="app-popup__ok" style="margin-top:6px" onclick="saveCalEntry()">Salva</button>
+    </div>
+  </div>
+</div>
 <div id="tip-modal" class="sync-modal" onclick="closeTip(event)">
   <div class="sync-box" style="max-width:380px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1502,6 +1571,8 @@ body:not(.authed) #app-shell { display: none; }
       <div class="cal-month-label" id="cal-month-label"></div>
       <button class="cal-nav-btn" onclick="calNext()">›</button>
     </div>
+    <button class="scan-receipt-btn" onclick="startReceiptScan()">📷 Scansione dello scontrino</button>
+    <input type="file" id="receipt-file" accept="image/*" capture="environment" multiple style="display:none" onchange="onReceiptFiles(this.files)">
     <div class="cal-grid" id="cal-grid"></div>
     <div class="cal-day-detail" id="cal-day-detail" style="display:none"></div>
   </div>
@@ -1749,6 +1820,19 @@ body:not(.authed) #app-shell { display: none; }
       ⚠ Token e API key salvati solo in questo browser (localStorage). Non inviati ad altri server.
     </div>
     ===== fine blocco JARVIS disattivato ===== -->
+
+    <!-- Scansione scontrino: API key Groq (gratuita) -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px">🧾 Scansione scontrino</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">
+        Per leggere gli scontrini con la fotocamera serve una API key <strong>Groq</strong> gratuita. Ottienila su <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a> → API Keys.
+      </div>
+      <div class="fg" style="margin-bottom:6px">
+        <input class="fi" id="scan-key" type="password" placeholder="gsk_..." autocomplete="off" style="font-size:13px">
+      </div>
+      <button class="btn btn-s" onclick="saveScanKey()" style="margin-bottom:0;font-size:13px;padding:9px">💾 Salva API key</button>
+      <div style="margin-top:8px;font-size:10px;color:var(--text3);line-height:1.5">⚠ La chiave resta solo su questo dispositivo (localStorage). Le foto vengono inviate solo a Groq per la lettura.</div>
+    </div>
   </div>
 </div>
 
@@ -3817,7 +3901,7 @@ function confirmRestock() {
       barcode: null, addedDate: today(), price
     });
   }
-  additionLog.push({ id: uid(), name: s.name, category: cat, qty, unit, price, date: today() });
+  additionLog.push({ id: uid(), name: s.name, category: cat, qty, unit, price, date: today(), source: 'spesa' });
   pbUpdate(s.name, price, qty, unit, cat);
   shopping = shopping.filter(x => x.id !== restockId);
   const rcopieEl = document.getElementById('rcopie'); if(rcopieEl) rcopieEl.textContent='0';
@@ -4808,29 +4892,219 @@ function renderCalDayDetail(ds) {
   const [y, m, d] = ds.split('-');
   const dateLabel = `${parseInt(d)} ${MESI_IT[parseInt(m)-1]} ${y}`;
 
-  if (!events.length) {
-    el.style.display = 'none';
-    el.innerHTML = '';
-    return;
-  }
   el.style.display = 'block';
 
+  const srcChip = (s) => s === 'spesa'     ? '<span class="cal-src cal-src--buy">🛒 Acquistato</span>'
+                       : s === 'scontrino' ? '<span class="cal-src cal-src--rcpt">🧾 Scontrino</span>'
+                       :                     '<span class="cal-src cal-src--pantry">🫙 In dispensa</span>';
   const totalSpesa = events.reduce((s,e) => s + (e.price||0), 0);
   const rows = events.map(e => `
     <div class="cal-event-row">
       <div class="cal-event-ico">${getCatIco(e.category)}</div>
       <div class="cal-event-txt">
-        <strong>${escHtml(e.name)}</strong>
-        <span style="color:var(--text2);font-size:12px;margin-left:6px">${e.qty} ${e.unit}</span>
+        <div><strong>${escHtml(e.name)}</strong><span style="color:var(--text2);font-size:12px;margin-left:6px">${e.qty} ${e.unit}</span></div>
+        <div style="margin-top:3px">${srcChip(e.source)}</div>
       </div>
       ${e.price ? `<div class="cal-event-price">€${e.price.toFixed(2)}</div>` : ''}
+      <button class="cal-event-edit" onclick="openCalEntry('${ds}','${e.id}')" title="Modifica">✏️</button>
       <button class="cal-event-del" onclick="calDeleteEvent('${e.id}')" title="Rimuovi">×</button>
     </div>`).join('');
 
   el.innerHTML = `
-    <div class="cal-day-detail-title">📅 ${dateLabel} · <span style="color:var(--text2);font-size:13px;font-weight:400">${events.length} aggiunt${events.length===1?'o':'i'}</span></div>
-    ${rows}
-    ${totalSpesa > 0 ? `<div class="cal-totspend">Spesa totale: €${totalSpesa.toFixed(2)}</div>` : ''}`;
+    <div class="cal-day-detail-title">📅 ${dateLabel} · <span style="color:var(--text2);font-size:13px;font-weight:400">${events.length ? events.length + ' aggiunt' + (events.length===1?'o':'i') : 'nessuna voce'}</span></div>
+    ${events.length ? rows : '<div style="color:var(--text2);font-size:13px;padding:8px 0">Nessun articolo segnato in questo giorno.</div>'}
+    ${totalSpesa > 0 ? `<div class="cal-totspend">Spesa totale: €${totalSpesa.toFixed(2)}</div>` : ''}
+    <button class="cal-add-btn" onclick="openCalEntry('${ds}')">➕ Aggiungi articolo</button>`;
+}
+
+// ── Aggiunta/Modifica voce dal calendario ────────────────────────
+let _calEntry = null;
+function openCalEntry(ds, id) {
+  _calEntry = { ds, id: id || null };
+  const e = id ? additionLog.find(a => a.id === id) : null;
+  // popola il select categoria una volta
+  const catSel = document.getElementById('ce-cat');
+  if (catSel && !catSel.options.length) {
+    catSel.innerHTML = Object.entries(CAT_LABELS_FULL).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  }
+  document.getElementById('cal-entry-title').textContent = (id ? '✏️ Modifica' : '➕ Aggiungi') + ' articolo';
+  document.getElementById('ce-name').value  = e ? e.name : '';
+  document.getElementById('ce-cat').value   = e ? (e.category || 'generico') : 'generico';
+  document.getElementById('ce-qty').value   = e ? e.qty : 1;
+  document.getElementById('ce-unit').value  = e ? (e.unit || 'pz') : 'pz';
+  document.getElementById('ce-price').value = e && e.price ? e.price : '';
+  document.getElementById('ce-exp').value   = e && e.expiryDate ? e.expiryDate : '';
+  document.getElementById('ce-source').value = e ? (e.source || 'dispensa') : 'dispensa';
+  document.getElementById('ce-pantry-row').style.display = id ? 'none' : 'flex'; // solo in aggiunta
+  document.getElementById('ce-pantry').checked = true;
+  document.getElementById('cal-entry-modal').classList.add('show');
+  setTimeout(() => document.getElementById('ce-name').focus(), 50);
+}
+function closeCalEntry(e, force) {
+  if (force || e?.target === document.getElementById('cal-entry-modal'))
+    document.getElementById('cal-entry-modal').classList.remove('show');
+}
+function saveCalEntry() {
+  if (!_calEntry) return;
+  const name = document.getElementById('ce-name').value.trim();
+  if (!name) { showAlert('Inserisci il nome dell\'articolo', 'err'); return; }
+  const cat   = document.getElementById('ce-cat').value;
+  const qty   = parseFloat(document.getElementById('ce-qty').value) || 1;
+  const unit  = document.getElementById('ce-unit').value.trim() || 'pz';
+  const pRaw  = document.getElementById('ce-price').value;
+  const price = pRaw !== '' ? parseFloat(pRaw) : null;
+  const exp   = document.getElementById('ce-exp').value || null;
+  const source = document.getElementById('ce-source').value;
+
+  if (_calEntry.id) {
+    const e = additionLog.find(a => a.id === _calEntry.id);
+    if (e) { e.name = name; e.category = cat; e.qty = qty; e.unit = unit; e.price = price; e.expiryDate = exp; e.source = source; }
+    // se esiste un articolo in dispensa con lo stesso nome, aggiorna scadenza/quantità
+    const it = items.find(x => x.name.toLowerCase() === name.toLowerCase());
+    if (it) { if (exp) it.expiryDate = exp; if (qty) it.quantity = qty; }
+  } else {
+    additionLog.push({ id: uid(), name, category: cat, qty, unit, price, date: _calEntry.ds, source, expiryDate: exp });
+    if (document.getElementById('ce-pantry').checked) {
+      items.push({ id: uid(), name, quantity: qty, unit, category: cat, expiryDate: exp, originalExpiry: null,
+        frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: _calEntry.ds, price: price || 0, consumed: 0 });
+    }
+    if (price != null) { try { pbUpdate(name, price, qty, unit, cat); } catch (_) {} }
+  }
+  save();
+  renderCalendar();
+  renderD();
+  closeCalEntry(null, 1);
+  showAlert(_calEntry.id ? '✅ Voce aggiornata' : '✅ Articolo aggiunto', 'ok', 1800);
+}
+
+// ── Scansione scontrino (OCR via Groq Vision) ─────────────────────
+let _receiptItems = [];
+function openReceiptModal() { document.getElementById('receipt-modal').classList.add('show'); }
+function closeReceipt(e, force) {
+  if (force || e?.target === document.getElementById('receipt-modal'))
+    document.getElementById('receipt-modal').classList.remove('show');
+}
+function setReceiptStatus(msg, loading) {
+  const el = document.getElementById('receipt-status');
+  el.className = 'receipt-status' + (loading ? ' loading' : '');
+  el.textContent = msg;
+}
+function startReceiptScan() {
+  if (!groqApiKey) {
+    showAlert('Per la scansione serve una Groq API key gratuita: impostala in ⚙️ → sezione Jarvis. Ottienila su console.groq.com', 'warn', 6000);
+    return;
+  }
+  document.getElementById('receipt-file').click();
+}
+/** Ridimensiona un'immagine (lato max) e la ritorna come data URL JPEG. */
+function downscaleImage(file, maxSide) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      const scale = Math.min(1, maxSide / Math.max(w, h));
+      w = Math.round(w * scale); h = Math.round(h * scale);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('immagine non valida')); };
+    img.src = url;
+  });
+}
+async function onReceiptFiles(files) {
+  if (!files || !files.length) return;
+  document.getElementById('receipt-file').value = ''; // consenti la riselezione dello stesso file
+  openReceiptModal();
+  setReceiptStatus('Leggo lo scontrino…', true);
+  document.getElementById('receipt-list').innerHTML = '';
+  document.getElementById('receipt-actions').style.display = 'none';
+  try {
+    const images = [];
+    for (const f of files) images.push(await downscaleImage(f, 1400));
+    const detected = await scanReceiptWithGroq(images);
+    if (!detected.length) { setReceiptStatus('😕 Nessun prodotto riconosciuto. Riprova con una foto più nitida e ben illuminata.', false); return; }
+    _receiptItems = detected.map(it => ({ ...it, keep: true }));
+    renderReceiptReview();
+  } catch (e) {
+    console.error(e);
+    setReceiptStatus('❌ Scansione non riuscita: ' + (e.message || e), false);
+  }
+}
+async function scanReceiptWithGroq(dataUrls) {
+  const prompt = `Sei un assistente che legge scontrini della spesa italiani. Nell'immagine (o più immagini, che possono essere parti dello stesso scontrino) individua TUTTI i prodotti acquistati.
+Per ciascun prodotto estrai: "name" (nome leggibile in italiano, espandi le abbreviazioni comuni), "qty" (quantità, numero), "unit" (unità: pz, g, kg, l, ml), "price" (prezzo pagato in euro come numero), "category" (una tra: carne, pesce, verdure, frutta, latticini, pasta_cereali, pane, salumi, condimenti, surgelati, bevande, dolci, legumi, uova, generico).
+Ignora totale, subtotale, IVA, sconti generici, resto, contante, carta, punti fedeltà.
+Rispondi SOLO con JSON valido (nessun markdown, nessun backtick):
+{"items":[{"name":"Latte Intero","qty":1,"unit":"pz","price":1.29,"category":"latticini"}]}`;
+  const content = [{ type: 'text', text: prompt }];
+  dataUrls.forEach(u => content.push({ type: 'image_url', image_url: { url: u } }));
+  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST', mode: 'cors', credentials: 'omit',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqApiKey}` },
+    body: JSON.stringify({
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      max_tokens: 2000, temperature: 0.1,
+      response_format: { type: 'json_object' },
+      messages: [{ role: 'user', content }],
+    }),
+  });
+  if (!resp.ok) {
+    const b = await resp.text().catch(() => '');
+    throw new Error('Groq ' + resp.status + (b ? ' — ' + b.slice(0, 140) : ''));
+  }
+  const data = await resp.json();
+  let txt = data.choices?.[0]?.message?.content || '{}';
+  txt = txt.replace(/```json/gi, '').replace(/```/g, '').trim();
+  let parsed = {};
+  try { parsed = JSON.parse(txt); }
+  catch (_) { const m = txt.match(/\{[\s\S]*\}/); if (m) { try { parsed = JSON.parse(m[0]); } catch (__) {} } }
+  const arr = Array.isArray(parsed.items) ? parsed.items : (Array.isArray(parsed) ? parsed : []);
+  return arr.filter(x => x && x.name).map(x => ({
+    name: String(x.name).trim(),
+    qty: parseFloat(x.qty) > 0 ? parseFloat(x.qty) : 1,
+    unit: (x.unit || 'pz').toString().trim() || 'pz',
+    price: (x.price != null && !isNaN(parseFloat(x.price))) ? parseFloat(x.price) : null,
+    category: CAT_LABELS_FULL[x.category] ? x.category : 'generico',
+  }));
+}
+function renderReceiptReview() {
+  setReceiptStatus(`✅ Trovati ${_receiptItems.length} prodotti — controlla, deseleziona o correggi, poi conferma:`, false);
+  const list = document.getElementById('receipt-list');
+  list.innerHTML = _receiptItems.map((it, i) => `
+    <label class="rcpt-row">
+      <input type="checkbox" ${it.keep ? 'checked' : ''} onchange="_receiptItems[${i}].keep=this.checked;updateReceiptTotal()">
+      <span class="rcpt-ico">${getCatIco(it.category)}</span>
+      <input class="rcpt-name" value="${escHtml(it.name)}" onchange="_receiptItems[${i}].name=this.value">
+      <input class="rcpt-qty" type="number" min="0" step="0.1" value="${it.qty}" onchange="_receiptItems[${i}].qty=parseFloat(this.value)||1">
+      <input class="rcpt-price" type="number" min="0" step="0.01" value="${it.price != null ? it.price : ''}" placeholder="€" onchange="_receiptItems[${i}].price=this.value!==''?parseFloat(this.value):null">
+    </label>`).join('');
+  document.getElementById('receipt-actions').style.display = 'block';
+  updateReceiptTotal();
+}
+function updateReceiptTotal() {
+  const kept = _receiptItems.filter(x => x.keep);
+  const tot = kept.reduce((s, x) => s + (x.price || 0), 0);
+  document.getElementById('receipt-total').textContent = `${kept.length} selezionati · Totale €${tot.toFixed(2)}`;
+}
+function confirmReceiptItems() {
+  const keep = _receiptItems.filter(x => x.keep && x.name.trim());
+  if (!keep.length) { showAlert('Nessun prodotto selezionato', 'warn'); return; }
+  const ds = calSelectedDay || today();
+  keep.forEach(it => {
+    const nm = it.name.trim();
+    additionLog.push({ id: uid(), name: nm, category: it.category, qty: it.qty, unit: it.unit, price: it.price, date: ds, source: 'scontrino' });
+    items.push({ id: uid(), name: nm, quantity: it.qty, unit: it.unit, category: it.category, expiryDate: null, originalExpiry: null,
+      frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: ds, price: it.price || 0, consumed: 0 });
+    if (it.price != null) { try { pbUpdate(nm, it.price, it.qty, it.unit, it.category); } catch (_) {} }
+  });
+  save();
+  renderCalendar();
+  renderD();
+  closeReceipt(null, 1);
+  showAlert(`✅ ${keep.length} prodotti aggiunti da scontrino`, 'ok', 2800);
 }
 
 /** Ritorna emoji icona categoria */
@@ -5425,6 +5699,16 @@ function closeTip(e, force) {
   if (force || e?.target === document.getElementById('tip-modal'))
     document.getElementById('tip-modal').classList.remove('show');
 }
+function saveScanKey() {
+  const val = document.getElementById('scan-key')?.value.trim();
+  if (!val || (!val.startsWith('gsk_') && !val.startsWith('sk-'))) {
+    showAlert('Chiave non valida — deve iniziare con gsk_', 'err', 3000);
+    return;
+  }
+  groqApiKey = val;
+  localStorage.setItem(GROQ_KEY_SK, val);
+  showAlert('✅ API key salvata!', 'ok', 2500);
+}
 function openInfoModal() {
   document.getElementById('info-modal').classList.add('show');
 }
@@ -5435,6 +5719,7 @@ function closeInfoModal(e, force) {
 function openSyncModal() {
   const _gt = document.getElementById('gist-token'); if (_gt) _gt.value = gistToken;
   const _gi = document.getElementById('gist-id');    if (_gi) _gi.value = gistId;
+  const _sk = document.getElementById('scan-key');   if (_sk) _sk.value = groqApiKey || '';
   setSyncModalStatus('', '');
   document.getElementById('sync-modal').classList.add('show');
 }
