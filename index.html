@@ -1078,6 +1078,36 @@ select.fi {
 }
 select.fi option { background: #1b1b1f; color: #f0ece6; }
 
+/* ── Dropdown custom (coerenti col tema, no menu nativo del sistema) ── */
+.cs { position: relative; width: 100%; }
+.cs > select { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; margin: 0; }
+.cs-trigger {
+  width: 100%; height: 44px; display: flex !important; align-items: center; justify-content: space-between; gap: 8px;
+  text-align: left; cursor: pointer; border-radius: 14px; padding: 9px 14px;
+  background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+  font-size: 14px; font-family: 'Inter', sans-serif; transition: border-color .15s;
+}
+.cs-trigger:hover { border-color: var(--border-strong, var(--border)); }
+.cs.open .cs-trigger { border-color: var(--accent, #22C55E); }
+.cs-trigger__lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-trigger__chev { flex-shrink: 0; opacity: .55; font-size: 11px; transition: transform .2s ease; }
+.cs.open .cs-trigger__chev { transform: rotate(180deg); }
+.cs-menu {
+  position: fixed; z-index: 9999; background: var(--bg2, #16181d);
+  border: 1px solid var(--border-strong, var(--border)); border-radius: 14px;
+  box-shadow: 0 18px 48px rgba(0,0,0,.55); padding: 6px; max-height: 264px; overflow-y: auto;
+  opacity: 0; transform: translateY(-6px) scale(.98); transform-origin: top;
+  transition: opacity .14s ease, transform .14s ease; -webkit-overflow-scrolling: touch;
+}
+.cs-menu.show { opacity: 1; transform: none; }
+.cs-opt {
+  padding: 10px 12px; border-radius: 9px; cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; font-size: 14px; color: var(--text); white-space: nowrap;
+}
+.cs-opt:hover { background: var(--surface-elevated, rgba(255,255,255,.07)); }
+.cs-opt.sel { color: var(--accent, #22C55E); font-weight: 700; background: rgba(34,197,94,.09); }
+.cs-opt.sel::after { content: '✓'; font-size: 12px; }
+
 /* Sidebar form selects */
 .sb-form select.sb-form select.fi { border-radius: 12px !important; }
 
@@ -3429,6 +3459,77 @@ function swEnd() {
 document.addEventListener('pointerdown', (e) => {
   if (!e.target.closest('.swipe-row.open-del') && !e.target.closest('.swipe-row.open-finish')) closeSwipes(null);
 }, true);
+
+// ── Dropdown custom (sostituiscono il menu nativo dei <select>) ────
+let _csOpen = null;
+function initCustomSelects(root) {
+  (root || document).querySelectorAll('select:not([data-cs])').forEach(enhanceSelect);
+}
+function enhanceSelect(sel) {
+  sel.dataset.cs = '1';
+  const cs = document.createElement('div');
+  cs.className = 'cs';
+  sel.parentNode.insertBefore(cs, sel);
+  cs.appendChild(sel);
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'cs-trigger';
+  trigger.innerHTML = '<span class="cs-trigger__lbl"></span><span class="cs-trigger__chev">▾</span>';
+  cs.appendChild(trigger);
+  const lbl = trigger.querySelector('.cs-trigger__lbl');
+  const update = () => { const o = sel.options[sel.selectedIndex]; lbl.textContent = o ? o.textContent : ''; };
+  cs._update = update; update();
+  // intercetta i set programmatici di .value per aggiornare l'etichetta
+  const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+  Object.defineProperty(sel, 'value', {
+    configurable: true,
+    get() { return desc.get.call(this); },
+    set(v) { desc.set.call(this, v); update(); },
+  });
+  sel.addEventListener('change', update);
+  trigger.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); toggleCs(cs, sel, trigger); });
+}
+function toggleCs(cs, sel, trigger) {
+  if (_csOpen && _csOpen.cs === cs) { closeCs(); return; }
+  closeCs();
+  const menu = document.createElement('div');
+  menu.className = 'cs-menu';
+  Array.from(sel.options).forEach((o, i) => {
+    const opt = document.createElement('div');
+    opt.className = 'cs-opt' + (i === sel.selectedIndex ? ' sel' : '');
+    opt.textContent = o.textContent;
+    opt.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (sel.value !== o.value) { sel.value = o.value; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+      closeCs();
+    });
+    menu.appendChild(opt);
+  });
+  document.body.appendChild(menu);
+  cs.classList.add('open');
+  const r = trigger.getBoundingClientRect();
+  menu.style.left = r.left + 'px';
+  menu.style.width = r.width + 'px';
+  const mh = Math.min(menu.scrollHeight, 264);
+  if (r.bottom + 8 + mh > window.innerHeight && r.top - 8 - mh > 8) menu.style.top = (r.top - 6 - mh) + 'px';
+  else menu.style.top = (r.bottom + 6) + 'px';
+  requestAnimationFrame(() => menu.classList.add('show'));
+  _csOpen = { cs, menu };
+}
+function closeCs() {
+  if (!_csOpen) return;
+  _csOpen.cs.classList.remove('open');
+  _csOpen.menu.remove();
+  _csOpen = null;
+}
+if (typeof window !== 'undefined' && window.addEventListener) {
+  document.addEventListener('click', () => closeCs());
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCs(); });
+  window.addEventListener('resize', () => closeCs());
+  window.addEventListener('scroll', () => closeCs(), true);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => initCustomSelects());
+  else initCustomSelects();
+}
 
 /** Apre/chiude la barra azioni di un item (chiude gli altri) */
 function toggleAct(id) {
