@@ -1136,7 +1136,7 @@ select.fi option { background: #1b1b1f; color: #f0ece6; }
 .cs-menu {
   position: fixed; z-index: 9999; background: var(--bg2, #16181d);
   border: 1px solid var(--border-strong, var(--border)); border-radius: 14px;
-  box-shadow: 0 18px 48px rgba(0,0,0,.55); padding: 6px; max-height: 264px; overflow-y: auto;
+  box-shadow: 0 18px 48px rgba(0,0,0,.55); padding: 6px; max-height: min(58vh, 380px); overflow-y: auto;
   opacity: 0; transform: translateY(-6px) scale(.98); transform-origin: top;
   transition: opacity .14s ease, transform .14s ease; -webkit-overflow-scrolling: touch;
 }
@@ -3919,7 +3919,7 @@ function toggleCs(cs, sel, trigger) {
   const r = trigger.getBoundingClientRect();
   menu.style.left = r.left + 'px';
   menu.style.width = r.width + 'px';
-  const mh = Math.min(menu.scrollHeight, 264);
+  const mh = menu.offsetHeight; // altezza reale (già limitata da max-height)
   if (r.bottom + 8 + mh > window.innerHeight && r.top - 8 - mh > 8) menu.style.top = (r.top - 6 - mh) + 'px';
   else menu.style.top = (r.bottom + 6) + 'px';
   requestAnimationFrame(() => menu.classList.add('show'));
@@ -4381,7 +4381,7 @@ function toggleScatMenu(e) {
   const r = trigger.getBoundingClientRect();
   menu.style.left = r.left + 'px';
   menu.style.width = r.width + 'px';
-  const mh = Math.min(menu.scrollHeight, Math.min(window.innerHeight * 0.6, 400));
+  const mh = menu.offsetHeight; // altezza reale (già limitata da max-height)
   if (r.bottom + 8 + mh > window.innerHeight && r.top - 8 - mh > 8) menu.style.top = (r.top - 6 - mh) + 'px';
   else menu.style.top = (r.bottom + 6) + 'px';
   document.querySelector('#scat-msel .cs-trigger__chev')?.style.setProperty('transform', 'rotate(180deg)');
