@@ -5852,13 +5852,21 @@ function setReceiptStatus(msg, loading) {
   el.className = 'receipt-status' + (loading ? ' loading' : '');
   el.textContent = msg;
 }
+/** Vero su dispositivi con fotocamera (app nativa o browser touch: iPhone/iPad/Android). */
+function _hasCamera() {
+  try { if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return true; } catch (_) {}
+  return (navigator.maxTouchPoints || 0) > 0;
+}
 function startReceiptScan() {
-  // OCR on-device: disponibile solo nell'app nativa (Android/iOS).
   if (!window.ReceiptScanner || !window.ReceiptScanner.available()) {
-    showAlert('La scansione dello scontrino è disponibile nell\'app per Android e iOS.', 'warn', 5000);
+    showAlert('Scansione scontrino non disponibile su questo dispositivo.', 'warn', 5000);
     return;
   }
-  document.getElementById('receipt-choose').classList.add('show'); // chiedi foto o file
+  if (_hasCamera()) {
+    document.getElementById('receipt-choose').classList.add('show'); // foto o file
+  } else {
+    pickReceiptFile(); // desktop: nessuna fotocamera → direttamente selezione file
+  }
 }
 function closeReceiptChoose(e, force) {
   if (force || e?.target === document.getElementById('receipt-choose'))
