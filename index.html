@@ -517,6 +517,10 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .shop-act-full { width: 100%; font-size: 13.5px; padding: 13px; }
 .shop-act-row { display: flex; gap: 10px; }
 .dcat-row#scat-row { margin-top: 6px; margin-bottom: 18px; }
+.shop-selectall { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.shop-selectall__btn { background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--text2); font-family: var(--font-body); font-size: 12.5px; font-weight: 600; padding: 8px 12px; cursor: pointer; transition: all .15s; }
+.shop-selectall__btn:hover { border-color: var(--accent, #22C55E); color: var(--accent, #22C55E); }
+.shop-selectall__n { font-size: 12px; color: var(--accent2); font-weight: 600; }
 .shop-item.checked { opacity: .45; }
 .shop-item.checked .shop-name { text-decoration: line-through; color: var(--text3); }
 /* Checkbox cerchio */
@@ -4319,6 +4323,15 @@ function closeRModal(e, force) {
 let scat = 'tutte';
 function setSCat(c) { scat = c; renderShop(); }
 
+/** Seleziona/deseleziona tutti gli articoli mostrati (rispetta il filtro categoria). */
+function toggleSelectAllShop() {
+  const vis = shopping.filter(s => scat === 'tutte' || (s.category || 'generico') === scat);
+  const allChk = vis.length > 0 && vis.every(s => s.checked);
+  vis.forEach(s => { s.checked = !allChk; });
+  save();
+  renderShop();
+}
+
 /** Crea un articolo in dispensa a partire da una voce della spesa. */
 function _shopToPantry(s) {
   const cat = s.category || detectCat(s.name) || 'generico';
@@ -4450,7 +4463,16 @@ function renderShop() {
     ? `<div class="shop-total"><span>🧾 Totale stimato</span><span class="shop-total__val">€${pricedTotal.toFixed(2)}</span></div>`
     : '';
 
-  el.innerHTML = totalBanner + catOrder.map(cat => {
+  // Barra "Seleziona/Deseleziona tutto" (sui soli articoli mostrati dal filtro)
+  const _visible = shopping.filter(s => scat === 'tutte' || (s.category || 'generico') === scat);
+  const _allChk = _visible.length > 0 && _visible.every(s => s.checked);
+  const _nChk = _visible.filter(s => s.checked).length;
+  const selectAllBar = `<div class="shop-selectall">
+    <button class="shop-selectall__btn" onclick="toggleSelectAllShop()">${_allChk ? '☑ Deseleziona tutto' : '⬜ Seleziona tutto'}</button>
+    ${_nChk ? `<span class="shop-selectall__n">${_nChk} selezionati</span>` : ''}
+  </div>`;
+
+  el.innerHTML = totalBanner + selectAllBar + catOrder.map(cat => {
     const groupItems = groups[cat];
     // Ordina: non-checked prima, checked dopo
     const sorted = [...groupItems].sort((a, b) => (a.checked ? 1 : -1) - (b.checked ? 1 : -1));
