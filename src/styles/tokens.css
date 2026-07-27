@@ -81,8 +81,51 @@
   --rc: 14px;
   --shadow: var(--shadow-card);
 
+  /* ── Elementi tematizzabili extra ────────────────────────────── */
+  --toast-bg: rgba(30,30,35,.96);
+  --chip-bg:  #ffffff;
+
   /* ── Layout ──────────────────────────────────────────────────── */
   --tabh: 64px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-top: env(safe-area-inset-top, 0px);
+}
+
+/* ================================================================
+   LIGHT MODE — attivata da data-theme="light" sull'elemento <html>.
+   Sovrascrive solo i token: l'accento verde del brand resta invariato.
+================================================================ */
+:root[data-theme="light"] {
+  --bg:               #EEF1F5;
+  --bg-secondary:     #FFFFFF;
+  --surface:          #FFFFFF;
+  --surface-elevated: #FFFFFF;
+
+  --text:           #0F172A;
+  --text-secondary: #52606D;
+  --text-muted:     #8A97A6;
+
+  --border:        rgba(15,23,42,.10);
+  --border-strong: rgba(15,23,42,.18);
+  --border-active: rgba(34,197,94,.55);
+
+  --shadow-card: 0 12px 30px rgba(15,23,42,.10);
+  --glow:        0 0 30px rgba(34,197,94,.16);
+
+  --grad-hero:  linear-gradient(145deg, #FFFFFF, #EEF3F1 55%, #E6F3EC);
+  --grad-glass: linear-gradient(145deg, rgba(15,23,42,.045), rgba(15,23,42,.015));
+
+  /* verdi/gialli chiari poco leggibili su bianco → varianti più scure */
+  --accent2: #16A34A;
+  --warn:    #B7791F;
+  --success: #16A34A;
+
+  --primary-dim: rgba(22,163,74,.12);
+  --success-dim: rgba(22,163,74,.12);
+  --warn-dim:    rgba(234,179,8,.16);
+  --danger-dim:  rgba(239,68,68,.10);
+  --freeze-dim:  rgba(2,132,199,.12);
+
+  --toast-bg: rgba(255,255,255,.98);
+  --chip-bg:  #EEF3F8;
 }

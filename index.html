@@ -110,7 +110,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 }
 /* Wordmark "Dispensa": "Dis" verde + "pensa" bianco (ovunque appaia il brand) */
 .brand-dis   { color: var(--accent, #22C55E) !important; -webkit-text-fill-color: var(--accent, #22C55E) !important; background: none !important; }
-.brand-pensa { color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; background: none !important; }
+.brand-pensa { color: var(--text) !important; -webkit-text-fill-color: var(--text) !important; background: none !important; }
 
 /* Alert banner */
 #alert { display: none; padding: 9px 18px; font-size: 13px; font-weight: 500; text-align: center; flex-shrink: 0; }
@@ -774,6 +774,11 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .sync-box { background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:22px 20px;width:100%;max-width:420px; }
 .sync-title { font-family:'Inter',sans-serif;font-weight:800;font-size:18px;margin-bottom:4px; }
 .sync-sub { font-size:12px;color:var(--text2);margin-bottom:18px;line-height:1.5; }
+.theme-row { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px; }
+.theme-row__lbl { font-size:13px;font-weight:600;color:var(--text); }
+.theme-seg { display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:3px;gap:3px; }
+.theme-opt { border:none;background:transparent;color:var(--text2);font-family:var(--font-body);font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:9px;cursor:pointer;transition:all .15s; }
+.theme-opt.active { background:var(--grad-primary);color:#05140A; }
 .info-body { max-height:min(62vh,560px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:4px; }
 .info-sec { margin-bottom:16px; }
 .info-h { font-family:var(--font-head,'Inter');font-weight:800;font-size:14px;margin-bottom:6px;color:var(--text); }
@@ -862,7 +867,7 @@ select option { background: #1b1b1f; color: #f0ece6; }
 @media (min-width: 768px) { #toast-container { left: 200px; bottom: 24px; } }
 .toast {
   display: flex; align-items: center; gap: 10px;
-  background: rgba(30,30,35,.96); border: 1px solid rgba(255,255,255,.13);
+  background: var(--toast-bg); border: 1px solid var(--border-strong);
   border-radius: 14px; padding: 12px 18px;
   font-size: 13px; font-weight: 500; color: var(--text);
   box-shadow: 0 12px 40px rgba(0,0,0,.7);
@@ -1373,6 +1378,17 @@ body:not(.authed) #app-shell { display: none; }
 }
 
 </style>
+<meta name="theme-color" content="#0B0E12">
+<script>
+  /* Applica il tema salvato PRIMA del primo paint (niente flash). */
+  (function () {
+    var t = 'dark';
+    try { var s = localStorage.getItem('dispensa_theme'); if (s === 'light' || s === 'dark') t = s; } catch (e) {}
+    document.documentElement.dataset.theme = t;
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', t === 'light' ? '#EEF1F5' : '#0B0E12');
+  })();
+</script>
 </head>
 <body>
 
@@ -1799,6 +1815,15 @@ body:not(.authed) #app-shell { display: none; }
       <button class="mclose" style="position:static" onclick="closeSyncModal(null,1)">×</button>
     </div>
     <div class="sync-sub">I tuoi dati sono salvati nel cloud (Firebase) sul tuo account Google e sincronizzati in tempo reale su tutti i dispositivi e con Alexa.</div>
+
+    <!-- Tema chiaro / scuro -->
+    <div class="theme-row">
+      <span class="theme-row__lbl">🎨 Tema</span>
+      <div class="theme-seg" id="theme-seg">
+        <button type="button" class="theme-opt" data-theme-val="dark"  onclick="setTheme('dark')">🌙 Scuro</button>
+        <button type="button" class="theme-opt" data-theme-val="light" onclick="setTheme('light')">☀️ Chiaro</button>
+      </div>
+    </div>
 
     <!-- Account Google collegato -->
     <div class="acct-box">
@@ -4137,21 +4162,27 @@ function closeMoreSheet(e, force) {
 // DASHBOARD (Fase 4) — KPI + grafici ApexCharts
 // ----------------------------------------------------------------
 let _dashCharts = [];
+/** Colori grafici in base al tema attivo. */
+function _chartTheme() {
+  const light = document.documentElement.dataset.theme === 'light';
+  return { fore: light ? '#475569' : '#94A3B8', grid: light ? 'rgba(15,23,42,.09)' : 'rgba(255,255,255,.06)', mode: light ? 'light' : 'dark' };
+}
 function _dashArea(elId, name, labels, data, color) {
   const el = document.getElementById(elId);
   if (!el || !window.ApexCharts) return null;
+  const th = _chartTheme();
   const c = new window.ApexCharts(el, {
     chart: { type: 'area', height: 200, toolbar: { show: false }, zoom: { enabled: false },
-      fontFamily: "'Inter',sans-serif", foreColor: '#94A3B8', animations: { easing: 'easeinout', speed: 650 } },
+      fontFamily: "'Inter',sans-serif", foreColor: th.fore, animations: { easing: 'easeinout', speed: 650 } },
     series: [{ name, data }],
     colors: [color],
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth', width: 3 },
     fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: .4, opacityTo: 0, stops: [0, 95] } },
-    grid: { borderColor: 'rgba(255,255,255,.06)', strokeDashArray: 4, padding: { left: 6, right: 8, top: -6 } },
+    grid: { borderColor: th.grid, strokeDashArray: 4, padding: { left: 6, right: 8, top: -6 } },
     xaxis: { categories: labels, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { fontSize: '11px' } } },
     yaxis: { labels: { formatter: (v) => Math.round(v), style: { fontSize: '11px' } }, min: 0 },
-    tooltip: { theme: 'dark' },
+    tooltip: { theme: th.mode },
     markers: { size: 0, hover: { size: 5 } },
   });
   c.render();
@@ -4235,10 +4266,10 @@ function _radialBar(elId, pct) {
     colors: ['#22C55E'],
     plotOptions: { radialBar: {
       hollow: { size: '64%' },
-      track: { background: 'rgba(255,255,255,.06)', strokeWidth: '100%' },
+      track: { background: _chartTheme().grid, strokeWidth: '100%' },
       dataLabels: {
-        name: { show: true, offsetY: 24, color: '#94A3B8', fontSize: '13px' },
-        value: { show: true, offsetY: -14, color: '#F8FAFC', fontSize: '42px', fontWeight: 800, fontFamily: "'Sora',sans-serif", formatter: (v) => Math.round(v) + '%' },
+        name: { show: true, offsetY: 24, color: _chartTheme().fore, fontSize: '13px' },
+        value: { show: true, offsetY: -14, color: (document.documentElement.dataset.theme === 'light' ? '#0F172A' : '#F8FAFC'), fontSize: '42px', fontWeight: 800, fontFamily: "'Sora',sans-serif", formatter: (v) => Math.round(v) + '%' },
       },
     } },
     fill: { type: 'gradient', gradient: { shade: 'dark', type: 'horizontal', gradientToColors: ['#16A34A'], stops: [0, 100] } },
@@ -5901,6 +5932,19 @@ function closeTip(e, force) {
   if (force || e?.target === document.getElementById('tip-modal'))
     document.getElementById('tip-modal').classList.remove('show');
 }
+// ── Tema chiaro / scuro ───────────────────────────────────────────
+function currentTheme() { return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'; }
+function setTheme(t) {
+  if (t !== 'light' && t !== 'dark') t = 'dark';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('dispensa_theme', t); } catch (e) {}
+  document.querySelectorAll('#theme-seg .theme-opt').forEach(b => b.classList.toggle('active', b.dataset.themeVal === t));
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', t === 'light' ? '#EEF1F5' : '#0B0E12');
+  // Ridisegna i grafici (colori assi/griglia dipendono dal tema)
+  try { if (typeof renderDashboard === 'function' && document.getElementById('dash-root')?.offsetParent) renderDashboard(); } catch (e) {}
+  try { if (typeof renderStatistiche === 'function' && document.getElementById('stat-donut')?.offsetParent) renderStatistiche(); } catch (e) {}
+}
 function openInfoModal() {
   document.getElementById('info-modal').classList.add('show');
 }
@@ -5911,6 +5955,7 @@ function closeInfoModal(e, force) {
 function openSyncModal() {
   const _gt = document.getElementById('gist-token'); if (_gt) _gt.value = gistToken;
   const _gi = document.getElementById('gist-id');    if (_gi) _gi.value = gistId;
+  document.querySelectorAll('#theme-seg .theme-opt').forEach(b => b.classList.toggle('active', b.dataset.themeVal === currentTheme()));
   setSyncModalStatus('', '');
   document.getElementById('sync-modal').classList.add('show');
 }
