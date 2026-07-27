@@ -1,7 +1,9 @@
 // ============================================================================
 // ocr.ts — Motore OCR dietro un'interfaccia semplice, così il motore si può
-// sostituire in un solo punto. Implementazione on-device via ML Kit (Android) /
-// Vision (iOS) attraverso il plugin Capacitor: offline, nessuna chiave API.
+// sostituire in un solo punto.
+//  - Nativo (Android/iOS): ML Kit / Vision via plugin Capacitor (offline).
+//  - Web (desktop): fallback Tesseract.js (caricato on-demand), così anche da
+//    browser si può caricare l'immagine di uno scontrino.
 // ============================================================================
 import { Capacitor } from '@capacitor/core';
 import { CapacitorPluginMlKitTextRecognition } from '@pantrist/capacitor-plugin-ml-kit-text-recognition';
@@ -25,7 +27,21 @@ export const mlkitOcr: OcrEngine = {
   },
 };
 
-/** L'OCR on-device è disponibile solo nell'app nativa (non nel browser). */
+/** Motore OCR per browser: Tesseract.js (caricato dinamicamente). */
+export const tesseractOcr: OcrEngine = {
+  async recognize(image: string): Promise<string> {
+    const { default: Tesseract } = await import('tesseract.js');
+    const { data } = await Tesseract.recognize(image, 'ita');
+    return data?.text || '';
+  },
+};
+
+/** Sceglie il motore in base alla piattaforma. */
+export function getOcrEngine(): OcrEngine {
+  return Capacitor.isNativePlatform() ? mlkitOcr : tesseractOcr;
+}
+
+/** La scansione è disponibile ovunque: nativo (ML Kit) o web (Tesseract). */
 export function isOcrAvailable(): boolean {
-  return Capacitor.isNativePlatform();
+  return true;
 }

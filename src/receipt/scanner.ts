@@ -6,12 +6,12 @@
 // ============================================================================
 import { parseReceipt } from './parser';
 import type { ReceiptProduct } from './parser';
-import { mlkitOcr, isOcrAvailable } from './ocr';
+import { getOcrEngine, isOcrAvailable } from './ocr';
 import type { OcrEngine } from './ocr';
 
-let engine: OcrEngine = mlkitOcr;
+let engineOverride: OcrEngine | null = null;
 /** Permette di sostituire il motore OCR (test/futuri backend). */
-export function setOcrEngine(e: OcrEngine): void { engine = e; }
+export function setOcrEngine(e: OcrEngine): void { engineOverride = e; }
 
 export interface ScanOutput {
   products: ReceiptProduct[];
@@ -20,6 +20,7 @@ export interface ScanOutput {
 
 /** OCR di una o più immagini (anche parti dello stesso scontrino) → prodotti + totale. */
 async function scan(images: string[]): Promise<ScanOutput> {
+  const engine = engineOverride || getOcrEngine();
   const texts: string[] = [];
   for (const img of images) {
     try {
