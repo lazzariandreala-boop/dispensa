@@ -25,6 +25,8 @@
 <script type="module" src="/src/cloud.js"></script>
 <!-- ApexCharts (globale, per la Dashboard) -->
 <script type="module" src="/src/charts.js"></script>
+<!-- Scansione scontrino on-device (OCR ML Kit/Vision + parser locale) → window.ReceiptScanner -->
+<script type="module" src="/src/receipt/scanner.ts"></script>
 <style>
 /* ================================================
    CSS VARIABLES & GLOBAL RESET
@@ -1862,17 +1864,12 @@ body:not(.authed) #app-shell { display: none; }
     </div>
     ===== fine blocco JARVIS disattivato ===== -->
 
-    <!-- Scansione scontrino: API key Groq (gratuita) -->
+    <!-- Scansione scontrino: ora completamente on-device, nessuna chiave -->
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
       <div style="font-size:13px;font-weight:700;margin-bottom:6px">🧾 Scansione scontrino</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">
-        Per leggere gli scontrini con la fotocamera serve una API key <strong>Groq</strong> gratuita. Ottienila su <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a> → API Keys.
+      <div style="font-size:11px;color:var(--text2);line-height:1.5">
+        La lettura degli scontrini avviene <strong>direttamente sul dispositivo</strong> (offline, senza alcuna chiave o account): le foto non lasciano il telefono. Disponibile nell'app per Android e iOS.
       </div>
-      <div class="fg" style="margin-bottom:6px">
-        <input class="fi" id="scan-key" type="password" placeholder="gsk_..." autocomplete="off" style="font-size:13px">
-      </div>
-      <button class="btn btn-s" onclick="saveScanKey()" style="margin-bottom:0;font-size:13px;padding:9px">💾 Salva API key</button>
-      <div style="margin-top:8px;font-size:10px;color:var(--text3);line-height:1.5">⚠ La chiave resta solo su questo dispositivo (localStorage). Le foto vengono inviate solo a Groq per la lettura.</div>
     </div>
   </div>
 </div>
@@ -5190,6 +5187,7 @@ function saveCalEntry() {
 
 // ── Scansione scontrino (OCR via Groq Vision) ─────────────────────
 let _receiptItems = [];
+let _receiptTotal = null;
 function openReceiptModal() { document.getElementById('receipt-modal').classList.add('show'); }
 function closeReceipt(e, force) {
   if (force || e?.target === document.getElementById('receipt-modal'))
@@ -5201,8 +5199,9 @@ function setReceiptStatus(msg, loading) {
   el.textContent = msg;
 }
 function startReceiptScan() {
-  if (!groqApiKey) {
-    showAlert('Per la scansione serve una Groq API key gratuita: impostala in ⚙️ → sezione Jarvis. Ottienila su console.groq.com', 'warn', 6000);
+  // OCR on-device: disponibile solo nell'app nativa (Android/iOS).
+  if (!window.ReceiptScanner || !window.ReceiptScanner.available()) {
+    showAlert('La scansione dello scontrino è disponibile nell\'app per Android e iOS.', 'warn', 5000);
     return;
   }
   document.getElementById('receipt-file').click();
@@ -5234,55 +5233,32 @@ async function onReceiptFiles(files) {
   document.getElementById('receipt-actions').style.display = 'none';
   try {
     const images = [];
-    for (const f of files) images.push(await downscaleImage(f, 1400));
-    const detected = await scanReceiptWithGroq(images);
-    if (!detected.length) { setReceiptStatus('😕 Nessun prodotto riconosciuto. Riprova con una foto più nitida e ben illuminata.', false); return; }
-    _receiptItems = detected.map(it => ({ ...it, keep: true }));
+    for (const f of files) images.push(await downscaleImage(f, 1600));
+    // OCR on-device + parser locale (nessuna chiave, nessuna rete).
+    const { products, total } = await window.ReceiptScanner.scan(images);
+    if (!products.length) { setReceiptStatus('😕 Nessun prodotto riconosciuto. Riprova con una foto più nitida, dritta e ben illuminata.', false); return; }
+    // Completa categoria e unità con la logica dell'app (il parser resta puro).
+    _receiptItems = products.map(p => {
+      const cat = detectCat(p.name);
+      return {
+        name: p.name,
+        qty: p.qty > 0 ? p.qty : 1,
+        unit: p.unit || detectUnit(p.name, cat),
+        price: (p.price != null && !isNaN(p.price)) ? p.price : null,
+        category: cat,
+        keep: true,
+      };
+    });
+    _receiptTotal = (typeof total === 'number') ? total : null;
     renderReceiptReview();
   } catch (e) {
     console.error(e);
     setReceiptStatus('❌ Scansione non riuscita: ' + (e.message || e), false);
   }
 }
-async function scanReceiptWithGroq(dataUrls) {
-  const prompt = `Sei un assistente che legge scontrini della spesa italiani. Nell'immagine (o più immagini, che possono essere parti dello stesso scontrino) individua TUTTI i prodotti acquistati.
-Per ciascun prodotto estrai: "name" (nome leggibile in italiano, espandi le abbreviazioni comuni), "qty" (quantità, numero), "unit" (unità: pz, g, kg, l, ml, conf), "price" (prezzo pagato in euro come numero), "category" (una tra: carne, pesce, uova, salumi, latticini, verdure, frutta, legumi, pasta_cereali, pane, colazione, sughi, condimenti, spezie, farine, scatola, surgelati, dolci, snack, bevande, alcolici, casa, generico).
-Ignora totale, subtotale, IVA, sconti generici, resto, contante, carta, punti fedeltà.
-Rispondi SOLO con JSON valido (nessun markdown, nessun backtick):
-{"items":[{"name":"Latte Intero","qty":1,"unit":"pz","price":1.29,"category":"latticini"}]}`;
-  const content = [{ type: 'text', text: prompt }];
-  dataUrls.forEach(u => content.push({ type: 'image_url', image_url: { url: u } }));
-  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST', mode: 'cors', credentials: 'omit',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqApiKey}` },
-    body: JSON.stringify({
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-      max_tokens: 2000, temperature: 0.1,
-      response_format: { type: 'json_object' },
-      messages: [{ role: 'user', content }],
-    }),
-  });
-  if (!resp.ok) {
-    const b = await resp.text().catch(() => '');
-    throw new Error('Groq ' + resp.status + (b ? ' — ' + b.slice(0, 140) : ''));
-  }
-  const data = await resp.json();
-  let txt = data.choices?.[0]?.message?.content || '{}';
-  txt = txt.replace(/```json/gi, '').replace(/```/g, '').trim();
-  let parsed = {};
-  try { parsed = JSON.parse(txt); }
-  catch (_) { const m = txt.match(/\{[\s\S]*\}/); if (m) { try { parsed = JSON.parse(m[0]); } catch (__) {} } }
-  const arr = Array.isArray(parsed.items) ? parsed.items : (Array.isArray(parsed) ? parsed : []);
-  return arr.filter(x => x && x.name).map(x => ({
-    name: String(x.name).trim(),
-    qty: parseFloat(x.qty) > 0 ? parseFloat(x.qty) : 1,
-    unit: (x.unit || 'pz').toString().trim() || 'pz',
-    price: (x.price != null && !isNaN(parseFloat(x.price))) ? parseFloat(x.price) : null,
-    category: CAT_LABELS_FULL[x.category] ? x.category : 'generico',
-  }));
-}
 function renderReceiptReview() {
-  setReceiptStatus(`✅ Trovati ${_receiptItems.length} prodotti — controlla, deseleziona o correggi, poi conferma:`, false);
+  const totNote = _receiptTotal != null ? ` · totale scontrino €${_receiptTotal.toFixed(2)}` : '';
+  setReceiptStatus(`✅ Trovati ${_receiptItems.length} prodotti${totNote} — controlla, correggi e conferma:`, false);
   const list = document.getElementById('receipt-list');
   list.innerHTML = _receiptItems.map((it, i) => `
     <label class="rcpt-row">
@@ -5922,16 +5898,6 @@ function closeTip(e, force) {
   if (force || e?.target === document.getElementById('tip-modal'))
     document.getElementById('tip-modal').classList.remove('show');
 }
-function saveScanKey() {
-  const val = document.getElementById('scan-key')?.value.trim();
-  if (!val || (!val.startsWith('gsk_') && !val.startsWith('sk-'))) {
-    showAlert('Chiave non valida — deve iniziare con gsk_', 'err', 3000);
-    return;
-  }
-  groqApiKey = val;
-  localStorage.setItem(GROQ_KEY_SK, val);
-  showAlert('✅ API key salvata!', 'ok', 2500);
-}
 function openInfoModal() {
   document.getElementById('info-modal').classList.add('show');
 }
@@ -5942,7 +5908,6 @@ function closeInfoModal(e, force) {
 function openSyncModal() {
   const _gt = document.getElementById('gist-token'); if (_gt) _gt.value = gistToken;
   const _gi = document.getElementById('gist-id');    if (_gi) _gi.value = gistId;
-  const _sk = document.getElementById('scan-key');   if (_sk) _sk.value = groqApiKey || '';
   setSyncModalStatus('', '');
   document.getElementById('sync-modal').classList.add('show');
 }
