@@ -1204,6 +1204,10 @@ select.fi                        { padding-right: 32px !important; }
 #disp-fixed-header.visible { display: block; }
 #disp-fixed-header .disp-stats { margin-bottom: 8px; }
 #disp-fixed-header .sbox { margin-bottom: 0; }
+.dcat-row { display: flex; gap: 7px; overflow-x: auto; margin-top: 9px; padding-bottom: 2px; scrollbar-width: none; -ms-overflow-style: none; }
+.dcat-row::-webkit-scrollbar { display: none; }
+.dcat-chip { flex-shrink: 0; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-family: var(--font-body); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .15s; }
+.dcat-chip.active { background: var(--grad-primary); color: #05140A; border-color: transparent; }
 
 /* Rimuovi il vecchio sticky (non funzionava) */
 #pg-dispensa .disp-sticky { all: unset; }
@@ -1548,6 +1552,7 @@ body:not(.authed) #app-shell { display: none; }
     <span>🔍</span>
     <input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()">
   </div>
+  <div class="dcat-row" id="dcat-row" style="display:none"></div>
 </div>
 
 <div id="main">
@@ -1572,13 +1577,20 @@ body:not(.authed) #app-shell { display: none; }
   <div id="pg-ricette" class="page">
     <div class="sbox"><span>🔍</span><input id="rsearch" placeholder="Cerca ricetta…" oninput="renderR()"></div>
     <div class="frow">
-      <div class="chip active" data-rf="possibili"  onclick="setRF('possibili',this)">✅ Possibili</div>
-      <div class="chip" data-rf="tutte"       onclick="setRF('tutte',this)">Tutte</div>
-      <div class="chip" data-rf="italiana"    onclick="setRF('italiana',this)">🇮🇹 Italiana</div>
-      <div class="chip" data-rf="europea"     onclick="setRF('europea',this)">🇪🇺 Europea</div>
-      <div class="chip" data-rf="giapponese"  onclick="setRF('giapponese',this)">🇯🇵 Giapponese</div>
-      <div class="chip" data-rf="cinese"      onclick="setRF('cinese',this)">🇨🇳 Cinese</div>
-      <div class="chip" data-rf="asiatica"    onclick="setRF('asiatica',this)">🌏 Asiatica</div>
+      <div class="chip active" data-rf="possibili" onclick="setRF('possibili',this)">✅ Possibili</div>
+      <div class="chip" data-rf="tutte"    onclick="setRF('tutte',this)">Tutte</div>
+      <div class="chip" data-rf="veg"      onclick="setRF('veg',this)">🌱 Vegetariano</div>
+      <div class="chip" data-rf="carne"    onclick="setRF('carne',this)">🍗 Carne</div>
+      <div class="chip" data-rf="pesce"    onclick="setRF('pesce',this)">🐟 Pesce</div>
+      <div class="chip" data-rf="pasta"    onclick="setRF('pasta',this)">🍝 Pasta</div>
+      <div class="chip" data-rf="risotti"  onclick="setRF('risotti',this)">🍚 Risotti</div>
+      <div class="chip" data-rf="zuppe"    onclick="setRF('zuppe',this)">🍲 Zuppe</div>
+      <div class="chip" data-rf="freddi"   onclick="setRF('freddi',this)">🥗 Piatti freddi</div>
+      <div class="chip" data-rf="uova"     onclick="setRF('uova',this)">🍳 Uova</div>
+      <div class="chip" data-rf="verdure"  onclick="setRF('verdure',this)">🥦 Verdure</div>
+      <div class="chip" data-rf="legumi"   onclick="setRF('legumi',this)">🫘 Legumi</div>
+      <div class="chip" data-rf="panini"   onclick="setRF('panini',this)">🥪 Panini</div>
+      <div class="chip" data-rf="dolci"    onclick="setRF('dolci',this)">🍰 Dolci</div>
     </div>
     <div id="rlist"></div>
   </div>
@@ -2968,96 +2980,251 @@ r('sf2','Tigelle Emiliane',RC.italiana,30,'facile','🫓',
 
 ];
 
-// ── Generatore ricette: amplia il catalogo oltre le 1000 voci ─────
-// Combina proteine × metodi di cottura × contorni con passi coerenti.
-// Gli ingredienti usano nomi reali, così il matching con la dispensa funziona.
+// ── Generatore ricette: catalogo mondiale (~10.000 voci) ──────────
+// Piatti tipici dei vari paesi + varianti + famiglie (paste, risotti,
+// zuppe, insalatone, bowl/curry, dolci…) + generatore combinatorio.
+// Ingredienti con nomi reali → il matching con la dispensa funziona.
 (function generateRecipes() {
-  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-  const ING = (name, amt, unit) => ({ name, key: name.toLowerCase(), amt, unit });
+  const TARGET = 10000;
+  const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
+  const ING = (name, amt, unit) => ({ name: cap(name), key: String(name).toLowerCase(), amt, unit });
+  let gid = 0;
+  const add = (name, region, icon, ings, steps, time, diff) => {
+    if (RECIPES.length >= TARGET) return false;
+    RECIPES.push(r('g' + (gid++), name, region, time || 30, diff || 'facile', icon, ings, steps, null));
+    return true;
+  };
   const OLIO = ING('olio', 20, 'ml'), SALE = ING('sale', 5, 'g'), PEPE = ING('pepe', 3, 'g'),
-        AGLIO = ING('aglio', 1, 'pz'), CIPOLLA = ING('cipolla', 1, 'pz'), FORMAGGIO = ING('formaggio', 60, 'g');
+    AGLIO = ING('aglio', 1, 'pz'), CIPOLLA = ING('cipolla', 1, 'pz'), FORMAGGIO = ING('formaggio', 60, 'g'),
+    BURRO = ING('burro', 30, 'g'), BRODO = ING('brodo', 700, 'ml');
 
+  // ── Piatti tipici del mondo + varianti ─────────────────────────
+  // [nome, regione, icona, [[ingrediente, qtà, unità]…], [passi…], tempo, difficoltà]
+  const WORLD = [
+    // Italia
+    ['Lasagne alla bolognese', 'italiana', '🍝', [['lasagne', 250, 'g'], ['manzo', 300, 'g'], ['pomodori', 400, 'g'], ['besciamella', 300, 'ml'], ['parmigiano', 80, 'g']], ['Prepara il ragù rosolando la carne con soffritto e pomodoro per un\'ora.', 'Alterna sfoglie, ragù, besciamella e parmigiano in una teglia.', 'Inforna a 180°C per 35 minuti fino a doratura.'], 90, 'media'],
+    ['Parmigiana di melanzane', 'italiana', '🍆', [['melanzane', 600, 'g'], ['pomodori', 400, 'g'], ['mozzarella', 200, 'g'], ['parmigiano', 80, 'g']], ['Friggi o griglia le melanzane a fette.', 'Alterna melanzane, sugo, mozzarella e parmigiano in teglia.', 'Inforna a 180°C per 30 minuti.'], 70, 'media'],
+    ['Ossobuco alla milanese', 'italiana', '🍖', [['manzo', 600, 'g'], ['cipolla', 1, 'pz'], ['carote', 100, 'g'], ['brodo', 400, 'ml']], ['Infarina e rosola gli ossibuchi nel burro.', 'Aggiungi soffritto, vino e brodo; cuoci coperto 90 minuti.', 'Servi con gremolada e risotto giallo.'], 100, 'media'],
+    ['Saltimbocca alla romana', 'italiana', '🥩', [['vitello', 400, 'g'], ['prosciutto', 100, 'g'], ['salvia', 5, 'g']], ['Copri le fettine con prosciutto e salvia, fissa con uno stecchino.', 'Rosola in padella con burro pochi minuti per lato.', 'Sfuma col vino bianco e servi con il fondo.'], 20, 'facile'],
+    ['Vitello tonnato', 'italiana', '🥩', [['vitello', 500, 'g'], ['tonno', 150, 'g'], ['uova', 2, 'pz'], ['capperi', 20, 'g']], ['Lessa il vitello e lascialo raffreddare.', 'Frulla tonno, maionese, capperi e acciughe per la salsa.', 'Affetta la carne e nappa con la salsa tonnata.'], 60, 'media'],
+    ['Caprese', 'italiana', '🍅', [['pomodori', 300, 'g'], ['mozzarella', 200, 'g'], ['basilico', 10, 'g']], ['Affetta pomodori e mozzarella.', 'Alterna a strati con foglie di basilico.', 'Condisci con olio, sale e origano.'], 10, 'facile'],
+    ['Ribollita toscana', 'italiana', '🍲', [['fagioli', 300, 'g'], ['cavolo', 300, 'g'], ['pane', 150, 'g'], ['pomodori', 200, 'g']], ['Cuoci verdure e fagioli in brodo aromatico.', 'Aggiungi pane raffermo e fai insaporire.', 'Servi con olio a crudo.'], 60, 'facile'],
+    ['Arancini siciliani', 'italiana', '🍙', [['riso', 300, 'g'], ['manzo', 150, 'g'], ['piselli', 80, 'g'], ['mozzarella', 100, 'g']], ['Prepara un risotto e fallo raffreddare.', 'Forma le palline con ripieno di ragù e mozzarella.', 'Impana e friggi in olio bollente.'], 60, 'media'],
+    // Spagna
+    ['Paella valenciana', 'europea', '🥘', [['riso', 320, 'g'], ['pollo', 250, 'g'], ['gamberi', 200, 'g'], ['piselli', 100, 'g'], ['brodo', 600, 'ml']], ['Rosola pollo e gamberi in padella larga con olio.', 'Aggiungi riso, zafferano e brodo caldo; cuoci senza mescolare.', 'Unisci i piselli, completa e lascia riposare.'], 45, 'media'],
+    ['Tortilla española', 'europea', '🥚', [['uova', 5, 'pz'], ['patate', 400, 'g'], ['cipolla', 1, 'pz']], ['Friggi patate e cipolla a fette finché morbide.', 'Unisci alle uova sbattute e versa in padella.', 'Cuoci da entrambi i lati fino a doratura.'], 30, 'facile'],
+    ['Gazpacho', 'europea', '🍅', [['pomodori', 500, 'g'], ['cetrioli', 1, 'pz'], ['peperoni', 1, 'pz'], ['aglio', 1, 'pz']], ['Frulla tutte le verdure con olio e aceto.', 'Regola di sale e passa al setaccio.', 'Servi ben freddo.'], 15, 'facile'],
+    ['Patatas bravas', 'europea', '🥔', [['patate', 500, 'g'], ['pomodori', 150, 'g'], ['peperoncino', 3, 'g']], ['Friggi le patate a cubi.', 'Prepara la salsa brava piccante col pomodoro.', 'Servi le patate nappate di salsa.'], 30, 'facile'],
+    // Francia
+    ['Ratatouille', 'europea', '🍆', [['melanzane', 250, 'g'], ['zucchine', 250, 'g'], ['peperoni', 200, 'g'], ['pomodori', 300, 'g']], ['Taglia tutte le verdure a rondelle.', 'Disponi a ventaglio in teglia con olio e erbe.', 'Inforna a 180°C per 45 minuti.'], 60, 'facile'],
+    ['Quiche lorraine', 'europea', '🥧', [['uova', 3, 'pz'], ['prosciutto', 150, 'g'], ['panna', 200, 'ml'], ['formaggio', 80, 'g']], ['Fodera uno stampo con pasta brisée.', 'Versa uova, panna, prosciutto e formaggio.', 'Inforna a 180°C per 35 minuti.'], 55, 'media'],
+    ['Coq au vin', 'europea', '🍗', [['pollo', 600, 'g'], ['funghi', 200, 'g'], ['cipolla', 2, 'pz'], ['pancetta', 100, 'g']], ['Rosola pollo e pancetta.', 'Aggiungi vino rosso, funghi e cipolline; brasa 60 minuti.', 'Servi con purè o pane.'], 80, 'media'],
+    ['Soupe à l\'oignon', 'europea', '🧅', [['cipolla', 500, 'g'], ['brodo', 700, 'ml'], ['pane', 100, 'g'], ['formaggio', 80, 'g']], ['Caramella le cipolle a fuoco basso a lungo.', 'Aggiungi il brodo e cuoci 20 minuti.', 'Copri con pane e formaggio e gratina.'], 60, 'facile'],
+    ['Crêpes', 'europea', '🥞', [['farina', 200, 'g'], ['uova', 3, 'pz'], ['latte', 400, 'ml']], ['Prepara una pastella liscia e faila riposare.', 'Cuoci sottili velo di pastella in padella.', 'Farcisci dolce o salato a piacere.'], 25, 'facile'],
+    // UK / Irlanda
+    ['Fish and chips', 'europea', '🐟', [['merluzzo', 400, 'g'], ['patate', 500, 'g'], ['farina', 150, 'g']], ['Taglia le patate a bastoncino e friggile.', 'Passa il pesce in pastella e friggi dorato.', 'Servi con salsa tartara e limone.'], 40, 'media'],
+    ['Shepherd\'s pie', 'europea', '🥧', [['manzo', 400, 'g'], ['patate', 600, 'g'], ['piselli', 100, 'g'], ['carote', 150, 'g']], ['Cuoci il macinato con verdure e sugo.', 'Copri con purè di patate.', 'Gratina in forno a 200°C per 25 minuti.'], 60, 'facile'],
+    ['Irish stew', 'europea', '🍲', [['agnello', 500, 'g'], ['patate', 400, 'g'], ['carote', 200, 'g'], ['cipolla', 2, 'pz']], ['Rosola la carne.', 'Aggiungi verdure e brodo; stufa 90 minuti.', 'Servi caldo con pane.'], 110, 'media'],
+    // Grecia
+    ['Moussaka', 'europea', '🍆', [['melanzane', 500, 'g'], ['manzo', 400, 'g'], ['besciamella', 300, 'ml'], ['pomodori', 200, 'g']], ['Griglia le melanzane.', 'Prepara il ragù speziato di carne.', 'Alterna con besciamella e inforna 40 minuti.'], 80, 'media'],
+    ['Souvlaki', 'europea', '🍢', [['maiale', 500, 'g'], ['pane', 100, 'g'], ['pomodori', 150, 'g']], ['Marinare la carne con olio, limone e origano.', 'Infila su spiedini e griglia.', 'Servi nella pita con tzatziki e verdure.'], 30, 'facile'],
+    ['Insalata greca', 'europea', '🥗', [['pomodori', 300, 'g'], ['cetrioli', 1, 'pz'], ['feta', 150, 'g'], ['olive', 60, 'g']], ['Taglia pomodori, cetrioli e cipolla.', 'Aggiungi feta a cubi e olive.', 'Condisci con olio e origano.'], 10, 'facile'],
+    ['Spanakopita', 'europea', '🥧', [['spinaci', 400, 'g'], ['feta', 200, 'g'], ['uova', 2, 'pz']], ['Ammorbidisci gli spinaci e mescola con feta e uova.', 'Stratifica con pasta fillo imburrata.', 'Inforna a 180°C fino a doratura.'], 55, 'media'],
+    // Medio Oriente
+    ['Hummus', 'mediorientale', '🧆', [['ceci', 300, 'g'], ['aglio', 1, 'pz'], ['olio', 40, 'ml']], ['Frulla i ceci lessati con tahina e aglio.', 'Aggiungi limone, olio e acqua fino a crema liscia.', 'Servi con un filo d\'olio e paprika.'], 15, 'facile'],
+    ['Falafel', 'mediorientale', '🧆', [['ceci', 300, 'g'], ['cipolla', 1, 'pz'], ['aglio', 2, 'pz']], ['Frulla ceci ammollati con aglio, cipolla e spezie.', 'Forma le polpette.', 'Friggi dorati e servi con salsa allo yogurt.'], 40, 'media'],
+    ['Shakshuka', 'mediorientale', '🍳', [['uova', 4, 'pz'], ['pomodori', 400, 'g'], ['peperoni', 1, 'pz'], ['cipolla', 1, 'pz']], ['Soffriggi cipolla e peperoni.', 'Aggiungi pomodori e spezie; cuoci la salsa.', 'Rompi le uova nella salsa e cuoci coperto.'], 30, 'facile'],
+    ['Kebab di pollo', 'mediorientale', '🥙', [['pollo', 500, 'g'], ['pane', 120, 'g'], ['pomodori', 150, 'g']], ['Marinare il pollo con spezie e yogurt.', 'Cuoci alla griglia o in padella.', 'Servi nella piadina con verdure e salsa.'], 30, 'facile'],
+    ['Tabbouleh', 'mediorientale', '🥗', [['couscous', 150, 'g'], ['pomodori', 200, 'g'], ['prezzemolo', 30, 'g']], ['Prepara il bulgur o couscous.', 'Unisci pomodori, prezzemolo e menta tritati.', 'Condisci con olio e limone.'], 20, 'facile'],
+    ['Kofta', 'mediorientale', '🍢', [['manzo', 400, 'g'], ['cipolla', 1, 'pz'], ['prezzemolo', 20, 'g']], ['Impasta la carne con cipolla, spezie e erbe.', 'Forma polpette allungate su spiedino.', 'Griglia e servi con riso o pane.'], 30, 'facile'],
+    // India
+    ['Pollo tikka masala', 'indiana', '🍛', [['pollo', 500, 'g'], ['pomodori', 300, 'g'], ['panna', 150, 'ml'], ['curry', 12, 'g']], ['Marinare e rosolare i bocconcini di pollo.', 'Prepara una salsa di pomodoro, spezie e panna.', 'Unisci il pollo e cuoci 15 minuti; servi con riso.'], 45, 'media'],
+    ['Butter chicken', 'indiana', '🍛', [['pollo', 500, 'g'], ['pomodori', 300, 'g'], ['burro', 40, 'g'], ['panna', 150, 'ml']], ['Rosola il pollo speziato.', 'Prepara la salsa cremosa con burro, pomodoro e spezie.', 'Unisci il pollo e completa con panna.'], 45, 'media'],
+    ['Dal di lenticchie', 'indiana', '🍲', [['lenticchie', 300, 'g'], ['cipolla', 1, 'pz'], ['pomodori', 150, 'g'], ['curry', 10, 'g']], ['Cuoci le lenticchie finché morbide.', 'Prepara il soffritto speziato (tarka).', 'Unisci e cuoci cremoso; servi con riso.'], 40, 'facile'],
+    ['Chana masala', 'indiana', '🍛', [['ceci', 350, 'g'], ['pomodori', 250, 'g'], ['cipolla', 1, 'pz'], ['curry', 10, 'g']], ['Soffriggi cipolla, aglio e zenzero.', 'Aggiungi pomodori, spezie e ceci.', 'Cuoci 20 minuti; servi con riso o naan.'], 40, 'facile'],
+    ['Palak paneer', 'indiana', '🥬', [['spinaci', 400, 'g'], ['formaggio', 200, 'g'], ['panna', 100, 'ml']], ['Frulla gli spinaci lessati.', 'Prepara la salsa speziata con panna.', 'Unisci i cubetti di formaggio e servi.'], 35, 'media'],
+    ['Biryani di pollo', 'indiana', '🍚', [['riso', 300, 'g'], ['pollo', 400, 'g'], ['cipolla', 2, 'pz'], ['curry', 12, 'g']], ['Marinare e rosolare il pollo speziato.', 'Alterna con riso basmati semicotto.', 'Cuoci a vapore coperto e servi.'], 60, 'media'],
+    // Cina
+    ['Riso alla cantonese', 'cinese', '🍚', [['riso', 300, 'g'], ['uova', 2, 'pz'], ['piselli', 100, 'g'], ['prosciutto', 100, 'g']], ['Salta il riso freddo nel wok.', 'Aggiungi uova strapazzate, piselli e prosciutto.', 'Condisci con salsa di soia e servi.'], 20, 'facile'],
+    ['Pollo kung pao', 'cinese', '🥡', [['pollo', 400, 'g'], ['arachidi', 60, 'g'], ['peperoni', 1, 'pz'], ['peperoncino', 3, 'g']], ['Salta il pollo a cubetti nel wok.', 'Aggiungi peperoni, arachidi e peperoncino.', 'Sfuma con salsa agrodolce di soia.'], 25, 'media'],
+    ['Maiale in agrodolce', 'cinese', '🥡', [['maiale', 400, 'g'], ['peperoni', 1, 'pz'], ['ananas', 150, 'g']], ['Friggi i bocconcini di maiale impanati.', 'Salta peperoni e ananas.', 'Unisci la salsa agrodolce e servi con riso.'], 35, 'media'],
+    ['Mapo tofu', 'cinese', '🌶️', [['tofu', 300, 'g'], ['manzo', 150, 'g'], ['peperoncino', 4, 'g']], ['Rosola il macinato piccante nel wok.', 'Aggiungi tofu a cubi e brodo.', 'Addensa la salsa e servi con riso.'], 25, 'media'],
+    ['Noodles saltati', 'cinese', '🍜', [['pasta', 250, 'g'], ['verdure', 250, 'g'], ['pollo', 200, 'g']], ['Cuoci i noodles.', 'Salta pollo e verdure nel wok.', 'Unisci i noodles e la salsa di soia.'], 25, 'facile'],
+    // Giappone
+    ['Ramen', 'giapponese', '🍜', [['pasta', 200, 'g'], ['brodo', 700, 'ml'], ['uova', 2, 'pz'], ['maiale', 150, 'g']], ['Prepara un brodo saporito.', 'Cuoci i noodles a parte.', 'Componi con maiale, uovo e cipollotto.'], 45, 'media'],
+    ['Pollo teriyaki', 'giapponese', '🍗', [['pollo', 500, 'g'], ['riso', 250, 'g']], ['Rosola il pollo in padella.', 'Sfuma con salsa teriyaki di soia, zucchero e mirin.', 'Glassa e servi su riso.'], 25, 'facile'],
+    ['Katsu di pollo', 'giapponese', '🍗', [['pollo', 500, 'g'], ['uova', 2, 'pz'], ['pane', 100, 'g']], ['Impana il pollo nel panko.', 'Friggi dorato e croccante.', 'Servi a fette con salsa tonkatsu e riso.'], 30, 'facile'],
+    ['Gyoza', 'giapponese', '🥟', [['maiale', 250, 'g'], ['cavolo', 150, 'g'], ['aglio', 1, 'pz']], ['Prepara il ripieno di carne e cavolo.', 'Chiudi i ravioli e cuocili in padella.', 'Aggiungi acqua e cuoci a vapore; servi con soia.'], 40, 'media'],
+    ['Zuppa di miso', 'giapponese', '🍜', [['tofu', 150, 'g'], ['brodo', 600, 'ml']], ['Scalda il brodo dashi.', 'Sciogli il miso senza bollire.', 'Aggiungi tofu e alga; servi caldo.'], 15, 'facile'],
+    ['Donburi di manzo', 'giapponese', '🍚', [['manzo', 300, 'g'], ['riso', 250, 'g'], ['cipolla', 1, 'pz'], ['uova', 2, 'pz']], ['Cuoci manzo e cipolla in salsa dolce di soia.', 'Aggiungi l\'uovo appena rappreso.', 'Servi sopra una ciotola di riso.'], 25, 'facile'],
+    // Corea
+    ['Bibimbap', 'asiatica', '🍚', [['riso', 250, 'g'], ['manzo', 200, 'g'], ['spinaci', 100, 'g'], ['carote', 100, 'g'], ['uova', 1, 'pz']], ['Cuoci separatamente carne e verdure condite.', 'Disponi a raggiera sul riso.', 'Completa con uovo e salsa gochujang.'], 40, 'media'],
+    ['Bulgogi', 'asiatica', '🥩', [['manzo', 400, 'g'], ['cipolla', 1, 'pz'], ['riso', 250, 'g']], ['Marinare il manzo a fettine sottili in salsa dolce.', 'Salta a fiamma alta.', 'Servi con riso e verdure.'], 30, 'facile'],
+    ['Japchae', 'asiatica', '🍜', [['pasta', 200, 'g'], ['manzo', 150, 'g'], ['spinaci', 100, 'g'], ['carote', 100, 'g']], ['Cuoci i noodles di patata dolce.', 'Salta carne e verdure.', 'Unisci con salsa di soia e sesamo.'], 35, 'media'],
+    // Thailandia / Sud-est asiatico
+    ['Pad thai', 'asiatica', '🍜', [['pasta', 200, 'g'], ['gamberi', 200, 'g'], ['uova', 2, 'pz'], ['arachidi', 40, 'g']], ['Ammorbidisci i noodles di riso.', 'Salta gamberi, uova e noodles nel wok.', 'Condisci con salsa tamarindo e arachidi.'], 30, 'media'],
+    ['Curry verde thai', 'asiatica', '🍛', [['pollo', 400, 'g'], ['latte di cocco', 300, 'ml'], ['zucchine', 150, 'g'], ['peperoncino', 3, 'g']], ['Rosola la pasta di curry verde.', 'Aggiungi latte di cocco, pollo e verdure.', 'Cuoci e servi con riso.'], 30, 'facile'],
+    ['Tom yum', 'asiatica', '🍲', [['gamberi', 250, 'g'], ['funghi', 150, 'g'], ['brodo', 700, 'ml'], ['peperoncino', 3, 'g']], ['Porta a bollore il brodo con lemongrass e lime.', 'Aggiungi gamberi e funghi.', 'Regola piccante e acido; servi caldo.'], 25, 'facile'],
+    ['Nasi goreng', 'asiatica', '🍚', [['riso', 300, 'g'], ['uova', 2, 'pz'], ['pollo', 200, 'g'], ['verdure', 150, 'g']], ['Salta il riso freddo con pollo e verdure.', 'Aggiungi salsa di soia dolce e spezie.', 'Completa con uovo fritto.'], 25, 'facile'],
+    ['Pho', 'asiatica', '🍜', [['pasta', 200, 'g'], ['manzo', 200, 'g'], ['brodo', 800, 'ml']], ['Prepara un brodo aromatico a lungo.', 'Cuoci i noodles di riso.', 'Componi con manzo a fettine ed erbe fresche.'], 60, 'media'],
+    // Messico
+    ['Tacos al pollo', 'messicana', '🌮', [['pollo', 400, 'g'], ['pane', 120, 'g'], ['pomodori', 150, 'g'], ['peperoncino', 2, 'g']], ['Cuoci il pollo speziato a striscioline.', 'Scalda le tortillas.', 'Farcisci con pollo, salsa e verdure.'], 25, 'facile'],
+    ['Burritos', 'messicana', '🌯', [['manzo', 300, 'g'], ['fagioli', 200, 'g'], ['riso', 150, 'g'], ['formaggio', 80, 'g']], ['Cuoci carne e fagioli speziati.', 'Farcisci la tortilla con riso, carne e formaggio.', 'Arrotola stretto e scalda in padella.'], 30, 'facile'],
+    ['Quesadillas', 'messicana', '🫓', [['formaggio', 200, 'g'], ['pane', 120, 'g'], ['peperoni', 1, 'pz']], ['Farcisci la tortilla con formaggio e verdure.', 'Piega e cuoci in padella.', 'Taglia a spicchi e servi con guacamole.'], 15, 'facile'],
+    ['Chili con carne', 'messicana', '🌶️', [['manzo', 400, 'g'], ['fagioli', 250, 'g'], ['pomodori', 300, 'g'], ['peperoncino', 4, 'g']], ['Rosola il macinato con cipolla.', 'Aggiungi pomodori, fagioli e spezie.', 'Cuoci a fuoco basso 40 minuti.'], 60, 'facile'],
+    ['Guacamole', 'messicana', '🥑', [['avocado', 2, 'pz'], ['pomodori', 100, 'g'], ['limone', 1, 'pz']], ['Schiaccia gli avocado.', 'Unisci pomodoro, cipolla e lime.', 'Regola di sale e servi con nachos.'], 10, 'facile'],
+    ['Fajitas', 'messicana', '🌯', [['pollo', 400, 'g'], ['peperoni', 2, 'pz'], ['cipolla', 1, 'pz'], ['pane', 120, 'g']], ['Salta pollo, peperoni e cipolla speziati.', 'Scalda le tortillas.', 'Servi da comporre a tavola.'], 25, 'facile'],
+    // USA
+    ['Hamburger', 'americana', '🍔', [['manzo', 300, 'g'], ['pane', 2, 'pz'], ['formaggio', 60, 'g'], ['insalata', 50, 'g']], ['Forma e cuoci gli hamburger.', 'Tosta i panini.', 'Farcisci con formaggio, insalata e salse.'], 20, 'facile'],
+    ['Mac and cheese', 'americana', '🧀', [['pasta', 300, 'g'], ['formaggio', 200, 'g'], ['latte', 300, 'ml'], ['burro', 40, 'g']], ['Cuoci la pasta.', 'Prepara una besciamella e sciogli il formaggio.', 'Unisci e gratina in forno.'], 35, 'facile'],
+    ['Costine BBQ', 'americana', '🍖', [['maiale', 700, 'g'], ['pomodori', 100, 'g']], ['Marinare le costine con spezie.', 'Cuoci lentamente in forno basso.', 'Spennella di salsa BBQ e caramella.'], 150, 'media'],
+    ['Pollo fritto', 'americana', '🍗', [['pollo', 600, 'g'], ['farina', 200, 'g'], ['uova', 2, 'pz']], ['Marinare il pollo nel latticello.', 'Impana nella farina speziata.', 'Friggi dorato e croccante.'], 45, 'media'],
+    ['Pancakes', 'americana', '🥞', [['farina', 200, 'g'], ['uova', 2, 'pz'], ['latte', 250, 'ml']], ['Prepara una pastella densa.', 'Cuoci frittelle spesse in padella.', 'Servi con sciroppo d\'acero.'], 20, 'facile'],
+    // Sud America
+    ['Feijoada', 'sudamericana', '🍲', [['fagioli', 400, 'g'], ['maiale', 300, 'g'], ['salsiccia', 200, 'g']], ['Ammolla e cuoci i fagioli neri.', 'Aggiungi le carni e stufa a lungo.', 'Servi con riso e arance.'], 120, 'media'],
+    ['Ceviche', 'sudamericana', '🐟', [['merluzzo', 400, 'g'], ['limone', 3, 'pz'], ['cipolla', 1, 'pz']], ['Taglia il pesce a cubetti.', 'Marinare nel succo di lime con cipolla e peperoncino.', 'Servi freddo quando il pesce è opaco.'], 25, 'media'],
+    ['Empanadas', 'sudamericana', '🥟', [['manzo', 300, 'g'], ['cipolla', 1, 'pz'], ['uova', 2, 'pz']], ['Prepara il ripieno di carne e cipolla.', 'Chiudi i fagottini di pasta.', 'Inforna o friggi dorati.'], 50, 'media'],
+    ['Milanesa', 'sudamericana', '🥩', [['manzo', 400, 'g'], ['uova', 2, 'pz'], ['pane', 100, 'g']], ['Batti le fettine sottili.', 'Impana in uovo e pangrattato.', 'Friggi dorata; servi con limone.'], 25, 'facile'],
+    // Africa
+    ['Tagine di pollo', 'africana', '🍲', [['pollo', 500, 'g'], ['cipolla', 2, 'pz'], ['carote', 200, 'g']], ['Rosola pollo e cipolle con spezie.', 'Aggiungi verdure, limone e olive.', 'Cuoci lentamente nel tagine; servi con couscous.'], 70, 'media'],
+    ['Couscous di verdure', 'africana', '🍲', [['couscous', 250, 'g'], ['verdure', 400, 'g'], ['ceci', 150, 'g']], ['Cuoci le verdure in brodo speziato.', 'Prepara il couscous a vapore.', 'Componi e servi caldo.'], 50, 'facile'],
+    ['Jollof rice', 'africana', '🍚', [['riso', 300, 'g'], ['pomodori', 300, 'g'], ['peperoni', 1, 'pz']], ['Prepara una base di pomodoro e peperoni frullati.', 'Cuoci il riso nella salsa speziata.', 'Lascia insaporire e servi.'], 45, 'facile'],
+    // Germania / Est Europa
+    ['Cotoletta alla viennese', 'europea', '🥩', [['vitello', 400, 'g'], ['uova', 2, 'pz'], ['pane', 100, 'g']], ['Batti le fettine.', 'Impana in farina, uovo e pangrattato.', 'Friggi nel burro; servi con limone.'], 25, 'facile'],
+    ['Gulasch', 'europea', '🍲', [['manzo', 500, 'g'], ['cipolla', 2, 'pz'], ['peperoni', 1, 'pz'], ['patate', 300, 'g']], ['Rosola carne e cipolle con paprika.', 'Aggiungi peperoni, patate e brodo.', 'Stufa 90 minuti.'], 110, 'media'],
+    ['Pierogi', 'europea', '🥟', [['patate', 400, 'g'], ['formaggio', 150, 'g'], ['farina', 250, 'g']], ['Prepara la pasta e il ripieno di patate e formaggio.', 'Forma e chiudi i ravioli.', 'Lessa e salta nel burro con cipolla.'], 60, 'media'],
+    ['Borscht', 'europea', '🍲', [['manzo', 300, 'g'], ['cavolo', 200, 'g'], ['carote', 150, 'g'], ['patate', 200, 'g']], ['Cuoci la carne in brodo.', 'Aggiungi barbabietola e verdure.', 'Servi con panna acida.'], 90, 'facile'],
+  ];
+
+  const VAR = [
+    ['', [], null, 0],
+    [' piccante', [ING('peperoncino', 2, 'g')], 'Aggiungi peperoncino a piacere per una versione più piccante.', 0],
+    [' vegetariana', [], 'Sostituisci la parte proteica con tofu, legumi o extra verdure per una versione vegetariana.', 0],
+    [' con verdure', [ING('verdure', 200, 'g')], 'Arricchisci con verdure di stagione saltate.', 5],
+    [' al forno', [], 'Rifinisci in forno a 190°C per 10-15 minuti per una crosticina dorata.', 10],
+    [' della casa', [FORMAGGIO], 'Personalizza con formaggio o le tue spezie preferite: è la variante della casa.', 0],
+  ];
+  WORLD.forEach(([name, region, icon, ings, steps, time, diff]) => {
+    const base = ings.map(([k, a, u]) => ING(k, a, u));
+    VAR.forEach(([suf, extra, extraStep, dt]) => {
+      add(name + suf, region, icon, base.concat(extra), extraStep ? steps.concat(extraStep) : steps.slice(), (time || 30) + (dt || 0), diff || 'facile');
+    });
+  });
+
+  // ── Paste: formato × condimento ────────────────────────────────
+  const shapes = ['spaghetti', 'penne', 'rigatoni', 'fusilli', 'tagliatelle', 'farfalle', 'linguine', 'orecchiette', 'gnocchi', 'tortellini', 'trofie', 'lasagne'];
+  const sauces = [
+    ['al pomodoro', [['pomodori', 300, 'g']]], ['alla carbonara', [['uova', 2, 'pz'], ['guanciale', 100, 'g'], ['pecorino', 50, 'g']]],
+    ['al pesto', [['basilico', 30, 'g'], ['parmigiano', 40, 'g']]], ['all\'amatriciana', [['pomodori', 250, 'g'], ['guanciale', 100, 'g']]],
+    ['cacio e pepe', [['pecorino', 60, 'g'], ['pepe', 4, 'g']]], ['alla gricia', [['guanciale', 100, 'g'], ['pecorino', 50, 'g']]],
+    ['al ragù', [['manzo', 200, 'g'], ['pomodori', 250, 'g']]], ['alle vongole', [['vongole', 300, 'g'], ['aglio', 2, 'pz']]],
+    ['al salmone', [['salmone', 150, 'g'], ['panna', 100, 'ml']]], ['ai funghi', [['funghi', 200, 'g']]],
+    ['alla norma', [['melanzane', 200, 'g'], ['pomodori', 200, 'g']]], ['aglio e olio', [['aglio', 3, 'pz'], ['olio', 40, 'ml']]],
+    ['alle zucchine', [['zucchine', 250, 'g']]], ['ai broccoli', [['broccoli', 250, 'g']]],
+    ['al tonno', [['tonno', 150, 'g'], ['pomodori', 200, 'g']]], ['alla puttanesca', [['pomodori', 250, 'g'], ['olive', 50, 'g'], ['capperi', 20, 'g']]],
+    ['alla boscaiola', [['funghi', 150, 'g'], ['salsiccia', 100, 'g'], ['panna', 100, 'ml']]], ['al gorgonzola', [['gorgonzola', 80, 'g'], ['panna', 100, 'ml']]],
+    ['alla sorrentina', [['pomodori', 250, 'g'], ['mozzarella', 125, 'g']]], ['ai gamberi', [['gamberi', 200, 'g'], ['pomodori', 150, 'g']]],
+    ['con speck e noci', [['speck', 100, 'g'], ['panna', 100, 'ml']]], ['con salsiccia e friarielli', [['salsiccia', 150, 'g'], ['broccoli', 150, 'g']]],
+    ['ai peperoni', [['peperoni', 250, 'g']]], ['alle melanzane', [['melanzane', 250, 'g']]],
+  ];
+  shapes.forEach((sh) => sauces.forEach(([sn, extra]) => {
+    add(cap(sh) + ' ' + sn, 'italiana', '🍝',
+      [ING(sh, 120, 'g'), ...extra.map(([k, a, u]) => ING(k, a, u)), OLIO, SALE],
+      ['Cuoci ' + sh + ' in abbondante acqua salata al dente.', 'Prepara il condimento ' + sn + ' in padella.', 'Manteca la pasta col condimento e servi.'], 20, 'facile');
+  }));
+
+  // ── Risotti ────────────────────────────────────────────────────
+  [['ai funghi', 'funghi'], ['alla milanese', 'riso'], ['alla zucca', 'zucca'], ['agli asparagi', 'asparagi'], ['al radicchio', 'radicchio'], ['ai frutti di mare', 'gamberi'], ['al limone', 'limone'], ['alle zucchine', 'zucchine'], ['al gorgonzola', 'gorgonzola'], ['alla parmigiana', 'parmigiano'], ['ai piselli', 'piselli'], ['al salmone', 'salmone'], ['ai peperoni', 'peperoni'], ['con salsiccia', 'salsiccia'], ['ai gamberi', 'gamberi'], ['con speck', 'speck'], ['ai carciofi', 'carciofi'], ['alla pescatora', 'gamberi'], ['al vino rosso', 'riso'], ['primavera', 'verdure'], ['alle fragole', 'fragole'], ['al pomodoro', 'pomodori'], ['ai broccoli', 'broccoli'], ['con pancetta', 'pancetta'], ['allo zafferano', 'riso']].forEach(([n, k]) => {
+    add('Risotto ' + n, 'italiana', '🍚', [ING('riso', 320, 'g'), ING(k, 200, 'g'), CIPOLLA, BURRO, FORMAGGIO, BRODO],
+      ['Tosta il riso con la cipolla nel burro.', 'Sfuma e aggiungi brodo caldo poco per volta mescolando.', 'Manteca con burro e formaggio; servi cremoso.'], 35, 'media');
+  });
+
+  // ── Zuppe e vellutate ──────────────────────────────────────────
+  [['di zucca', 'zucca'], ['di patate', 'patate'], ['di ceci', 'ceci'], ['di lenticchie', 'lenticchie'], ['di piselli', 'piselli'], ['di broccoli', 'broccoli'], ['di carote', 'carote'], ['di funghi', 'funghi'], ['di zucchine', 'zucchine'], ['di pomodoro', 'pomodori'], ['di cavolfiore', 'cavolfiore'], ['di spinaci', 'spinaci'], ['di fagioli', 'fagioli'], ['di porri', 'porro'], ['di cipolle', 'cipolla'], ['di asparagi', 'asparagi'], ['di peperoni', 'peperoni'], ['di verdure', 'verdure'], ['di legumi', 'legumi'], ['di farro', 'farro'], ['di orzo', 'orzo'], ['di finocchi', 'finocchi'], ['di castagne', 'castagne'], ['contadina', 'verdure'], ['di patate e porri', 'patate']].forEach(([n, k]) => {
+    add('Vellutata ' + n, 'italiana', '🍲', [ING(k, 400, 'g'), CIPOLLA, OLIO, BRODO],
+      ['Soffriggi la cipolla in olio.', 'Aggiungi ' + k + ' e brodo; cuoci finché morbido.', 'Frulla fino a crema e servi con un filo d\'olio.'], 35, 'facile');
+  });
+
+  // ── Insalatone: base × proteina ────────────────────────────────
+  ['mista', 'di riso', 'di farro', 'di pasta', 'caprese', 'greca', 'cesar', 'di quinoa'].forEach((b) =>
+    ['pollo', 'tonno', 'gamberi', 'uova', 'feta', 'ceci', 'salmone', 'prosciutto', 'mozzarella', 'tacchino'].forEach((p) => {
+      add('Insalata ' + b + ' con ' + p, 'europea', '🥗', [ING(p, 150, 'g'), ING('insalata', 150, 'g'), ING('pomodori', 150, 'g'), OLIO],
+        ['Prepara la base con verdure fresche.', 'Aggiungi ' + p + ' e condisci con olio, sale e limone.', 'Mescola e servi fresca.'], 15, 'facile');
+    }));
+
+  // ── Bowl / curry / saltati asiatici: stile × proteina ──────────
+  [['Curry', [['latte di cocco', 200, 'ml'], ['curry', 10, 'g']]], ['Stir-fry', [['salsa di soia', 20, 'ml']]], ['Bowl', [['riso', 200, 'g']]], ['Teriyaki', [['salsa di soia', 20, 'ml'], ['zucchero', 10, 'g']]], ['Saltato', [['salsa di soia', 15, 'ml'], ['zenzero', 5, 'g']]], ['Noodles', [['pasta', 200, 'g']]]].forEach(([sn, extra]) =>
+    ['pollo', 'gamberi', 'tofu', 'manzo', 'maiale', 'verdure', 'ceci', 'salmone', 'uova', 'tacchino'].forEach((p) => {
+      add(sn + ' di ' + p, 'asiatica', '🍜', [ING(p, 250, 'g'), ...extra.map(([k, a, u]) => ING(k, a, u)), ING('riso', 200, 'g')],
+        ['Scalda un wok con olio e aromi.', 'Salta ' + p + ' a fiamma alta.', 'Unisci la salsa e servi con riso.'], 25, 'facile');
+    }));
+
+  // ── Frittate ───────────────────────────────────────────────────
+  [['ai funghi', 'funghi'], ['alle zucchine', 'zucchine'], ['con prosciutto', 'prosciutto'], ['ai peperoni', 'peperoni'], ['agli spinaci', 'spinaci'], ['al formaggio', 'formaggio'], ['alle patate', 'patate'], ['con cipolle', 'cipolla'], ['ai pomodori', 'pomodori'], ['con salsiccia', 'salsiccia'], ['alle erbe', 'prezzemolo'], ['al tonno', 'tonno']].forEach(([n, k]) => {
+    add('Frittata ' + n, 'italiana', '🍳', [ING('uova', 3, 'pz'), ING(k, 150, 'g'), OLIO, SALE],
+      ['Sbatti le uova con sale.', 'Rosola ' + k + ' in padella e unisci le uova.', 'Cuoci da entrambi i lati e servi.'], 15, 'facile');
+  });
+
+  // ── Panini e wrap ──────────────────────────────────────────────
+  ['Panino', 'Wrap', 'Toast', 'Club sandwich', 'Piadina'].forEach((t) =>
+    ['pollo', 'prosciutto', 'tonno', 'salame', 'tacchino', 'hamburger', 'uova', 'mozzarella', 'verdure grigliate', 'bresaola'].forEach((p) => {
+      add(t + ' con ' + p, 'europea', '🥪', [ING('pane', 120, 'g'), ING(p, 120, 'g'), ING('insalata', 40, 'g'), ING('pomodori', 60, 'g')],
+        ['Prepara il pane o la base.', 'Farcisci con ' + p + ', insalata e pomodoro.', 'Aggiungi salsa a piacere e servi.'], 10, 'facile');
+    }));
+
+  // ── Dolci ──────────────────────────────────────────────────────
+  [['Tiramisù', ['mascarpone', 'caffè', 'uova', 'zucchero']], ['Torta di mele', ['mele', 'farina', 'uova', 'zucchero']], ['Crostata di marmellata', ['farina', 'marmellata', 'burro']], ['Pancake', ['farina', 'uova', 'latte']], ['Muffin al cioccolato', ['farina', 'cioccolato', 'uova']], ['Cheesecake', ['formaggio', 'biscotti', 'zucchero']], ['Panna cotta', ['panna', 'zucchero']], ['Budino al cioccolato', ['latte', 'cioccolato', 'zucchero']], ['Ciambellone', ['farina', 'uova', 'latte', 'zucchero']], ['Biscotti al burro', ['farina', 'burro', 'zucchero']], ['Torta di carote', ['carote', 'farina', 'uova']], ['Brownie', ['cioccolato', 'burro', 'uova']], ['Plumcake', ['farina', 'uova', 'burro']], ['Tortino al cioccolato', ['cioccolato', 'uova', 'burro']], ['Crêpe dolci', ['farina', 'uova', 'latte']], ['Mousse al cioccolato', ['cioccolato', 'uova', 'panna']], ['Torta allo yogurt', ['yogurt', 'farina', 'uova']], ['Zeppole', ['farina', 'uova', 'zucchero']], ['Frittelle di mele', ['mele', 'farina', 'uova']], ['Semifreddo', ['panna', 'zucchero', 'uova']]].forEach(([n, ks]) => {
+    add(n, 'europea', '🍰', ks.map((k) => ING(k, 100, 'g')).concat(SALE),
+      ['Mescola gli ingredienti fino a un composto liscio.', 'Versa nello stampo o assembla a strati.', 'Cuoci o raffredda secondo necessità e servi.'], 40, 'facile');
+  });
+
+  // ── Riempimento combinatorio (proteina × metodo × contorno) ────
   const proteins = [
-    { name: 'Pollo', key: 'pollo', amt: 400, unit: 'g', icon: '🍗', region: 'italiana' },
-    { name: 'Tacchino', key: 'tacchino', amt: 400, unit: 'g', icon: '🦃', region: 'europea' },
-    { name: 'Manzo', key: 'manzo', amt: 400, unit: 'g', icon: '🥩', region: 'europea' },
-    { name: 'Maiale', key: 'maiale', amt: 400, unit: 'g', icon: '🥩', region: 'europea' },
-    { name: 'Salmone', key: 'salmone', amt: 300, unit: 'g', icon: '🐟', region: 'europea' },
-    { name: 'Tonno', key: 'tonno', amt: 250, unit: 'g', icon: '🐟', region: 'europea' },
-    { name: 'Merluzzo', key: 'merluzzo', amt: 300, unit: 'g', icon: '🐟', region: 'europea' },
-    { name: 'Gamberi', key: 'gamberi', amt: 300, unit: 'g', icon: '🦐', region: 'asiatica' },
-    { name: 'Uova', key: 'uova', amt: 3, unit: 'pz', icon: '🥚', region: 'italiana' },
-    { name: 'Tofu', key: 'tofu', amt: 250, unit: 'g', icon: '🧊', region: 'asiatica' },
-    { name: 'Ceci', key: 'ceci', amt: 300, unit: 'g', icon: '🫘', region: 'italiana' },
-    { name: 'Lenticchie', key: 'lenticchie', amt: 300, unit: 'g', icon: '🫘', region: 'italiana' },
-    { name: 'Fagioli', key: 'fagioli', amt: 300, unit: 'g', icon: '🫘', region: 'italiana' },
-    { name: 'Zucchine', key: 'zucchine', amt: 400, unit: 'g', icon: '🥒', region: 'italiana' },
-    { name: 'Melanzane', key: 'melanzane', amt: 400, unit: 'g', icon: '🍆', region: 'italiana' },
-    { name: 'Funghi', key: 'funghi', amt: 300, unit: 'g', icon: '🍄', region: 'italiana' },
-    { name: 'Patate', key: 'patate', amt: 500, unit: 'g', icon: '🥔', region: 'europea' },
-    { name: 'Peperoni', key: 'peperoni', amt: 400, unit: 'g', icon: '🫑', region: 'italiana' },
-    { name: 'Prosciutto', key: 'prosciutto', amt: 150, unit: 'g', icon: '🥓', region: 'italiana' },
-    { name: 'Salsiccia', key: 'salsiccia', amt: 300, unit: 'g', icon: '🌭', region: 'italiana' },
+    ['Pollo', 'pollo', 400, 'g', '🍗', 'italiana'], ['Tacchino', 'tacchino', 400, 'g', '🦃', 'europea'], ['Manzo', 'manzo', 400, 'g', '🥩', 'europea'],
+    ['Maiale', 'maiale', 400, 'g', '🥩', 'europea'], ['Vitello', 'vitello', 400, 'g', '🥩', 'italiana'], ['Agnello', 'agnello', 400, 'g', '🍖', 'europea'],
+    ['Salmone', 'salmone', 300, 'g', '🐟', 'europea'], ['Tonno', 'tonno', 250, 'g', '🐟', 'europea'], ['Merluzzo', 'merluzzo', 300, 'g', '🐟', 'europea'],
+    ['Gamberi', 'gamberi', 300, 'g', '🦐', 'asiatica'], ['Calamari', 'calamari', 300, 'g', '🦑', 'italiana'], ['Uova', 'uova', 3, 'pz', '🥚', 'italiana'],
+    ['Tofu', 'tofu', 250, 'g', '🧊', 'asiatica'], ['Ceci', 'ceci', 300, 'g', '🫘', 'italiana'], ['Lenticchie', 'lenticchie', 300, 'g', '🫘', 'italiana'],
+    ['Fagioli', 'fagioli', 300, 'g', '🫘', 'italiana'], ['Zucchine', 'zucchine', 400, 'g', '🥒', 'italiana'], ['Melanzane', 'melanzane', 400, 'g', '🍆', 'italiana'],
+    ['Funghi', 'funghi', 300, 'g', '🍄', 'italiana'], ['Patate', 'patate', 500, 'g', '🥔', 'europea'], ['Peperoni', 'peperoni', 400, 'g', '🫑', 'italiana'],
+    ['Prosciutto', 'prosciutto', 150, 'g', '🥓', 'italiana'], ['Salsiccia', 'salsiccia', 300, 'g', '🌭', 'italiana'], ['Cavolfiore', 'cavolfiore', 400, 'g', '🥦', 'europea'],
+    ['Broccoli', 'broccoli', 400, 'g', '🥦', 'italiana'], ['Wurstel', 'wurstel', 250, 'g', '🌭', 'europea'], ['Seppie', 'seppie', 300, 'g', '🦑', 'italiana'], ['Coniglio', 'coniglio', 400, 'g', '🍖', 'italiana'],
   ];
   const sides = [
-    { name: 'patate', amt: 400, unit: 'g' }, { name: 'riso', amt: 200, unit: 'g' },
-    { name: 'insalata', amt: 200, unit: 'g' }, { name: 'broccoli', amt: 300, unit: 'g' },
-    { name: 'spinaci', amt: 250, unit: 'g' }, { name: 'zucchine', amt: 300, unit: 'g' },
-    { name: 'carote', amt: 250, unit: 'g' }, { name: 'pomodori', amt: 300, unit: 'g' },
-    { name: 'funghi', amt: 250, unit: 'g' },
+    ['patate', 400, 'g'], ['riso', 200, 'g'], ['insalata', 200, 'g'], ['broccoli', 300, 'g'], ['spinaci', 250, 'g'], ['zucchine', 300, 'g'],
+    ['carote', 250, 'g'], ['pomodori', 300, 'g'], ['funghi', 250, 'g'], ['piselli', 200, 'g'], ['purè', 300, 'g'], ['couscous', 150, 'g'],
+    ['polenta', 250, 'g'], ['fagioli', 250, 'g'], ['ceci', 250, 'g'], ['cavolfiore', 300, 'g'], ['peperoni', 250, 'g'], ['pane', 100, 'g'],
+    ['farro', 150, 'g'], ['finocchi', 250, 'g'], ['asparagi', 200, 'g'], ['lenticchie', 200, 'g'], ['mais', 150, 'g'], ['cetrioli', 150, 'g'],
+    ['melanzane', 250, 'g'], ['patate al forno', 350, 'g'], ['zucca', 300, 'g'],
+    ['patate dolci', 300, 'g'], ['riso integrale', 200, 'g'], ['orzo', 150, 'g'], ['radicchio', 200, 'g'],
   ];
   const methods = [
-    { n: 'al forno', icon: '🔥', time: 40, diff: 'facile', extra: [OLIO, SALE, PEPE], steps: (p, s) => [
-      'Preriscalda il forno a 200°C.',
-      `Taglia ${p} in pezzi regolari e condiscilo con olio, sale e pepe.`,
-      `Disponi ${p} e ${s} in una teglia con un filo d'olio.`,
-      'Inforna 30-40 minuti finché dorati, girando a metà cottura.',
-      'Sforna, lascia riposare due minuti e servi caldo.'] },
-    { n: 'alla griglia', icon: '♨️', time: 25, diff: 'facile', extra: [OLIO, SALE, PEPE], steps: (p, s) => [
-      'Scalda bene una griglia o una bistecchiera.',
-      `Condisci ${p} con olio, sale e pepe.`,
-      `Griglia ${p} pochi minuti per lato fino alle striature dorate.`,
-      `Nel frattempo prepara ${s} come contorno.`,
-      `Servi ${p} con ${s} e un filo d'olio a crudo.`] },
-    { n: 'in padella', icon: '🍳', time: 20, diff: 'facile', extra: [OLIO, AGLIO, SALE], steps: (p, s) => [
-      "Scalda un filo d'olio in padella con l'aglio.",
-      `Aggiungi ${p} e rosola a fiamma vivace.`,
-      `Unisci ${s} e cuoci mescolando finché morbido.`,
-      'Regola di sale e pepe.',
-      'Servi subito ben caldo.'] },
-    { n: 'al vapore', icon: '💨', time: 25, diff: 'facile', extra: [OLIO, SALE], steps: (p, s) => [
-      "Porta a bollore l'acqua nella vaporiera.",
-      `Cuoci ${p} al vapore finché tenero.`,
-      `Aggiungi ${s} e prosegui la cottura al vapore.`,
-      'Condisci con olio, sale e pepe a crudo.',
-      'Servi leggero e profumato.'] },
-    { n: 'in umido', icon: '🍲', time: 45, diff: 'media', extra: [OLIO, CIPOLLA, AGLIO, SALE], steps: (p, s) => [
-      'Soffriggi cipolla e aglio in olio.',
-      `Aggiungi ${p} e fai rosolare.`,
-      `Unisci ${s} e un mestolo di acqua o brodo.`,
-      'Cuoci a fuoco basso 30-40 minuti mescolando.',
-      'Aggiusta di sale e servi con il fondo di cottura.'] },
-    { n: 'gratinato', icon: '🧀', time: 35, diff: 'media', extra: [OLIO, SALE, FORMAGGIO], steps: (p, s) => [
-      'Preriscalda il forno a 190°C.',
-      `Disponi ${p} e ${s} in una pirofila.`,
-      'Cospargi con formaggio grattugiato e pangrattato.',
-      'Gratina 20-25 minuti fino a crosticina dorata.',
-      'Servi caldo e filante.'] },
+    ['al forno', '🔥', 40, 'facile', [OLIO, SALE, PEPE], (p, s) => ['Preriscalda il forno a 200°C.', 'Condisci ' + p + ' con olio, sale e pepe.', 'Disponi ' + p + ' e ' + s + ' in teglia.', 'Inforna 30-40 minuti girando a metà.', 'Sforna e servi caldo.']],
+    ['alla griglia', '♨️', 25, 'facile', [OLIO, SALE, PEPE], (p, s) => ['Scalda bene la griglia.', 'Condisci ' + p + ' con olio e sale.', 'Griglia ' + p + ' fino alle striature.', 'Prepara ' + s + ' come contorno.', 'Servi con un filo d\'olio.']],
+    ['in padella', '🍳', 20, 'facile', [OLIO, AGLIO, SALE], (p, s) => ['Scalda olio e aglio in padella.', 'Rosola ' + p + ' a fiamma vivace.', 'Unisci ' + s + ' e cuoci.', 'Regola di sale.', 'Servi subito.']],
+    ['al vapore', '💨', 25, 'facile', [OLIO, SALE], (p, s) => ['Porta a bollore la vaporiera.', 'Cuoci ' + p + ' al vapore.', 'Aggiungi ' + s + '.', 'Condisci a crudo.', 'Servi leggero.']],
+    ['in umido', '🍲', 45, 'media', [OLIO, CIPOLLA, AGLIO], (p, s) => ['Soffriggi cipolla e aglio.', 'Rosola ' + p + '.', 'Unisci ' + s + ' e brodo.', 'Cuoci 30-40 minuti.', 'Servi col fondo.']],
+    ['gratinato', '🧀', 35, 'media', [OLIO, SALE, FORMAGGIO], (p, s) => ['Preriscalda il forno a 190°C.', 'Disponi ' + p + ' e ' + s + ' in pirofila.', 'Cospargi di formaggio e pangrattato.', 'Gratina 20-25 minuti.', 'Servi caldo.']],
+    ['brasato', '🍖', 90, 'media', [OLIO, CIPOLLA], (p, s) => ['Rosola ' + p + ' su tutti i lati.', 'Sfuma col vino.', 'Aggiungi ' + s + ' e brodo.', 'Brasa coperto a fuoco basso.', 'Servi tenero col sugo.']],
+    ['saltato in padella', '🥘', 20, 'facile', [OLIO, AGLIO], (p, s) => ['Scalda bene la padella con olio.', 'Salta ' + p + ' a fiamma alta.', 'Aggiungi ' + s + '.', 'Insaporisci con spezie.', 'Servi caldo.']],
+    ['fritto', '🍤', 25, 'media', [OLIO, SALE], (p, s) => ['Prepara ' + p + ' e impanalo o infarinalo.', 'Friggi in olio caldo dorato.', 'Scola su carta.', 'Prepara ' + s + '.', 'Servi con limone.']],
+    ['al cartoccio', '📦', 35, 'facile', [OLIO, SALE], (p, s) => ['Preriscalda il forno a 200°C.', 'Disponi ' + p + ' e ' + s + ' su carta forno.', 'Condisci e chiudi il cartoccio.', 'Inforna 25-30 minuti.', 'Apri e servi profumato.']],
+    ['stufato', '🍲', 60, 'media', [OLIO, CIPOLLA, AGLIO], (p, s) => ['Soffriggi gli aromi.', 'Aggiungi ' + p + ' e rosola.', 'Unisci ' + s + ' e liquido.', 'Stufa a fuoco dolce.', 'Servi caldo.']],
+    ['alla piastra', '🔥', 20, 'facile', [OLIO, SALE], (p, s) => ['Scalda la piastra.', 'Cuoci ' + p + ' pochi minuti per lato.', 'Prepara ' + s + '.', 'Condisci a crudo.', 'Servi.']],
   ];
-
-  proteins.forEach((p, pi) => methods.forEach((m, mi) => sides.forEach((s, si) => {
-    if (p.key === s.name) return; // evita accostamenti tipo "Patate ... con patate"
-    const ingredients = [
-      { name: p.name, key: p.key, amt: p.amt, unit: p.unit },
-      { name: cap(s.name), key: s.name, amt: s.amt, unit: s.unit },
-      ...m.extra,
-    ];
-    RECIPES.push(r(
-      `gen_${pi}_${mi}_${si}`, `${p.name} ${m.n} con ${s.name}`, p.region,
-      m.time + ((pi + si) % 3) * 5, m.diff, p.icon,
-      ingredients, m.steps(p.name.toLowerCase(), s.name), null,
-    ));
-  })));
+  outer:
+  for (let pi = 0; pi < proteins.length; pi++) {
+    for (let mi = 0; mi < methods.length; mi++) {
+      for (let si = 0; si < sides.length; si++) {
+        if (RECIPES.length >= TARGET) break outer;
+        const P = proteins[pi], M = methods[mi], S = sides[si];
+        if (P[1] === S[0]) continue;
+        add(`${P[0]} ${M[0]} con ${S[0]}`, P[5], P[4],
+          [{ name: P[0], key: P[1], amt: P[2], unit: P[3] }, { name: cap(S[0]), key: S[0], amt: S[1], unit: S[2] }, ...M[4]],
+          M[5](P[0].toLowerCase(), S[0]), M[2] + ((pi + si) % 3) * 5, M[3]);
+      }
+    }
+  }
 })();
 
 // ================================================================
@@ -3386,6 +3553,10 @@ function goTab(name, el) {
   if (scanRunning) closeScanner();
 }
 
+let dcat = 'tutte';
+/** Imposta il filtro categoria alimentare della dispensa */
+function setDCat(c) { dcat = c; renderD(); }
+
 /** Imposta filtro dispensa (cliccando su una stat card) */
 function setDF(f, el) {
   df = f;
@@ -3426,11 +3597,26 @@ function renderD() {
   updateSidebar(); // aggiorna le stat live nella sidebar desktop
   renderSbSuggest();
 
+  // Chip filtro per categoria (dinamici sulle categorie presenti)
+  const presentCats = [...new Set(items.map(it => it.category || 'generico'))];
+  if (dcat !== 'tutte' && !presentCats.includes(dcat)) dcat = 'tutte';
+  const dcatRow = document.getElementById('dcat-row');
+  if (dcatRow) {
+    if (presentCats.length > 1) {
+      const ordered = Object.keys(CAT_LABELS_FULL).filter(c => presentCats.includes(c));
+      dcatRow.innerHTML = `<button class="dcat-chip ${dcat === 'tutte' ? 'active' : ''}" onclick="setDCat('tutte')">Tutte</button>`
+        + ordered.map(c => `<button class="dcat-chip ${dcat === c ? 'active' : ''}" onclick="setDCat('${c}')">${CAT_LABELS_FULL[c]}</button>`).join('');
+      dcatRow.style.display = 'flex';
+    } else { dcatRow.style.display = 'none'; }
+  }
+
   // Filtra lista
   let list = items.filter(it => {
     // Filtro testo
     if (q && !it.name.toLowerCase().includes(q)) return false;
-    // Filtro categoria
+    // Filtro per categoria alimentare
+    if (dcat !== 'tutte' && (it.category || 'generico') !== dcat) return false;
+    // Filtro stato
     if (df === 'presto') {
       const d = daysTo(it.expiryDate);
       return !it.frozen && d !== null && d >= 0 && d <= 7;
@@ -3934,6 +4120,30 @@ function canMake1(recipe) {
 }
 
 /** Ridisegna lista ricette */
+/** Classifica una ricetta per tipologia di piatto (per i filtri). */
+const _RT_FISH = ['salmone','tonno','merluzzo','gamber','vongole','calamar','seppie','branzino','orata','baccal','acciug','sardin','polpo','pesce','frutti di mare'];
+const _RT_MEAT = ['pollo','manzo','maiale','tacchino','vitello','agnello','salsiccia','prosciutto','wurstel','coniglio','bresaola','pancetta','guanciale','speck','salame','mortadella','hamburger','kebab'];
+function recipeType(rec) {
+  const n = (rec.name || '').toLowerCase();
+  if (/risott/.test(n)) return 'risotti';
+  if (/vellutata|zuppa|minestron|minestra|borscht|ribollita/.test(n)) return 'zuppe';
+  if (/insalat|caprese|guacamole|hummus|tabbouleh|ceviche|gazpacho|tzatziki/.test(n)) return 'freddi';
+  if (/tiramis|torta|crostata|pancake|muffin|cheesecake|panna cotta|budino|ciambell|biscott|brownie|plumcake|tortino|mousse|zeppol|frittelle|semifreddo|crêpe dolci|dolce/.test(n)) return 'dolci';
+  if (/pasta|spaghetti|penne|rigatoni|fusilli|tagliatelle|farfalle|linguine|orecchiette|gnocchi|tortellini|trofie|lasagne|noodles|ramen|pad thai|carbonara|amatriciana|cacio e pepe|gricia|puttanesca|boscaiola|norma/.test(n)) return 'pasta';
+  if (/panino|wrap|toast|sandwich|piadina|taco|burrito|quesadill|fajita|bao/.test(n)) return 'panini';
+  if (/frittata|omelette|shakshuka|tortilla|quiche|\buova\b/.test(n)) return 'uova';
+  const ings = (rec.ingredients || []).map(i => (i.key || i.name || '').toLowerCase());
+  const has = (arr) => ings.some(k => arr.some(a => k.includes(a)));
+  if (has(_RT_FISH)) return 'pesce';
+  if (has(_RT_MEAT)) return 'carne';
+  if (has(['ceci', 'lenticchie', 'fagioli', 'tofu', 'legumi'])) return 'legumi';
+  return 'verdure';
+}
+/** Vera se la ricetta non contiene carne né pesce. */
+function isVegetarian(rec) {
+  const ings = (rec.ingredients || []).map(i => (i.key || i.name || '').toLowerCase());
+  return !ings.some(k => _RT_MEAT.some(a => k.includes(a)) || _RT_FISH.some(a => k.includes(a)));
+}
 function renderR() {
   const q = (document.getElementById('rsearch').value || '').toLowerCase();
   const CAT_L = { italiana:'🇮🇹 Italiana', europea:'🇪🇺 Europea', giapponese:'🇯🇵 Giapponese', cinese:'🇨🇳 Cinese', asiatica:'🌏 Asiatica' };
@@ -3941,8 +4151,9 @@ function renderR() {
   let list = RECIPES.filter(r => {
     if (q && !r.name.toLowerCase().includes(q)) return false;
     if (rf === 'possibili') return canMake(r) || canMake1(r);
-    if (rf !== 'tutte' && r.cat !== rf) return false;
-    return true;
+    if (rf === 'tutte') return true;
+    if (rf === 'veg') return isVegetarian(r);
+    return recipeType(r) === rf; // filtro per tipologia di piatto
   });
 
   const el = document.getElementById('rlist');
