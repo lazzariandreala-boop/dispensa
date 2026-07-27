@@ -523,6 +523,8 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .shop-selectall__n { font-size: 12px; color: var(--accent2); font-weight: 600; }
 /* Filtro categorie a selezione multipla (spesa) */
 #scat-msel { margin-top: 6px; margin-bottom: 18px; }
+#dcat-msel { margin-top: 14px; margin-bottom: 8px; }
+#rtype-msel { margin-top: 12px !important; margin-bottom: 4px; }
 .msel-trigger { width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer; border-radius: 14px; padding: 10px 14px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif; transition: border-color .15s; }
 .msel-trigger:hover { border-color: var(--border-strong); }
 .msel-trigger .cs-trigger__chev { flex-shrink: 0; opacity: .55; font-size: 11px; transition: transform .2s ease; }
@@ -1593,7 +1595,12 @@ body:not(.authed) #app-shell { display: none; }
     <span>🔍</span>
     <input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()">
   </div>
-  <div class="dcat-row" id="dcat-row" style="display:none"></div>
+  <div class="msel" id="dcat-msel" style="display:none">
+    <button type="button" class="msel-trigger" onclick="toggleDcatMenu(event)">
+      <span id="dcat-label">Tutte le categorie</span>
+      <span class="cs-trigger__chev">▾</span>
+    </button>
+  </div>
 </div>
 
 <div id="main">
@@ -1618,22 +1625,16 @@ body:not(.authed) #app-shell { display: none; }
   <div id="pg-ricette" class="page">
     <div class="sbox"><span>🔍</span><input id="rsearch" placeholder="Cerca ricetta…" oninput="renderR()"></div>
     <div class="frow">
-      <div class="chip active" data-rf="possibili" onclick="setRF('possibili',this)">✅ Possibili</div>
-      <div class="chip" data-rf="tutte"    onclick="setRF('tutte',this)">Tutte</div>
-      <div class="chip" data-rf="veg"      onclick="setRF('veg',this)">🌱 Vegetariano</div>
-      <div class="chip" data-rf="carne"    onclick="setRF('carne',this)">🍗 Carne</div>
-      <div class="chip" data-rf="pesce"    onclick="setRF('pesce',this)">🐟 Pesce</div>
-      <div class="chip" data-rf="pasta"    onclick="setRF('pasta',this)">🍝 Pasta</div>
-      <div class="chip" data-rf="risotti"  onclick="setRF('risotti',this)">🍚 Risotti</div>
-      <div class="chip" data-rf="zuppe"    onclick="setRF('zuppe',this)">🍲 Zuppe</div>
-      <div class="chip" data-rf="freddi"   onclick="setRF('freddi',this)">🥗 Piatti freddi</div>
-      <div class="chip" data-rf="uova"     onclick="setRF('uova',this)">🍳 Uova</div>
-      <div class="chip" data-rf="verdure"  onclick="setRF('verdure',this)">🥦 Verdure</div>
-      <div class="chip" data-rf="legumi"   onclick="setRF('legumi',this)">🫘 Legumi</div>
-      <div class="chip" data-rf="panini"   onclick="setRF('panini',this)">🥪 Panini</div>
-      <div class="chip" data-rf="dolci"    onclick="setRF('dolci',this)">🍰 Dolci</div>
+      <div class="chip active" id="rf-possibili" onclick="toggleRPossibili(this)">✅ Fattibili</div>
+      <div class="chip" id="rf-veg" onclick="toggleRVeg(this)">🌱 Vegetariano</div>
     </div>
-    <div id="rlist"></div>
+    <div class="msel" id="rtype-msel" style="margin-top:10px">
+      <button type="button" class="msel-trigger" onclick="toggleRtypeMenu(event)">
+        <span id="rtype-label">Tutte le tipologie</span>
+        <span class="cs-trigger__chev">▾</span>
+      </button>
+    </div>
+    <div id="rlist" style="margin-top:12px"></div>
   </div>
 
   <!-- ===== TAB: LISTA DELLA SPESA ===== -->
@@ -3311,7 +3312,7 @@ const SK = 'dispensa_v3';
  * - scanRunning : true se scanner aperto
  */
 let items = [], shopping = [], consumptionLog = [], additionLog = [], monthlyReports = [], priceBook = {};
-let df = 'tutti', rf = 'possibili';
+let df = 'tutti';
 let editId = null, scanner = null, scanRunning = false;
 
 /** Carica i dati da localStorage — gestisce sia v2 che v3 */
@@ -3602,9 +3603,19 @@ function goTab(name, el) {
   if (scanRunning) closeScanner();
 }
 
-let dcat = 'tutte';
-/** Imposta il filtro categoria alimentare della dispensa */
-function setDCat(c) { dcat = c; renderD(); }
+// Filtro categoria dispensa a selezione multipla (Set vuoto = tutte)
+const dcatSel = new Set();
+function _dispMatchCat(cat) { return dcatSel.size === 0 || dcatSel.has(cat); }
+function _dispPresentCats() {
+  const present = [...new Set(items.map(it => it.category || 'generico'))];
+  return Object.keys(CAT_LABELS_FULL).filter(c => present.includes(c));
+}
+function toggleDcatMenu(e) {
+  if (e) e.stopPropagation();
+  const trigger = document.querySelector('#dcat-msel .msel-trigger');
+  const opts = _dispPresentCats().map(c => ({ value: c, label: CAT_LABELS_FULL[c] }));
+  openMultiMenu(trigger, opts, dcatSel, 'Tutte le categorie', renderD);
+}
 
 /** Imposta filtro dispensa (cliccando su una stat card) */
 function setDF(f, el) {
@@ -3621,11 +3632,21 @@ function setDF(f, el) {
 }
 
 /** Imposta filtro ricette */
-function setRF(f, el) {
-  rf = f;
-  document.querySelectorAll('[data-rf]').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  renderR();
+// Filtri ricette: fattibili (canMake), vegetariano, e tipologie (multi-select)
+let rPossibili = true, rVeg = false;
+const rtypeSel = new Set();
+const RTYPE_LABELS = {
+  carne: '🍗 Carne', pesce: '🐟 Pesce', pasta: '🍝 Pasta', risotti: '🍚 Risotti',
+  zuppe: '🍲 Zuppe', freddi: '🥗 Piatti freddi', uova: '🍳 Uova', verdure: '🥦 Verdure',
+  legumi: '🫘 Legumi', panini: '🥪 Panini', dolci: '🍰 Dolci',
+};
+function toggleRPossibili(el) { rPossibili = !rPossibili; el.classList.toggle('active', rPossibili); renderR(); }
+function toggleRVeg(el) { rVeg = !rVeg; el.classList.toggle('active', rVeg); renderR(); }
+function toggleRtypeMenu(e) {
+  if (e) e.stopPropagation();
+  const trigger = document.querySelector('#rtype-msel .msel-trigger');
+  const opts = Object.entries(RTYPE_LABELS).map(([v, l]) => ({ value: v, label: l }));
+  openMultiMenu(trigger, opts, rtypeSel, 'Tutte le tipologie', renderR);
 }
 
 // ----------------------------------------------------------------
@@ -3657,25 +3678,24 @@ function renderD() {
   updateSidebar(); // aggiorna le stat live nella sidebar desktop
   renderSbSuggest();
 
-  // Chip filtro per categoria (dinamici sulle categorie presenti)
+  // Filtro categoria a selezione multipla (dinamico sulle categorie presenti)
   const presentCats = [...new Set(items.map(it => it.category || 'generico'))];
-  if (dcat !== 'tutte' && !presentCats.includes(dcat)) dcat = 'tutte';
-  const dcatRow = document.getElementById('dcat-row');
-  if (dcatRow) {
+  for (const c of [...dcatSel]) if (!presentCats.includes(c)) dcatSel.delete(c);
+  const dcatMsel = document.getElementById('dcat-msel');
+  if (dcatMsel) {
     if (presentCats.length > 1) {
-      const ordered = Object.keys(CAT_LABELS_FULL).filter(c => presentCats.includes(c));
-      dcatRow.innerHTML = `<button class="dcat-chip ${dcat === 'tutte' ? 'active' : ''}" onclick="setDCat('tutte')">Tutte</button>`
-        + ordered.map(c => `<button class="dcat-chip ${dcat === c ? 'active' : ''}" onclick="setDCat('${c}')">${CAT_LABELS_FULL[c]}</button>`).join('');
-      dcatRow.style.display = 'flex';
-    } else { dcatRow.style.display = 'none'; }
+      const lbl = document.getElementById('dcat-label');
+      if (lbl) lbl.textContent = mselLabel(dcatSel, CAT_LABELS_FULL, 'Tutte le categorie', 'categorie');
+      dcatMsel.style.display = 'block';
+    } else { dcatMsel.style.display = 'none'; dcatSel.clear(); }
   }
 
   // Filtra lista
   let list = items.filter(it => {
     // Filtro testo
     if (q && !it.name.toLowerCase().includes(q)) return false;
-    // Filtro per categoria alimentare
-    if (dcat !== 'tutte' && (it.category || 'generico') !== dcat) return false;
+    // Filtro per categoria alimentare (multi-select)
+    if (!_dispMatchCat(it.category || 'generico')) return false;
     // Filtro stato
     if (df === 'presto') {
       const d = daysTo(it.expiryDate);
@@ -3934,18 +3954,18 @@ function closeCs() {
 if (typeof window !== 'undefined' && window.addEventListener) {
   document.addEventListener('click', (e) => {
     closeCs();
-    if (typeof _scatMenu !== 'undefined' && _scatMenu && !e.target.closest('.msel-menu') && !e.target.closest('#scat-msel')) closeScatMenu();
+    if (_mmOpen && !e.target.closest('.msel-menu') && !e.target.closest('.msel-trigger')) closeMultiMenu();
   });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeCs(); if (typeof closeScatMenu === 'function') closeScatMenu(); } });
-  window.addEventListener('resize', () => { closeCs(); if (typeof closeScatMenu === 'function') closeScatMenu(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeCs(); closeMultiMenu(); } });
+  window.addEventListener('resize', () => { closeCs(); closeMultiMenu(); });
   // Chiudi allo scroll della PAGINA, ma non quando si scorre DENTRO un menu
   // (altrimenti con molte opzioni non si riesce a scorrere fino in fondo).
   window.addEventListener('scroll', (e) => {
     const insideCs = _csOpen && _csOpen.menu && e.target && e.target.nodeType === 1 && _csOpen.menu.contains(e.target);
-    const insideMsel = (typeof _scatMenu !== 'undefined' && _scatMenu && e.target && e.target.nodeType === 1 && _scatMenu.contains(e.target));
-    if (insideCs || insideMsel) return;
+    const insideMm = _mmOpen && _mmOpen.menu && e.target && e.target.nodeType === 1 && _mmOpen.menu.contains(e.target);
+    if (insideCs || insideMm) return;
     closeCs();
-    if (typeof closeScatMenu === 'function') closeScatMenu();
+    closeMultiMenu();
   }, true);
   const initSelects = () => { try { populateCategorySelects(); } catch (_) {} initCustomSelects(); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSelects);
@@ -4219,26 +4239,31 @@ function renderR() {
   const q = (document.getElementById('rsearch').value || '').toLowerCase();
   const CAT_L = { italiana:'🇮🇹 Italiana', europea:'🇪🇺 Europea', giapponese:'🇯🇵 Giapponese', cinese:'🇨🇳 Cinese', asiatica:'🌏 Asiatica' };
 
+  // Aggiorna etichetta del multi-select tipologie
+  const _rtLbl = document.getElementById('rtype-label');
+  if (_rtLbl) _rtLbl.textContent = mselLabel(rtypeSel, RTYPE_LABELS, 'Tutte le tipologie', 'tipologie');
+
+  // Una ricetta è FATTIBILE solo se hai TUTTI gli ingredienti (canMake).
   let list = RECIPES.filter(r => {
     if (q && !r.name.toLowerCase().includes(q)) return false;
-    if (rf === 'possibili') return canMake(r) || canMake1(r);
-    if (rf === 'tutte') return true;
-    if (rf === 'veg') return isVegetarian(r);
-    return recipeType(r) === rf; // filtro per tipologia di piatto
+    if (rPossibili && !canMake(r)) return false;
+    if (rVeg && !isVegetarian(r)) return false;
+    if (rtypeSel.size > 0 && !rtypeSel.has(recipeType(r))) return false;
+    return true;
   });
 
   const el = document.getElementById('rlist');
   if (!list.length) {
     el.innerHTML = `<div class="empty">
       <div class="eico">👨‍🍳</div>
-      <div class="etit">${rf === 'possibili' ? 'Nessuna ricetta fattibile' : 'Nessuna ricetta'}</div>
-      <div class="esub">${rf === 'possibili' ? 'Aggiungi più ingredienti per sbloccare ricette' : 'Prova con un altro filtro'}</div>
+      <div class="etit">${rPossibili ? 'Nessuna ricetta fattibile' : 'Nessuna ricetta'}</div>
+      <div class="esub">${rPossibili ? 'Ti mancano ingredienti: aggiungili o togli il filtro "Fattibili"' : 'Prova con un altro filtro'}</div>
     </div>`;
     return;
   }
 
   // Con oltre mille ricette mostriamo a blocchi per non appesantire la lista.
-  const _key = q + '|' + rf;
+  const _key = q + '|' + rPossibili + '|' + rVeg + '|' + [...rtypeSel].sort().join(',');
   if (_key !== _rLastKey) { _rLimit = 80; _rLastKey = _key; }
   const _total = list.length;
   const _shown = list.slice(0, _rLimit);
@@ -4246,10 +4271,7 @@ function renderR() {
     ? `<button class="rlist-more" onclick="_rLimit+=120;renderR()">Mostra altre ${_total - _rLimit} ricette</button>` : '';
 
   el.innerHTML = _shown.map(r => {
-    const ok = canMake(r), ok1 = canMake1(r);
-    const st = ok
-      ? '<span class="ds-badge ds-badge--fresh">✓ Fattibile</span>'
-      : ok1 ? '<span class="ds-badge ds-badge--soon">⚡ Per 1</span>' : '';
+    const st = canMake(r) ? '<span class="ds-badge ds-badge--fresh">✓ Fattibile</span>' : '';
     return `<div class="rcard" onclick="openR('${r.id}')">
   <div class="rcard__top">
     <div class="ds-food-ico rcard__ico">${r.icon}</div>
@@ -4272,10 +4294,14 @@ let _rLimit = 80, _rLastKey = '';
 function openR(id) {
   const r = RECIPES.find(x => x.id === id);
   if (!r) return;
-  const ok2 = canMake(r), ok1 = !ok2 && canMake1(r);
+  const ok2 = canMake(r);
   const portions = ok2 ? 2 : 1;
-  const portionWarn = (!ok2 && ok1)
-    ? `<div class="portion-warn">⚡ Ingredienti sufficienti solo per <strong>1 persona</strong>.</div>` : '';
+  // Se non è fattibile, elenca cosa manca (una ricetta è fattibile solo con TUTTI gli ingredienti).
+  const missing = r.ingredients
+    .filter(ing => !hasEnough(findIng(ing.name, ing.key), ing.amt, ing.unit))
+    .map(i => i.name);
+  const portionWarn = (!ok2 && missing.length)
+    ? `<div class="portion-warn">⚠️ Non fattibile — ti manca: <strong>${missing.map(escHtml).join(', ')}</strong>.</div>` : '';
   const CAT_L = { italiana:'🇮🇹 Italiana', europea:'🇪🇺 Europea', giapponese:'🇯🇵 Giapponese', cinese:'🇨🇳 Cinese', asiatica:'🌏 Asiatica' };
 
   const ingrHtml = r.ingredients.map(ing => {
@@ -4340,42 +4366,41 @@ function closeRModal(e, force) {
     document.getElementById('rmodal').classList.remove('show');
 }
 
-// ── Spesa: filtro categoria + spostamento in dispensa + modifica ──
-// Filtro categorie della spesa a selezione multipla (Set vuoto = tutte)
-const scatSel = new Set();
-function _shopMatchScat(cat) { return scatSel.size === 0 || scatSel.has(cat); }
-function scatLabel() {
-  if (scatSel.size === 0) return 'Tutte le categorie';
-  if (scatSel.size === 1) { const c = [...scatSel][0]; return CAT_LABELS_FULL[c] || c; }
-  return scatSel.size + ' categorie';
+// ── Multi-select riutilizzabile (spesa, dispensa, ricette) ────────
+let _mmOpen = null;
+function closeMultiMenu() {
+  if (!_mmOpen) return;
+  const ch = _mmOpen.trigger.querySelector('.cs-trigger__chev'); if (ch) ch.style.removeProperty('transform');
+  _mmOpen.menu.remove(); _mmOpen = null;
 }
-function _shopPresentCats() {
-  const present = [...new Set(shopping.map(s => s.category || 'generico'))];
-  return Object.keys(CAT_LABELS_FULL).filter(c => present.includes(c));
-}
-let _scatMenu = null;
-function _buildScatMenu(menu, cats) {
-  const allChk = scatSel.size === 0;
-  menu.innerHTML = `<div class="msel-opt ${allChk ? 'sel' : ''}" data-all="1"><span class="msel-box">${allChk ? '✓' : ''}</span>Tutte le categorie</div>`
-    + cats.map(c => `<div class="msel-opt ${scatSel.has(c) ? 'sel' : ''}" data-c="${c}"><span class="msel-box">${scatSel.has(c) ? '✓' : ''}</span>${CAT_LABELS_FULL[c]}</div>`).join('');
-}
-function toggleScatMenu(e) {
-  if (e) e.stopPropagation();
-  if (_scatMenu) { closeScatMenu(); return; }
-  const trigger = document.querySelector('#scat-msel .msel-trigger');
+/**
+ * Apre un menu a selezione multipla ancorato al trigger.
+ * @param trigger  elemento .msel-trigger
+ * @param opts     [{value,label}] opzioni presenti
+ * @param state    Set delle selezioni (vuoto = tutte)
+ * @param allLabel testo della voce "tutte"
+ * @param onChange callback dopo ogni cambio
+ */
+function openMultiMenu(trigger, opts, state, allLabel, onChange) {
+  if (_mmOpen && _mmOpen.trigger === trigger) { closeMultiMenu(); return; }
+  closeMultiMenu();
   if (!trigger) return;
-  const cats = _shopPresentCats();
   const menu = document.createElement('div');
   menu.className = 'cs-menu msel-menu';
-  _buildScatMenu(menu, cats);
+  const build = () => {
+    const allChk = state.size === 0;
+    menu.innerHTML = `<div class="msel-opt ${allChk ? 'sel' : ''}" data-all="1"><span class="msel-box">${allChk ? '✓' : ''}</span>${allLabel}</div>`
+      + opts.map(o => `<div class="msel-opt ${state.has(o.value) ? 'sel' : ''}" data-v="${o.value}"><span class="msel-box">${state.has(o.value) ? '✓' : ''}</span>${o.label}</div>`).join('');
+  };
+  build();
   menu.addEventListener('click', (ev) => {
     const opt = ev.target.closest('.msel-opt'); if (!opt) { ev.stopPropagation(); return; }
     ev.stopPropagation();
-    if (opt.dataset.all) scatSel.clear();
-    else { const c = opt.dataset.c; if (scatSel.has(c)) scatSel.delete(c); else scatSel.add(c); }
-    if (scatSel.size >= cats.length) scatSel.clear(); // tutte selezionate = "tutte"
-    _buildScatMenu(menu, cats);
-    renderShop();
+    if (opt.dataset.all) state.clear();
+    else { const v = opt.dataset.v; if (state.has(v)) state.delete(v); else state.add(v); }
+    if (state.size >= opts.length) state.clear(); // tutte selezionate = "tutte"
+    build();
+    onChange();
   });
   document.body.appendChild(menu);
   const r = trigger.getBoundingClientRect();
@@ -4384,14 +4409,30 @@ function toggleScatMenu(e) {
   const mh = menu.offsetHeight; // altezza reale (già limitata da max-height)
   if (r.bottom + 8 + mh > window.innerHeight && r.top - 8 - mh > 8) menu.style.top = (r.top - 6 - mh) + 'px';
   else menu.style.top = (r.bottom + 6) + 'px';
-  document.querySelector('#scat-msel .cs-trigger__chev')?.style.setProperty('transform', 'rotate(180deg)');
+  const ch = trigger.querySelector('.cs-trigger__chev'); if (ch) ch.style.setProperty('transform', 'rotate(180deg)');
   requestAnimationFrame(() => menu.classList.add('show'));
-  _scatMenu = menu;
+  _mmOpen = { menu, trigger };
 }
-function closeScatMenu() {
-  if (!_scatMenu) return;
-  _scatMenu.remove(); _scatMenu = null;
-  document.querySelector('#scat-msel .cs-trigger__chev')?.style.removeProperty('transform');
+/** Etichetta compatta per un filtro a selezione multipla. */
+function mselLabel(state, labelMap, allTxt, unit) {
+  if (state.size === 0) return allTxt;
+  if (state.size === 1) { const v = [...state][0]; return labelMap[v] || v; }
+  return state.size + ' ' + unit;
+}
+
+// ── Spesa: filtro categoria + spostamento in dispensa + modifica ──
+const scatSel = new Set();
+function _shopMatchScat(cat) { return scatSel.size === 0 || scatSel.has(cat); }
+function scatLabel() { return mselLabel(scatSel, CAT_LABELS_FULL, 'Tutte le categorie', 'categorie'); }
+function _shopPresentCats() {
+  const present = [...new Set(shopping.map(s => s.category || 'generico'))];
+  return Object.keys(CAT_LABELS_FULL).filter(c => present.includes(c));
+}
+function toggleScatMenu(e) {
+  if (e) e.stopPropagation();
+  const trigger = document.querySelector('#scat-msel .msel-trigger');
+  const opts = _shopPresentCats().map(c => ({ value: c, label: CAT_LABELS_FULL[c] }));
+  openMultiMenu(trigger, opts, scatSel, 'Tutte le categorie', renderShop);
 }
 
 /** Seleziona/deseleziona tutti gli articoli mostrati (rispetta il filtro categoria). */
@@ -4782,7 +4823,7 @@ function renderSbSuggest() {
   if (!el) return;
   const soon = items.filter(it => { const d = daysTo(it.expiryDate); return !it.frozen && d !== null && d >= 0 && d <= 7; });
   let rec = null;
-  try { rec = (typeof RECIPES !== 'undefined') ? RECIPES.find(r => canMake(r) || canMake1(r)) : null; } catch (e) {}
+  try { rec = (typeof RECIPES !== 'undefined') ? RECIPES.find(r => canMake(r)) : null; } catch (e) {}
   let html = '';
   if (soon.length) {
     html += `<div class="sugg-item sugg-item--warn" onclick="goTabById('dispensa')">
