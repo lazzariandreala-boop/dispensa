@@ -52,7 +52,9 @@ test('detectCat() riconosce le categorie principali', () => {
   assert.equal(s.detectCat('Mela golden'), 'frutta');
   assert.equal(s.detectCat('Latte intero'), 'latticini');
   assert.equal(s.detectCat('Spaghetti'), 'pasta_cereali');
-  assert.equal(s.detectCat('Uova fresche'), 'uova');
+  assert.equal(s.detectCat('Guanciale'), 'salumi');
+  // le uova non sono più una categoria a sé: rientrano nei generici
+  assert.equal(s.detectCat('Uova fresche'), 'generico');
 });
 
 test('detectCat() ritorna "generico" per nomi sconosciuti', () => {

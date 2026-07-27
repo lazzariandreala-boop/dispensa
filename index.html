@@ -513,10 +513,10 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .shop-qty { font-size: 12.5px; color: var(--accent2); margin-top: 6px; font-weight: 600; }
 .shop-edit { width: 30px; height: 30px; border-radius: var(--rs); background: transparent; border: 1px solid var(--border); color: var(--text3); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
 .shop-edit:hover { border-color: var(--accent, #22C55E); }
-.shop-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-.shop-act-full { width: 100%; font-size: 13.5px; padding: 12px; }
-.shop-act-row { display: flex; gap: 8px; }
-.dcat-row#scat-row { margin-top: 0; margin-bottom: 14px; }
+.shop-actions { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+.shop-act-full { width: 100%; font-size: 13.5px; padding: 13px; }
+.shop-act-row { display: flex; gap: 10px; }
+.dcat-row#scat-row { margin-top: 6px; margin-bottom: 18px; }
 .shop-item.checked { opacity: .45; }
 .shop-item.checked .shop-name { text-decoration: line-through; color: var(--text3); }
 /* Checkbox cerchio */
@@ -3384,26 +3384,26 @@ function fmtDate(ds) {
 
 /** Mappa categoria → emoji */
 const CATS = {
-  carne:'🥩', pesce:'🐟', uova:'🥚', salumi:'🥓', latticini:'🧀',
+  carne:'🥩', pesce:'🐟', salumi:'🥓', latticini:'🧀',
   verdure:'🥬', frutta:'🍎', legumi:'🫘', pasta_cereali:'🍝', pane:'🍞',
   colazione:'🥣', sughi:'🍅', condimenti:'🫗', spezie:'🧂', farine:'🌾',
   scatola:'🥫', surgelati:'❄️', dolci:'🍰', snack:'🍿', bevande:'🥤',
-  alcolici:'🍷', casa:'🧴', generico:'📦'
+  alcolici:'🍷', casa:'🧴', generico:'❓'
 };
 
 /** Ritorna l'emoji per la categoria indicata */
-function ico(cat) { return CATS[cat] || '📦'; }
+function ico(cat) { return CATS[cat] || '❓'; }
 
 /** Label leggibile per categoria (ordine = ordine nei menu a tendina) */
 const CAT_LABELS_FULL = {
-  carne:'🥩 Carne', pesce:'🐟 Pesce', uova:'🥚 Uova', salumi:'🥓 Salumi',
+  carne:'🥩 Carne', pesce:'🐟 Pesce', salumi:'🥓 Salumi',
   latticini:'🧀 Latticini', verdure:'🥬 Verdure', frutta:'🍎 Frutta',
   legumi:'🫘 Legumi', pasta_cereali:'🍝 Pasta/Cereali', pane:'🍞 Pane',
   colazione:'🥣 Colazione', sughi:'🍅 Sughi e salse', condimenti:'🫗 Condimenti',
   spezie:'🧂 Spezie', farine:'🌾 Farine', scatola:'🥫 Scatolame',
   surgelati:'❄️ Surgelati', dolci:'🍰 Dolci', snack:'🍿 Snack e salati',
   bevande:'🥤 Bevande', alcolici:'🍷 Alcolici', casa:'🧴 Casa e cura',
-  generico:'📦 Generico'
+  generico:'❓ Generico'
 };
 
 /** Giorni di conservazione in freezer per categoria */
@@ -3437,7 +3437,6 @@ function thawExp(cat) {
 // generiche (verdure, condimenti, bevande…) per evitare falsi positivi
 // (es. "passata di pomodoro" → sughi, non verdure).
 const CAT_RULES = [
-  { c:'uova',         w:['uova','uovo'] },
   { c:'sughi',        w:['passata','sugo','ragù','ragu','besciamella','arrabbiata','amatriciana','pesto','pomodori pelati','polpa di pomodoro','concentrato','salsa di pomodoro','salsa pronta','salsa','pomarola','marinara','bolognese','sugo pronto'] },
   { c:'alcolici',     w:['vino','birra','spritz','aperol','prosecco','spumante','champagne','gin','vodka','whisky','whiskey','liquore','grappa','tequila','cocktail','sidro','martini','campari','limoncello','sambuca','bacardi','bitter','wine'] },
   { c:'bevande',      w:['acqua','succo','coca cola','coca-cola','pepsi','fanta','sprite','aranciata','limonata','tè','tisana','camomilla','caffè','bibita','energy','red bull','gatorade','tonica','chinotto','smoothie','latte vegetale','latte di mandorla','latte di soia','latte di avena'] },
@@ -3462,7 +3461,7 @@ const CAT_RULES = [
 ];
 
 const CAT_QTY_DEFAULTS = {
-  uova:{qty:6,unit:'pz'}, carne:{qty:500,unit:'g'}, pesce:{qty:300,unit:'g'},
+  carne:{qty:500,unit:'g'}, pesce:{qty:300,unit:'g'},
   verdure:{qty:500,unit:'g'}, frutta:{qty:1,unit:'kg'}, latticini:{qty:1,unit:'pz'},
   pasta_cereali:{qty:500,unit:'g'}, pane:{qty:1,unit:'pz'}, salumi:{qty:150,unit:'g'},
   condimenti:{qty:1,unit:'pz'}, surgelati:{qty:1,unit:'pz'}, bevande:{qty:1,unit:'l'},
@@ -3617,6 +3616,17 @@ function setRF(f, el) {
 /** Ridisegna lista dispensa applicando ricerca + filtro attivo */
 function renderD() {
   const q = (document.getElementById('dsearch').value || '').toLowerCase();
+
+  // Migra categorie orfane (es. vecchia "uova" → generico)
+  let _icchg = false;
+  items.forEach(it => {
+    if (it.category && !CAT_LABELS_FULL[it.category]) {
+      const c = detectCat(it.name);
+      it.category = (c !== 'generico') ? c : 'generico';
+      _icchg = true;
+    }
+  });
+  if (_icchg) save();
 
   // Calcola conteggi per i 4 counter
   const tot    = items.length;
@@ -3906,7 +3916,12 @@ if (typeof window !== 'undefined' && window.addEventListener) {
   document.addEventListener('click', () => closeCs());
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCs(); });
   window.addEventListener('resize', () => closeCs());
-  window.addEventListener('scroll', () => closeCs(), true);
+  // Chiudi allo scroll della PAGINA, ma non quando si scorre DENTRO il menu
+  // (altrimenti con molte opzioni non si riesce a scorrere fino in fondo).
+  window.addEventListener('scroll', (e) => {
+    if (_csOpen && _csOpen.menu && e.target && e.target.nodeType === 1 && _csOpen.menu.contains(e.target)) return;
+    closeCs();
+  }, true);
   const initSelects = () => { try { populateCategorySelects(); } catch (_) {} initCustomSelects(); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSelects);
   else initSelects();
@@ -4377,12 +4392,13 @@ function renderShop() {
   const el = document.getElementById('shoplist');
   const scatRow = document.getElementById('scat-row');
 
-  // Riclassifica gli articoli finiti in "generico" quando il nome è riconoscibile
+  // Riclassifica gli articoli generici/orfani (es. vecchia categoria "uova")
   let _changed = false;
   shopping.forEach(s => {
-    if (!s.category || s.category === 'generico') {
+    if (!s.category || s.category === 'generico' || !CAT_LABELS_FULL[s.category]) {
       const c = detectCat(s.name);
-      if (c !== 'generico') { s.category = c; _changed = true; }
+      const target = (c !== 'generico') ? c : 'generico';
+      if (s.category !== target) { s.category = target; _changed = true; }
     }
   });
   if (_changed) save();
@@ -5783,7 +5799,7 @@ function addCalItemToCart(id) {
 }
 
 /** Ritorna emoji icona categoria */
-function getCatIco(cat) { return (typeof CATS !== 'undefined' && CATS[cat]) || '📦'; }
+function getCatIco(cat) { return (typeof CATS !== 'undefined' && CATS[cat]) || '❓'; }
 
 /** Elimina un evento dal log aggiunte */
 function calDeleteEvent(id) {
