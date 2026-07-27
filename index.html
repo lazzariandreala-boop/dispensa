@@ -1506,6 +1506,19 @@ body:not(.authed) #app-shell { display: none; }
     </div>
   </div>
 </div>
+<div id="receipt-choose" class="sync-modal" style="z-index:650" onclick="closeReceiptChoose(event)">
+  <div class="sync-box" style="max-width:360px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sync-title">🧾 Scansiona scontrino</div>
+      <button class="mclose" style="position:static" onclick="closeReceiptChoose(null,1)">×</button>
+    </div>
+    <div class="sync-sub" style="margin-bottom:16px">Come vuoi acquisire lo scontrino?</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-p" style="margin-bottom:0" onclick="pickReceiptCamera()">📷 Scatta una foto</button>
+      <button class="btn btn-s" style="margin-bottom:0" onclick="pickReceiptFile()">📁 Carica da file</button>
+    </div>
+  </div>
+</div>
 <div id="receipt-modal" class="sync-modal" onclick="closeReceipt(event)">
   <div class="sync-box" style="max-width:440px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1627,6 +1640,7 @@ body:not(.authed) #app-shell { display: none; }
     <div class="frow">
       <div class="chip active" id="rf-possibili" onclick="toggleRPossibili(this)">✅ Fattibili</div>
       <div class="chip" id="rf-veg" onclick="toggleRVeg(this)">🌱 Vegetariano</div>
+      <div class="chip" id="rf-vegan" onclick="toggleRVegan(this)">🌿 Vegano</div>
     </div>
     <div class="msel" id="rtype-msel" style="margin-top:10px">
       <button type="button" class="msel-trigger" onclick="toggleRtypeMenu(event)">
@@ -1699,7 +1713,8 @@ body:not(.authed) #app-shell { display: none; }
       <button class="cal-nav-btn" onclick="calNext()">›</button>
     </div>
     <button class="scan-receipt-btn" onclick="startReceiptScan()">📷 Scansione dello scontrino</button>
-    <input type="file" id="receipt-file" accept="image/*" capture="environment" multiple style="display:none" onchange="onReceiptFiles(this.files)">
+    <input type="file" id="receipt-file" accept="image/*" multiple style="display:none" onchange="onReceiptFiles(this.files)">
+    <input type="file" id="receipt-file-cam" accept="image/*" capture="environment" style="display:none" onchange="onReceiptFiles(this.files)">
     <div class="cal-grid" id="cal-grid"></div>
     <div class="cal-day-detail" id="cal-day-detail" style="display:none"></div>
   </div>
@@ -2175,6 +2190,7 @@ body:not(.authed) #app-shell { display: none; }
       <button class="mclose" style="position:static" onclick="closeAddModal(null,1)">×</button>
     </div>
     <div class="add-body">
+      <button class="scan-receipt-btn" style="margin-bottom:12px" onclick="closeAddModal(null,1);startReceiptScan()">🧾 Scansiona scontrino</button>
       <button class="scan-btn" id="scanbtn" onclick="openScanner()">
         <span style="font-size:20px">📷</span><span>Scansiona Barcode</span>
       </button>
@@ -3632,8 +3648,8 @@ function setDF(f, el) {
 }
 
 /** Imposta filtro ricette */
-// Filtri ricette: fattibili (canMake), vegetariano, e tipologie (multi-select)
-let rPossibili = true, rVeg = false;
+// Filtri ricette: fattibili (canMake), vegetariano/vegano, e tipologie (multi-select)
+let rPossibili = true, rVeg = false, rVegan = false;
 const rtypeSel = new Set();
 const RTYPE_LABELS = {
   carne: '🍗 Carne', pesce: '🐟 Pesce', pasta: '🍝 Pasta', risotti: '🍚 Risotti',
@@ -3641,7 +3657,8 @@ const RTYPE_LABELS = {
   legumi: '🫘 Legumi', panini: '🥪 Panini', dolci: '🍰 Dolci',
 };
 function toggleRPossibili(el) { rPossibili = !rPossibili; el.classList.toggle('active', rPossibili); renderR(); }
-function toggleRVeg(el) { rVeg = !rVeg; el.classList.toggle('active', rVeg); renderR(); }
+function toggleRVeg(el) { rVeg = !rVeg; if (rVeg) { rVegan = false; document.getElementById('rf-vegan')?.classList.remove('active'); } el.classList.toggle('active', rVeg); renderR(); }
+function toggleRVegan(el) { rVegan = !rVegan; if (rVegan) { rVeg = false; document.getElementById('rf-veg')?.classList.remove('active'); } el.classList.toggle('active', rVegan); renderR(); }
 function toggleRtypeMenu(e) {
   if (e) e.stopPropagation();
   const trigger = document.querySelector('#rtype-msel .msel-trigger');
@@ -4235,6 +4252,18 @@ function isVegetarian(rec) {
   const ings = (rec.ingredients || []).map(i => (i.key || i.name || '').toLowerCase());
   return !ings.some(k => _RT_MEAT.some(a => k.includes(a)) || _RT_FISH.some(a => k.includes(a)));
 }
+// Prodotti animali oltre a carne/pesce: uova, latticini, miele… (non vegani)
+const _RT_ANIMAL = ['uova', 'uovo', 'latte', 'formaggio', 'mozzarella', 'parmigiano', 'pecorino', 'ricotta', 'burro', 'panna', 'mascarpone', 'gorgonzola', 'grana', 'yogurt', 'miele', 'besciamella', 'feta', 'philadelphia', 'stracchino', 'scamorza', 'provolone', 'brie', 'camembert', 'fontina', 'crescenza', 'asiago', 'maionese', 'caciotta'];
+/** Vera se la ricetta è vegana (nessun prodotto animale: no carne, pesce, uova, latticini, miele). */
+function isVegan(rec) {
+  const ings = (rec.ingredients || []).map(i => (i.key || i.name || '').toLowerCase());
+  return ings.every(k => {
+    if (_RT_MEAT.some(a => k.includes(a)) || _RT_FISH.some(a => k.includes(a))) return false;
+    if (/latte di (cocco|soia|mandorl|avena|riso)/.test(k)) return true; // latti vegetali ammessi
+    if (_RT_ANIMAL.some(a => k.includes(a))) return false;
+    return true;
+  });
+}
 function renderR() {
   const q = (document.getElementById('rsearch').value || '').toLowerCase();
   const CAT_L = { italiana:'🇮🇹 Italiana', europea:'🇪🇺 Europea', giapponese:'🇯🇵 Giapponese', cinese:'🇨🇳 Cinese', asiatica:'🌏 Asiatica' };
@@ -4248,6 +4277,7 @@ function renderR() {
     if (q && !r.name.toLowerCase().includes(q)) return false;
     if (rPossibili && !canMake(r)) return false;
     if (rVeg && !isVegetarian(r)) return false;
+    if (rVegan && !isVegan(r)) return false;
     if (rtypeSel.size > 0 && !rtypeSel.has(recipeType(r))) return false;
     return true;
   });
@@ -4263,7 +4293,7 @@ function renderR() {
   }
 
   // Con oltre mille ricette mostriamo a blocchi per non appesantire la lista.
-  const _key = q + '|' + rPossibili + '|' + rVeg + '|' + [...rtypeSel].sort().join(',');
+  const _key = q + '|' + rPossibili + '|' + rVeg + '|' + rVegan + '|' + [...rtypeSel].sort().join(',');
   if (_key !== _rLastKey) { _rLimit = 80; _rLastKey = _key; }
   const _total = list.length;
   const _shown = list.slice(0, _rLimit);
@@ -4294,11 +4324,14 @@ let _rLimit = 80, _rLastKey = '';
 function openR(id) {
   const r = RECIPES.find(x => x.id === id);
   if (!r) return;
-  const ok2 = canMake(r);
-  const portions = ok2 ? 2 : 1;
-  // Se non è fattibile, elenca cosa manca (una ricetta è fattibile solo con TUTTI gli ingredienti).
+  const ok2 = canMake(r); // fattibile = hai TUTTI gli ingredienti (quantità base)
+  // Mostra 2 porzioni SOLO se hai davvero il doppio di ogni ingrediente,
+  // così i pallini restano coerenti con la fattibilità (rosso ⇒ non fattibile).
+  const canDouble = ok2 && r.ingredients.every(ing => hasEnough(findIng(ing.name, ing.key), ing.amt * 2, ing.unit));
+  const portions = canDouble ? 2 : 1;
+  // Se non è fattibile, elenca cosa manca.
   const missing = r.ingredients
-    .filter(ing => !hasEnough(findIng(ing.name, ing.key), ing.amt, ing.unit))
+    .filter(ing => !hasEnough(findIng(ing.name, ing.key), ing.amt * portions, ing.unit))
     .map(i => i.name);
   const portionWarn = (!ok2 && missing.length)
     ? `<div class="portion-warn">⚠️ Non fattibile — ti manca: <strong>${missing.map(escHtml).join(', ')}</strong>.</div>` : '';
@@ -5825,8 +5858,14 @@ function startReceiptScan() {
     showAlert('La scansione dello scontrino è disponibile nell\'app per Android e iOS.', 'warn', 5000);
     return;
   }
-  document.getElementById('receipt-file').click();
+  document.getElementById('receipt-choose').classList.add('show'); // chiedi foto o file
 }
+function closeReceiptChoose(e, force) {
+  if (force || e?.target === document.getElementById('receipt-choose'))
+    document.getElementById('receipt-choose').classList.remove('show');
+}
+function pickReceiptCamera() { closeReceiptChoose(null, 1); document.getElementById('receipt-file-cam').click(); }
+function pickReceiptFile() { closeReceiptChoose(null, 1); document.getElementById('receipt-file').click(); }
 /** Ridimensiona un'immagine (lato max) e la ritorna come data URL JPEG. */
 function downscaleImage(file, maxSide) {
   return new Promise((resolve, reject) => {
