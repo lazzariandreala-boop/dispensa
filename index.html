@@ -495,19 +495,28 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
    LISTA DELLA SPESA
 ================================================ */
 /* Gruppo per categoria */
-.shop-group { margin-bottom: 20px; }
+.shop-group { margin-bottom: 26px; }
 .shop-cat-label {
-  font-size: 11px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .7px; color: var(--text3); margin-bottom: 8px;
-  display: flex; align-items: center; gap: 6px;
-  padding: 0 2px;
+  font-size: 13.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--text2); margin: 18px 2px 12px;
+  display: flex; align-items: center; gap: 7px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
 }
+.shop-group:first-child .shop-cat-label { margin-top: 4px; }
 /* Singolo item spesa */
 .shop-item {
-  display: flex; align-items: center; gap: 11px; padding: 12px 14px;
+  display: flex; align-items: center; gap: 12px; padding: 13px 14px;
   background: var(--bg2); border: 1px solid var(--border);
-  border-radius: var(--rs); margin-bottom: 6px; transition: opacity .2s;
+  border-radius: var(--rs); margin-bottom: 8px; transition: opacity .2s;
 }
+.shop-txt { flex: 1; min-width: 0; cursor: pointer; }
+.shop-qty { font-size: 12.5px; color: var(--accent2); margin-top: 6px; font-weight: 600; }
+.shop-edit { width: 30px; height: 30px; border-radius: var(--rs); background: transparent; border: 1px solid var(--border); color: var(--text3); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
+.shop-edit:hover { border-color: var(--accent, #22C55E); }
+.shop-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.shop-act-full { width: 100%; font-size: 13.5px; padding: 12px; }
+.shop-act-row { display: flex; gap: 8px; }
+.dcat-row#scat-row { margin-top: 0; margin-bottom: 14px; }
 .shop-item.checked { opacity: .45; }
 .shop-item.checked .shop-name { text-decoration: line-through; color: var(--text3); }
 /* Checkbox cerchio */
@@ -517,7 +526,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
   display: flex; align-items: center; justify-content: center; font-size: 13px;
 }
 .shop-check.checked { background: var(--success); border-color: var(--success); }
-.shop-name { flex: 1; font-size: 14px; font-weight: 500; }
+.shop-name { font-size: 15.5px; font-weight: 600; }
 /* Pulsante elimina */
 .shop-del {
   width: 30px; height: 30px; border-radius: var(--rs); background: transparent;
@@ -1495,6 +1504,24 @@ body:not(.authed) #app-shell { display: none; }
     </div>
   </div>
 </div>
+<div id="shop-edit-modal" class="sync-modal" onclick="closeShopEdit(event)">
+  <div class="sync-box" style="max-width:400px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="sync-title">✏️ Modifica articolo</div>
+      <button class="mclose" style="position:static" onclick="closeShopEdit(null,1)">×</button>
+    </div>
+    <div class="ce-form">
+      <label>Nome<input id="se-name" type="text" placeholder="Es. Latte"></label>
+      <label>Categoria<select id="se-cat"></select></label>
+      <div class="ce-row">
+        <label style="flex:1">Quantità<input id="se-qty" type="number" min="0" step="0.1" placeholder="—"></label>
+        <label style="width:90px">Unità<input id="se-unit" type="text" value="pz"></label>
+      </div>
+      <label>Prezzo €<input id="se-price" type="number" min="0" step="0.01" placeholder="—"></label>
+      <button class="app-popup__ok" style="margin-top:6px" onclick="saveShopEdit()">Salva</button>
+    </div>
+  </div>
+</div>
 <div id="cal-entry-modal" class="sync-modal" onclick="closeCalEntry(event)">
   <div class="sync-box" style="max-width:400px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1631,11 +1658,15 @@ body:not(.authed) #app-shell { display: none; }
     </div>
 
     <!-- Azioni di massa -->
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <button class="btn btn-s" style="flex:1;margin-bottom:0;font-size:12px;padding:10px" onclick="clearCheckedShop()">✅ Rimuovi acquistati</button>
-      <button class="btn btn-s" style="flex:1;margin-bottom:0;font-size:12px;padding:10px" onclick="clearAllShop()">🗑 Svuota tutto</button>
+    <div class="shop-actions">
+      <button class="btn btn-p shop-act-full" style="margin-bottom:0" onclick="restockCheckedShop()">📥 Aggiungi alla Dispensa i selezionati</button>
+      <div class="shop-act-row">
+        <button class="btn btn-s" style="flex:1;margin-bottom:0;font-size:12.5px;padding:11px" onclick="restockAllShop()">📥 Aggiungi tutto</button>
+        <button class="btn btn-s" style="flex:1;margin-bottom:0;font-size:12.5px;padding:11px" onclick="clearAllShop()">🗑 Svuota tutto</button>
+      </div>
     </div>
 
+    <div class="dcat-row" id="scat-row" style="display:none"></div>
     <div id="shoplist"></div>
   </div>
 
@@ -3792,7 +3823,7 @@ document.addEventListener('pointerdown', (e) => {
 
 // ── Popola tutti i <select> di categoria da CAT_LABELS_FULL ────────
 // Così aggiungere una categoria richiede una sola modifica (CAT_LABELS_FULL).
-const CAT_SELECT_IDS = ['fc', 'ecat', 'sc-shop', 'sb-fc', 'le-cat', 'rcat', 'ce-cat'];
+const CAT_SELECT_IDS = ['fc', 'ecat', 'sc-shop', 'sb-fc', 'le-cat', 'rcat', 'ce-cat', 'se-cat'];
 function catOptionsHtml() {
   const keys = Object.keys(CAT_LABELS_FULL);
   const ordered = ['generico', ...keys.filter(k => k !== 'generico')];
@@ -4255,7 +4286,7 @@ function addIngToCart(name, qty, unit) {
     existing.hintQty = qty; existing.hintUnit = unit;
     showAlert(`"${name}" già in lista — quantità aggiornata`, 'ok', 1600);
   } else {
-    shopping.push({ id: uid(), name, category: 'generico', checked: false, addedDate: today(), hintQty: qty, hintUnit: unit });
+    shopping.push({ id: uid(), name, category: detectCat(name), checked: false, addedDate: today(), hintQty: qty, hintUnit: unit });
     showAlert(`🛒 "${name}" aggiunto alla spesa`, 'ok', 1600);
   }
   save();
@@ -4269,6 +4300,70 @@ function closeRModal(e, force) {
     document.getElementById('rmodal').classList.remove('show');
 }
 
+// ── Spesa: filtro categoria + spostamento in dispensa + modifica ──
+let scat = 'tutte';
+function setSCat(c) { scat = c; renderShop(); }
+
+/** Crea un articolo in dispensa a partire da una voce della spesa. */
+function _shopToPantry(s) {
+  const cat = s.category || detectCat(s.name) || 'generico';
+  const qty = parseFloat(s.hintQty) > 0 ? parseFloat(s.hintQty) : 1;
+  const unit = s.hintUnit || 'pz';
+  const price = parseFloat(s.hintPrice) > 0 ? parseFloat(s.hintPrice) : null;
+  items.push({ id: uid(), name: s.name, quantity: qty, unit, category: cat, expiryDate: null, originalExpiry: null,
+    frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: today(), price: price || 0, consumed: 0 });
+  additionLog.push({ id: uid(), name: s.name, category: cat, qty, unit, price, date: today(), source: 'spesa' });
+  if (price != null) { try { pbUpdate(s.name, price, qty, unit, cat); } catch (_) {} }
+}
+/** Sposta in dispensa gli articoli selezionati (spuntati) e li toglie dalla lista. */
+function restockCheckedShop() {
+  const chk = shopping.filter(s => s.checked);
+  if (!chk.length) { showAlert('Spunta prima gli articoli acquistati (il cerchio a sinistra)', 'warn'); return; }
+  chk.forEach(_shopToPantry);
+  const ids = new Set(chk.map(s => s.id));
+  shopping = shopping.filter(s => !ids.has(s.id));
+  save(); renderShop(); renderD();
+  showAlert(`✅ ${chk.length} articoli aggiunti in dispensa`, 'ok', 2500);
+}
+/** Sposta in dispensa TUTTA la lista e la svuota. */
+function restockAllShop() {
+  if (!shopping.length) { showAlert('La lista è vuota', 'warn'); return; }
+  const n = shopping.length;
+  shopping.forEach(_shopToPantry);
+  shopping = [];
+  save(); renderShop(); renderD();
+  showAlert(`✅ ${n} articoli aggiunti in dispensa`, 'ok', 2500);
+}
+
+let _shopEditId = null;
+function openShopEdit(id) {
+  const s = shopping.find(x => x.id === id); if (!s) return;
+  _shopEditId = id;
+  document.getElementById('se-name').value  = s.name;
+  document.getElementById('se-cat').value   = s.category || 'generico';
+  document.getElementById('se-qty').value   = (s.hintQty != null && s.hintQty !== '') ? s.hintQty : '';
+  document.getElementById('se-unit').value  = s.hintUnit || 'pz';
+  document.getElementById('se-price').value = (s.hintPrice != null && s.hintPrice !== '') ? s.hintPrice : '';
+  document.getElementById('shop-edit-modal').classList.add('show');
+  setTimeout(() => document.getElementById('se-name').focus(), 50);
+}
+function closeShopEdit(e, force) {
+  if (force || e?.target === document.getElementById('shop-edit-modal'))
+    document.getElementById('shop-edit-modal').classList.remove('show');
+}
+function saveShopEdit() {
+  const s = shopping.find(x => x.id === _shopEditId); if (!s) return;
+  const name = document.getElementById('se-name').value.trim();
+  if (!name) { showAlert('Inserisci il nome dell\'articolo', 'err'); return; }
+  s.name = name;
+  s.category = document.getElementById('se-cat').value;
+  const q = document.getElementById('se-qty').value; s.hintQty = q !== '' ? parseFloat(q) : null;
+  s.hintUnit = document.getElementById('se-unit').value.trim() || 'pz';
+  const p = document.getElementById('se-price').value; s.hintPrice = p !== '' ? parseFloat(p) : null;
+  save(); renderShop(); closeShopEdit(null, 1);
+  showAlert('✅ Articolo aggiornato', 'ok', 1600);
+}
+
 // ----------------------------------------------------------------
 // 7. LISTA DELLA SPESA
 // ----------------------------------------------------------------
@@ -4280,7 +4375,20 @@ function closeRModal(e, force) {
 function renderShop() {
   updateShopBadge();
   const el = document.getElementById('shoplist');
+  const scatRow = document.getElementById('scat-row');
+
+  // Riclassifica gli articoli finiti in "generico" quando il nome è riconoscibile
+  let _changed = false;
+  shopping.forEach(s => {
+    if (!s.category || s.category === 'generico') {
+      const c = detectCat(s.name);
+      if (c !== 'generico') { s.category = c; _changed = true; }
+    }
+  });
+  if (_changed) save();
+
   if (!shopping.length) {
+    if (scatRow) scatRow.style.display = 'none';
     el.innerHTML = `<div class="empty">
       <div class="eico">🛒</div>
       <div class="etit">Lista vuota</div>
@@ -4289,10 +4397,23 @@ function renderShop() {
     return;
   }
 
-  // Raggruppa per categoria
+  // Chip filtro per categoria (dinamici sulle categorie presenti in lista)
+  const presentCats = [...new Set(shopping.map(s => s.category || 'generico'))];
+  if (scat !== 'tutte' && !presentCats.includes(scat)) scat = 'tutte';
+  if (scatRow) {
+    if (presentCats.length > 1) {
+      const ordered = Object.keys(CAT_LABELS_FULL).filter(c => presentCats.includes(c));
+      scatRow.innerHTML = `<button class="dcat-chip ${scat === 'tutte' ? 'active' : ''}" onclick="setSCat('tutte')">Tutte</button>`
+        + ordered.map(c => `<button class="dcat-chip ${scat === c ? 'active' : ''}" onclick="setSCat('${c}')">${CAT_LABELS_FULL[c]}</button>`).join('');
+      scatRow.style.display = 'flex';
+    } else { scatRow.style.display = 'none'; }
+  }
+
+  // Raggruppa per categoria (applicando il filtro categoria)
   const groups = {};
   shopping.forEach(s => {
     const cat = s.category || 'generico';
+    if (scat !== 'tutte' && cat !== scat) return;
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(s);
   });
@@ -4321,11 +4442,12 @@ function renderShop() {
     const itemsHtml = sorted.map(s => `
 <div class="shop-item${s.checked ? ' checked' : ''}" id="si-${s.id}">
   <div class="shop-check${s.checked ? ' checked' : ''}" onclick="toggleShopItem('${s.id}')">${s.checked ? '✓' : ''}</div>
-  <div style="flex:1;min-width:0">
+  <div class="shop-txt" onclick="openShopEdit('${s.id}')">
     <span class="shop-name">${escHtml(s.name)}</span>
-    ${(s.hintPrice||s.hintQty) && !s.checked ? `<div style="font-size:10px;color:var(--accent2);margin-top:2px">${[s.hintPrice?'€'+parseFloat(s.hintPrice).toFixed(2):null,s.hintQty?(s.hintQty+' '+(s.hintUnit||'pz')):null].filter(Boolean).join(' · ')}</div>` : ''}
+    ${(s.hintPrice||s.hintQty) ? `<div class="shop-qty">${[s.hintQty?(s.hintQty+' '+(s.hintUnit||'pz')):null, s.hintPrice?'€'+parseFloat(s.hintPrice).toFixed(2):null].filter(Boolean).join('  ·  ')}</div>` : ''}
   </div>
   ${s.checked ? `<button class="shop-restock" onclick="openRestock('${s.id}')">📥 Dispensa</button>` : ''}
+  <button class="shop-edit" onclick="openShopEdit('${s.id}')" title="Modifica">✏️</button>
   <button class="shop-del" onclick="deleteShopItem('${s.id}')" title="Elimina">🗑</button>
 </div>`).join('');
     return `<div class="shop-group">
