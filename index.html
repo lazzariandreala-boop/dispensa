@@ -513,7 +513,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .shop-qty { font-size: 12.5px; color: var(--accent2); margin-top: 6px; font-weight: 600; }
 .shop-edit { width: 30px; height: 30px; border-radius: var(--rs); background: transparent; border: 1px solid var(--border); color: var(--text3); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
 .shop-edit:hover { border-color: var(--accent, #22C55E); }
-.shop-actions { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+.shop-actions { display: flex; flex-direction: column; gap: 15px; margin: 18px 0; }
 .shop-act-full { width: 100%; font-size: 13.5px; padding: 13px; }
 .shop-act-row { display: flex; gap: 10px; }
 .dcat-row#scat-row { margin-top: 6px; margin-bottom: 18px; }
@@ -521,6 +521,16 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .shop-selectall__btn { background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--text2); font-family: var(--font-body); font-size: 12.5px; font-weight: 600; padding: 8px 12px; cursor: pointer; transition: all .15s; }
 .shop-selectall__btn:hover { border-color: var(--accent, #22C55E); color: var(--accent, #22C55E); }
 .shop-selectall__n { font-size: 12px; color: var(--accent2); font-weight: 600; }
+/* Filtro categorie a selezione multipla (spesa) */
+#scat-msel { margin-top: 6px; margin-bottom: 18px; }
+.msel-trigger { width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer; border-radius: 14px; padding: 10px 14px; background: var(--bg2); border: 1px solid var(--border); color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif; transition: border-color .15s; }
+.msel-trigger:hover { border-color: var(--border-strong); }
+.msel-trigger .cs-trigger__chev { flex-shrink: 0; opacity: .55; font-size: 11px; transition: transform .2s ease; }
+.msel-menu .msel-opt { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; cursor: pointer; font-size: 14px; color: var(--text); white-space: nowrap; }
+.msel-menu .msel-opt:hover { background: var(--surface-elevated, rgba(255,255,255,.07)); }
+.msel-menu .msel-opt.sel { color: var(--accent, #22C55E); font-weight: 700; }
+.msel-box { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--border-strong); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #05140A; flex-shrink: 0; }
+.msel-opt.sel .msel-box { background: var(--accent, #22C55E); border-color: var(--accent, #22C55E); }
 .shop-item.checked { opacity: .45; }
 .shop-item.checked .shop-name { text-decoration: line-through; color: var(--text3); }
 /* Checkbox cerchio */
@@ -1658,7 +1668,7 @@ body:not(.authed) #app-shell { display: none; }
         </select>
       </div>
       <div class="cat-detected" id="pb-hint-shop" style="margin-top:4px"></div>
-      <button class="btn btn-p" onclick="addToShopList()">➕ Aggiungi</button>
+      <button class="btn btn-p" onclick="addToShopList()" style="margin-top:14px">➕ Aggiungi</button>
     </div>
 
     <!-- Azioni di massa -->
@@ -1670,7 +1680,12 @@ body:not(.authed) #app-shell { display: none; }
       </div>
     </div>
 
-    <div class="dcat-row" id="scat-row" style="display:none"></div>
+    <div class="msel" id="scat-msel" style="display:none">
+      <button type="button" class="msel-trigger" onclick="toggleScatMenu(event)">
+        <span id="scat-label">Tutte le categorie</span>
+        <span class="cs-trigger__chev">▾</span>
+      </button>
+    </div>
     <div id="shoplist"></div>
   </div>
 
@@ -3917,14 +3932,20 @@ function closeCs() {
   _csOpen = null;
 }
 if (typeof window !== 'undefined' && window.addEventListener) {
-  document.addEventListener('click', () => closeCs());
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCs(); });
-  window.addEventListener('resize', () => closeCs());
-  // Chiudi allo scroll della PAGINA, ma non quando si scorre DENTRO il menu
+  document.addEventListener('click', (e) => {
+    closeCs();
+    if (typeof _scatMenu !== 'undefined' && _scatMenu && !e.target.closest('.msel-menu') && !e.target.closest('#scat-msel')) closeScatMenu();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeCs(); if (typeof closeScatMenu === 'function') closeScatMenu(); } });
+  window.addEventListener('resize', () => { closeCs(); if (typeof closeScatMenu === 'function') closeScatMenu(); });
+  // Chiudi allo scroll della PAGINA, ma non quando si scorre DENTRO un menu
   // (altrimenti con molte opzioni non si riesce a scorrere fino in fondo).
   window.addEventListener('scroll', (e) => {
-    if (_csOpen && _csOpen.menu && e.target && e.target.nodeType === 1 && _csOpen.menu.contains(e.target)) return;
+    const insideCs = _csOpen && _csOpen.menu && e.target && e.target.nodeType === 1 && _csOpen.menu.contains(e.target);
+    const insideMsel = (typeof _scatMenu !== 'undefined' && _scatMenu && e.target && e.target.nodeType === 1 && _scatMenu.contains(e.target));
+    if (insideCs || insideMsel) return;
     closeCs();
+    if (typeof closeScatMenu === 'function') closeScatMenu();
   }, true);
   const initSelects = () => { try { populateCategorySelects(); } catch (_) {} initCustomSelects(); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSelects);
@@ -4320,12 +4341,62 @@ function closeRModal(e, force) {
 }
 
 // ── Spesa: filtro categoria + spostamento in dispensa + modifica ──
-let scat = 'tutte';
-function setSCat(c) { scat = c; renderShop(); }
+// Filtro categorie della spesa a selezione multipla (Set vuoto = tutte)
+const scatSel = new Set();
+function _shopMatchScat(cat) { return scatSel.size === 0 || scatSel.has(cat); }
+function scatLabel() {
+  if (scatSel.size === 0) return 'Tutte le categorie';
+  if (scatSel.size === 1) { const c = [...scatSel][0]; return CAT_LABELS_FULL[c] || c; }
+  return scatSel.size + ' categorie';
+}
+function _shopPresentCats() {
+  const present = [...new Set(shopping.map(s => s.category || 'generico'))];
+  return Object.keys(CAT_LABELS_FULL).filter(c => present.includes(c));
+}
+let _scatMenu = null;
+function _buildScatMenu(menu, cats) {
+  const allChk = scatSel.size === 0;
+  menu.innerHTML = `<div class="msel-opt ${allChk ? 'sel' : ''}" data-all="1"><span class="msel-box">${allChk ? '✓' : ''}</span>Tutte le categorie</div>`
+    + cats.map(c => `<div class="msel-opt ${scatSel.has(c) ? 'sel' : ''}" data-c="${c}"><span class="msel-box">${scatSel.has(c) ? '✓' : ''}</span>${CAT_LABELS_FULL[c]}</div>`).join('');
+}
+function toggleScatMenu(e) {
+  if (e) e.stopPropagation();
+  if (_scatMenu) { closeScatMenu(); return; }
+  const trigger = document.querySelector('#scat-msel .msel-trigger');
+  if (!trigger) return;
+  const cats = _shopPresentCats();
+  const menu = document.createElement('div');
+  menu.className = 'cs-menu msel-menu';
+  _buildScatMenu(menu, cats);
+  menu.addEventListener('click', (ev) => {
+    const opt = ev.target.closest('.msel-opt'); if (!opt) { ev.stopPropagation(); return; }
+    ev.stopPropagation();
+    if (opt.dataset.all) scatSel.clear();
+    else { const c = opt.dataset.c; if (scatSel.has(c)) scatSel.delete(c); else scatSel.add(c); }
+    if (scatSel.size >= cats.length) scatSel.clear(); // tutte selezionate = "tutte"
+    _buildScatMenu(menu, cats);
+    renderShop();
+  });
+  document.body.appendChild(menu);
+  const r = trigger.getBoundingClientRect();
+  menu.style.left = r.left + 'px';
+  menu.style.width = r.width + 'px';
+  const mh = Math.min(menu.scrollHeight, Math.min(window.innerHeight * 0.6, 400));
+  if (r.bottom + 8 + mh > window.innerHeight && r.top - 8 - mh > 8) menu.style.top = (r.top - 6 - mh) + 'px';
+  else menu.style.top = (r.bottom + 6) + 'px';
+  document.querySelector('#scat-msel .cs-trigger__chev')?.style.setProperty('transform', 'rotate(180deg)');
+  requestAnimationFrame(() => menu.classList.add('show'));
+  _scatMenu = menu;
+}
+function closeScatMenu() {
+  if (!_scatMenu) return;
+  _scatMenu.remove(); _scatMenu = null;
+  document.querySelector('#scat-msel .cs-trigger__chev')?.style.removeProperty('transform');
+}
 
 /** Seleziona/deseleziona tutti gli articoli mostrati (rispetta il filtro categoria). */
 function toggleSelectAllShop() {
-  const vis = shopping.filter(s => scat === 'tutte' || (s.category || 'generico') === scat);
+  const vis = shopping.filter(s => _shopMatchScat(s.category || 'generico'));
   const allChk = vis.length > 0 && vis.every(s => s.checked);
   vis.forEach(s => { s.checked = !allChk; });
   save();
@@ -4403,7 +4474,7 @@ function saveShopEdit() {
 function renderShop() {
   updateShopBadge();
   const el = document.getElementById('shoplist');
-  const scatRow = document.getElementById('scat-row');
+  const scatMsel = document.getElementById('scat-msel');
 
   // Riclassifica gli articoli generici/orfani (es. vecchia categoria "uova")
   let _changed = false;
@@ -4417,7 +4488,7 @@ function renderShop() {
   if (_changed) save();
 
   if (!shopping.length) {
-    if (scatRow) scatRow.style.display = 'none';
+    if (scatMsel) scatMsel.style.display = 'none';
     el.innerHTML = `<div class="empty">
       <div class="eico">🛒</div>
       <div class="etit">Lista vuota</div>
@@ -4426,23 +4497,23 @@ function renderShop() {
     return;
   }
 
-  // Chip filtro per categoria (dinamici sulle categorie presenti in lista)
+  // Filtro categorie a selezione multipla (dinamico sulle categorie presenti)
   const presentCats = [...new Set(shopping.map(s => s.category || 'generico'))];
-  if (scat !== 'tutte' && !presentCats.includes(scat)) scat = 'tutte';
-  if (scatRow) {
+  for (const c of [...scatSel]) if (!presentCats.includes(c)) scatSel.delete(c); // pulisci selezioni sparite
+  if (scatMsel) {
     if (presentCats.length > 1) {
-      const ordered = Object.keys(CAT_LABELS_FULL).filter(c => presentCats.includes(c));
-      scatRow.innerHTML = `<button class="dcat-chip ${scat === 'tutte' ? 'active' : ''}" onclick="setSCat('tutte')">Tutte</button>`
-        + ordered.map(c => `<button class="dcat-chip ${scat === c ? 'active' : ''}" onclick="setSCat('${c}')">${CAT_LABELS_FULL[c]}</button>`).join('');
-      scatRow.style.display = 'flex';
-    } else { scatRow.style.display = 'none'; }
+      const lbl = document.getElementById('scat-label');
+      if (lbl) lbl.textContent = scatLabel();
+      scatMsel.style.display = 'block';
+    } else { scatMsel.style.display = 'none'; scatSel.clear(); }
   }
+  const matchScat = (cat) => scatSel.size === 0 || scatSel.has(cat);
 
   // Raggruppa per categoria (applicando il filtro categoria)
   const groups = {};
   shopping.forEach(s => {
     const cat = s.category || 'generico';
-    if (scat !== 'tutte' && cat !== scat) return;
+    if (!matchScat(cat)) return;
     if (!groups[cat]) groups[cat] = [];
     groups[cat].push(s);
   });
@@ -4464,7 +4535,7 @@ function renderShop() {
     : '';
 
   // Barra "Seleziona/Deseleziona tutto" (sui soli articoli mostrati dal filtro)
-  const _visible = shopping.filter(s => scat === 'tutte' || (s.category || 'generico') === scat);
+  const _visible = shopping.filter(s => matchScat(s.category || 'generico'));
   const _allChk = _visible.length > 0 && _visible.every(s => s.checked);
   const _nChk = _visible.filter(s => s.checked).length;
   const selectAllBar = `<div class="shop-selectall">
