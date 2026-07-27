@@ -1039,6 +1039,8 @@ select option { background: #1b1b1f; color: #f0ece6; }
 .sb-mc-day.other { color:var(--text3); }
 
 /* ═══════════════ SIDEBAR FORM ═══════════════ */
+.sb-or { display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px; }
+.sb-or::before, .sb-or::after { content:"";flex:1;height:1px;background:var(--border); }
 .sb-form { display:flex;flex-direction:column;gap:0; }
 .sb-form .fi { width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:10px 12px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none;-webkit-appearance:none;transition:all .18s; }
 .sb-form .fi:focus { border-color:var(--accent);box-shadow:0 0 0 3px rgba(240,125,30,.12); }
@@ -1788,6 +1790,8 @@ body:not(.authed) #app-shell { display: none; }
 
     <!-- Add form -->
     <div class="sb-section">
+      <button class="scan-receipt-btn" style="margin-bottom:0" onclick="startReceiptScan()">📷 Carica scontrino</button>
+      <div class="sb-or"><span>oppure</span></div>
       <div class="addpanel__head">
         <div class="addpanel__title">Aggiungi alla dispensa</div>
         <div class="addpanel__sub">Registra un nuovo ingrediente</div>
