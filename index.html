@@ -5877,8 +5877,25 @@ function closeReceiptChoose(e, force) {
   if (force || e?.target === document.getElementById('receipt-choose'))
     document.getElementById('receipt-choose').classList.remove('show');
 }
-function pickReceiptCamera() { closeReceiptChoose(null, 1); document.getElementById('receipt-file-cam').click(); }
-function pickReceiptFile() { closeReceiptChoose(null, 1); document.getElementById('receipt-file').click(); }
+async function pickReceiptCamera() {
+  closeReceiptChoose(null, 1);
+  // App nativa: apri DAVVERO la fotocamera col plugin Capacitor.
+  if (window.ReceiptScanner?.isNative && window.ReceiptScanner.isNative()) {
+    const url = await window.ReceiptScanner.takePhoto();
+    if (url) onReceiptImages([url]);
+    return;
+  }
+  document.getElementById('receipt-file-cam').click(); // browser mobile: input con capture
+}
+async function pickReceiptFile() {
+  closeReceiptChoose(null, 1);
+  if (window.ReceiptScanner?.isNative && window.ReceiptScanner.isNative()) {
+    const url = await window.ReceiptScanner.pickPhoto();
+    if (url) onReceiptImages([url]);
+    return;
+  }
+  document.getElementById('receipt-file').click();
+}
 /** Ridimensiona un'immagine (lato max) e la ritorna come data URL JPEG. */
 function downscaleImage(file, maxSide) {
   return new Promise((resolve, reject) => {
@@ -5900,13 +5917,19 @@ function downscaleImage(file, maxSide) {
 async function onReceiptFiles(files) {
   if (!files || !files.length) return;
   document.getElementById('receipt-file').value = ''; // consenti la riselezione dello stesso file
+  document.getElementById('receipt-file-cam').value = '';
+  const images = [];
+  for (const f of files) { try { images.push(await downscaleImage(f, 1600)); } catch (_) {} }
+  onReceiptImages(images);
+}
+/** Elabora una o più immagini (data URL) dello scontrino → revisione prodotti. */
+async function onReceiptImages(images) {
+  if (!images || !images.length) return;
   openReceiptModal();
   setReceiptStatus('Leggo lo scontrino…', true);
   document.getElementById('receipt-list').innerHTML = '';
   document.getElementById('receipt-actions').style.display = 'none';
   try {
-    const images = [];
-    for (const f of files) images.push(await downscaleImage(f, 1600));
     // OCR on-device + parser locale (nessuna chiave, nessuna rete).
     const { products, total } = await window.ReceiptScanner.scan(images);
     if (!products.length) { setReceiptStatus('😕 Nessun prodotto riconosciuto. Riprova con una foto più nitida, dritta e ben illuminata.', false); return; }

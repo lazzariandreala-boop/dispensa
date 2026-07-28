@@ -8,6 +8,23 @@ import { parseReceipt } from './parser';
 import type { ReceiptProduct } from './parser';
 import { getOcrEngine, isOcrAvailable } from './ocr';
 import type { OcrEngine } from './ocr';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+
+/** Scatta una foto con la fotocamera nativa → data URL (o null se annullato). */
+async function takePhoto(): Promise<string | null> {
+  try {
+    const photo = await Camera.getPhoto({ source: CameraSource.Camera, resultType: CameraResultType.DataUrl, quality: 60, width: 1600 });
+    return photo?.dataUrl || null;
+  } catch { return null; } // annullato dall'utente
+}
+/** Sceglie una foto dalla galleria nativa → data URL (o null). */
+async function pickPhoto(): Promise<string | null> {
+  try {
+    const photo = await Camera.getPhoto({ source: CameraSource.Photos, resultType: CameraResultType.DataUrl, quality: 60, width: 1600 });
+    return photo?.dataUrl || null;
+  } catch { return null; }
+}
 
 let engineOverride: OcrEngine | null = null;
 /** Permette di sostituire il motore OCR (test/futuri backend). */
@@ -32,7 +49,13 @@ async function scan(images: string[]): Promise<ScanOutput> {
   return parseReceipt(texts.join('\n'));
 }
 
-const ReceiptScanner = { available: isOcrAvailable, scan };
+const ReceiptScanner = {
+  available: isOcrAvailable,
+  isNative: () => Capacitor.isNativePlatform(),
+  scan,
+  takePhoto,
+  pickPhoto,
+};
 (window as unknown as { ReceiptScanner: typeof ReceiptScanner }).ReceiptScanner = ReceiptScanner;
 
 export default ReceiptScanner;
