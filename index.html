@@ -503,6 +503,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
   padding-bottom: 8px; border-bottom: 1px solid var(--border);
 }
 .shop-group:first-child .shop-cat-label { margin-top: 4px; }
+.shop-cat-ico { width: 28px; height: 28px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; border: 1px solid transparent; flex-shrink: 0; }
 /* Singolo item spesa */
 .shop-item {
   display: flex; align-items: center; gap: 12px; padding: 13px 14px;
@@ -521,6 +522,19 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .shop-selectall__btn { background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--text2); font-family: var(--font-body); font-size: 12.5px; font-weight: 600; padding: 8px 12px; cursor: pointer; transition: all .15s; }
 .shop-selectall__btn:hover { border-color: var(--accent, #22C55E); color: var(--accent, #22C55E); }
 .shop-selectall__n { font-size: 12px; color: var(--accent2); font-weight: 600; }
+.spesa-hero { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:20px 22px; border-radius:22px; margin-bottom:18px; color:#fff; background:linear-gradient(135deg,#22C55E 0%,#16A34A 60%,#0EA5E9 130%); box-shadow:0 14px 32px rgba(34,197,94,.28); }
+.spesa-hero__title { font-family:var(--font-head); font-weight:800; font-size:20px; }
+.spesa-hero__sub { font-size:13px; opacity:.94; margin-top:5px; max-width:230px; line-height:1.4; }
+.spesa-hero__emoji { font-size:46px; line-height:1; filter:drop-shadow(0 7px 11px rgba(0,0,0,.26)); flex-shrink:0; }
+/* Hero a gradiente riutilizzabile per l'intestazione di ogni sezione */
+.page-hero { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:18px 20px; border-radius:22px; margin-bottom:18px; color:#fff; box-shadow:0 12px 30px rgba(0,0,0,.22); }
+.page-hero__title { font-family:var(--font-head); font-weight:800; font-size:20px; letter-spacing:-.2px; }
+.page-hero__sub { font-size:13px; opacity:.95; margin-top:4px; max-width:240px; line-height:1.4; }
+.page-hero__emoji { font-size:44px; line-height:1; filter:drop-shadow(0 6px 10px rgba(0,0,0,.25)); flex-shrink:0; }
+.page-hero--ricette  { background:linear-gradient(135deg,#F59E0B,#EF4444); box-shadow:0 12px 30px rgba(239,68,68,.26); }
+.page-hero--cal      { background:linear-gradient(135deg,#6366F1,#0EA5E9); box-shadow:0 12px 30px rgba(99,102,241,.26); }
+.page-hero--listino  { background:linear-gradient(135deg,#14B8A6,#22C55E); box-shadow:0 12px 30px rgba(20,184,166,.26); }
+.page-hero--stats    { background:linear-gradient(135deg,#8B5CF6,#EC4899); box-shadow:0 12px 30px rgba(139,92,246,.26); }
 /* Filtro categorie a selezione multipla (spesa) */
 #scat-msel { margin-top: 6px; margin-bottom: 18px; }
 #dcat-msel { margin-top: 14px; margin-bottom: 8px; }
@@ -708,7 +722,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .cal-day-detail-title { font-family:'Inter',sans-serif;font-weight:700;font-size:15px;margin-bottom:12px; }
 .cal-event-row { display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border); }
 .cal-event-row:last-of-type { border-bottom:none; }
-.cal-event-ico { font-size:18px;flex-shrink:0; }
+.cal-event-ico { width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid transparent;flex-shrink:0; }
 .cal-event-txt { flex:1;min-width:0;font-size:13px;display:flex;flex-direction:column;gap:7px; }
 .cal-event-name { display:flex;align-items:baseline;gap:8px;flex-wrap:wrap; }
 .cal-event-price { font-size:12px;color:var(--success);font-family:'Inter',sans-serif;font-weight:700;white-space:nowrap; }
@@ -770,6 +784,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .listino-row:first-child { border-top: 1px solid var(--border); border-radius: var(--rc) var(--rc) 0 0; }
 .listino-row:last-child  { border-radius: 0 0 var(--rc) var(--rc); }
 .listino-row:hover { background: var(--bg3); }
+.lst-ico { width:36px;height:36px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;border:1px solid transparent;flex-shrink:0; }
 
 
 /* Wide desktop (≥ 1024px): più spazio, colonna principale più larga */
@@ -818,6 +833,82 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .ds-chart-card__tools { display:flex;align-items:center;gap:8px; }
 .chart-info { width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;padding:0; }
 .chart-info:hover { border-color:var(--accent,#22C55E);color:var(--accent,#22C55E); }
+
+/* ── HOME "Vivace e moderna" (Dashboard) ────────────────────────── */
+.home { display:flex; flex-direction:column; padding-bottom:24px; }
+.home-hi { font-family:var(--font-head); font-weight:800; font-size:25px; letter-spacing:-.4px; margin-top:2px; }
+.home-hisub { font-size:14px; color:var(--text2); margin-top:5px; margin-bottom:18px; }
+.home-search { display:flex; align-items:center; gap:10px; width:100%; padding:14px 16px; border-radius:16px; background:var(--surface); border:1px solid var(--border); color:var(--text3); font-size:14px; font-family:var(--font-body); cursor:pointer; margin-bottom:20px; text-align:left; transition:border-color .15s; }
+.home-search:hover { border-color:var(--border-strong); }
+.home-hero { display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; text-align:left; border:none; cursor:pointer; padding:20px 22px; border-radius:24px; margin-bottom:22px; color:#fff; background:linear-gradient(135deg,#22C55E 0%,#16A34A 55%,#0EA5E9 130%); box-shadow:0 16px 36px rgba(34,197,94,.30); transition:transform .15s ease; }
+.home-hero:active { transform:scale(.99); }
+.home-hero__big { font-family:var(--font-head); font-weight:800; font-size:23px; line-height:1.1; }
+.home-hero__small { font-size:13.5px; opacity:.94; margin-top:5px; max-width:210px; line-height:1.4; }
+.home-hero__emoji { font-size:52px; line-height:1; filter:drop-shadow(0 8px 12px rgba(0,0,0,.28)); flex-shrink:0; }
+.home-cats { display:flex; gap:14px; overflow-x:auto; padding:2px 2px 6px; margin-bottom:22px; scrollbar-width:none; -ms-overflow-style:none; }
+.home-cats::-webkit-scrollbar { display:none; }
+.home-cat { flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:8px; border:none; background:transparent; cursor:pointer; padding:0; width:62px; }
+.home-cat__ico { width:58px; height:58px; border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:27px; border:1px solid transparent; transition:transform .15s ease; }
+.home-cat:active .home-cat__ico { transform:scale(.94); }
+.home-cat__lbl { font-size:11.5px; font-weight:600; color:var(--text2); white-space:nowrap; max-width:64px; overflow:hidden; text-overflow:ellipsis; }
+.home-sechead { display:flex; align-items:center; justify-content:space-between; margin:8px 0 13px; }
+.home-sechead > span { font-family:var(--font-head); font-weight:800; font-size:16.5px; }
+.home-sechead a { font-size:12.5px; color:var(--accent); font-weight:700; cursor:pointer; white-space:nowrap; }
+.home .dash-kpis { margin-bottom:22px; }
+.home-recipes { display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-bottom:22px; }
+.home-rc { text-align:left; border:1px solid var(--border); background:var(--surface); border-radius:18px; padding:12px; cursor:pointer; display:flex; flex-direction:column; gap:9px; transition:transform .15s ease, border-color .15s ease; }
+.home-rc:hover { border-color:var(--border-strong); }
+.home-rc:active { transform:scale(.98); }
+.home-rc__top { height:76px; border-radius:15px; display:flex; align-items:center; justify-content:center; font-size:40px; border:1px solid transparent; }
+.home-rc__name { font-weight:700; font-size:14px; line-height:1.25; color:var(--text); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.home-rc__meta { font-size:11.5px; color:var(--text3); }
+
+/* ── Dettaglio ingrediente (pagina piena) ───────────────────────── */
+.idet-modal { position:fixed; inset:0; z-index:300; display:flex; align-items:flex-end; justify-content:center; background:rgba(3,6,10,.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); opacity:0; pointer-events:none; transition:opacity .2s; }
+.idet-modal.show { opacity:1; pointer-events:auto; }
+.idet-box { position:relative; width:100%; max-width:470px; max-height:94vh; overflow-y:auto; -webkit-overflow-scrolling:touch; background:var(--bg2); border:1px solid var(--border); border-radius:28px 28px 0 0; padding:24px 20px calc(26px + var(--safe-bottom)); transform:translateY(14px); transition:transform .22s cubic-bezier(.2,1,.35,1); }
+.idet-modal.show .idet-box { transform:none; }
+@media (min-width:700px) { .idet-modal { align-items:center; } .idet-box { border-radius:28px; } }
+.idet-close { position:absolute; top:16px; right:16px; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:19px; cursor:pointer; z-index:2; }
+.idet-hero { height:150px; border-radius:22px; display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+.idet-ico { width:94px; height:94px; border-radius:26px; display:flex; align-items:center; justify-content:center; font-size:54px; border:1px solid transparent; }
+.idet-name { font-family:var(--font-head); font-weight:800; font-size:24px; text-align:center; letter-spacing:-.3px; }
+.idet-meta { font-size:14px; color:var(--text2); text-align:center; margin-top:5px; }
+.idet-chiprow { display:flex; justify-content:center; margin-top:14px; }
+.idet-consume { margin:24px 4px; }
+.idet-consume__head { display:flex; justify-content:space-between; font-size:13px; font-weight:700; color:var(--text2); margin-bottom:12px; }
+.idet-consume input[type=range] { width:100%; height:6px; accent-color:var(--accent, #22C55E); cursor:pointer; }
+.idet-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:22px; }
+.idet-act { display:flex; flex-direction:column; align-items:center; gap:6px; padding:13px 6px; border-radius:15px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-family:var(--font-body); font-size:12px; font-weight:600; cursor:pointer; transition:transform .1s ease, border-color .15s; }
+.idet-act > span { font-size:21px; line-height:1; }
+.idet-act:hover { border-color:var(--border-strong); }
+.idet-act:active { transform:scale(.96); }
+.idet-act--del { color:var(--danger); }
+.idet-ideas__head { font-family:var(--font-head); font-weight:800; font-size:15.5px; margin-bottom:13px; }
+.idet-idea { display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:10px; border:1px solid var(--border); background:var(--surface); border-radius:15px; margin-bottom:9px; cursor:pointer; transition:border-color .15s; }
+.idet-idea:hover { border-color:var(--border-strong); }
+.idet-idea__ico { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:25px; border:1px solid transparent; flex-shrink:0; }
+.idet-idea__txt { flex:1; min-width:0; display:flex; flex-direction:column; }
+.idet-idea__name { font-weight:700; font-size:14px; }
+.idet-idea__meta { font-size:11.5px; color:var(--text3); margin-top:2px; }
+.idet-idea__arr { color:var(--text3); font-size:20px; flex-shrink:0; }
+/* Hero colorato nel dettaglio ricetta */
+.rdet-hero { height:120px; border-radius:20px; display:flex; align-items:center; justify-content:center; margin:2px 0 16px; }
+.rdet-hero__ico { width:80px; height:80px; border-radius:22px; display:flex; align-items:center; justify-content:center; font-size:46px; border:1px solid transparent; }
+
+/* ── Pagina Categorie (griglia) ─────────────────────────────────── */
+.cat-page__head { font-family:var(--font-head); font-weight:800; font-size:23px; letter-spacing:-.3px; }
+.cat-page__sub { font-size:13.5px; color:var(--text2); margin-top:5px; margin-bottom:20px; }
+.cat-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+.cat-tile { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:16px; border:1px solid var(--border); background:var(--surface); border-radius:18px; cursor:pointer; text-align:left; transition:transform .12s ease, border-color .15s; }
+.cat-tile:hover { border-color:var(--border-strong); }
+.cat-tile:active { transform:scale(.98); }
+.cat-tile__ico { width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:26px; border:1px solid transparent; }
+.cat-tile__lbl { font-family:var(--font-head); font-weight:700; font-size:15px; color:var(--text); }
+.cat-tile__n { font-size:12px; color:var(--text3); }
+.cat-tile--all { width:100%; flex-direction:row; align-items:center; gap:14px; margin-bottom:12px; }
+.cat-tile--all .cat-tile__ico { width:46px; height:46px; }
+.cat-tile--all .cat-tile__n { margin-left:auto; }
 /* Calendario: chip origine, edit, add, form modale */
 .cal-src { display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px; }
 .cal-src--buy    { background:rgba(34,197,94,.14);color:#22C55E; }
@@ -841,7 +932,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .receipt-list { display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto; }
 .rcpt-row { display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--border);border-radius:11px; }
 .rcpt-row input[type=checkbox]{ width:18px;height:18px;flex-shrink:0; }
-.rcpt-ico { flex-shrink:0; }
+.rcpt-ico { width:32px;height:32px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;border:1px solid transparent;flex-shrink:0; }
 .rcpt-name { flex:1;min-width:0;padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:var(--surface,rgba(255,255,255,.04));color:var(--text);font-size:13px; }
 .rcpt-qty { width:52px;padding:7px 5px;border-radius:8px;border:1px solid var(--border);background:var(--surface,rgba(255,255,255,.04));color:var(--text);font-size:13px; }
 .rcpt-price { width:62px;padding:7px 5px;border-radius:8px;border:1px solid var(--border);background:var(--surface,rgba(255,255,255,.04));color:var(--text);font-size:13px; }
@@ -1508,6 +1599,12 @@ body:not(.authed) #app-shell { display: none; }
     </div>
   </div>
 </div>
+<div id="item-detail-modal" class="idet-modal" onclick="closeItemDetail(event)">
+  <div class="idet-box" id="item-detail-box"></div>
+</div>
+<div id="categorie-modal" class="idet-modal" onclick="closeCategorie(event)">
+  <div class="idet-box" id="categorie-box"></div>
+</div>
 <div id="receipt-choose" class="sync-modal" style="z-index:650" onclick="closeReceiptChoose(event)">
   <div class="sync-box" style="max-width:360px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1621,12 +1718,12 @@ body:not(.authed) #app-shell { display: none; }
 <div id="main">
 
   <!-- ===== TAB: DASHBOARD ===== -->
-  <div id="pg-dashboard" class="page">
+  <div id="pg-dashboard" class="page active">
     <div id="dash-root"></div>
   </div>
 
   <!-- ===== TAB: DISPENSA ===== -->
-  <div id="pg-dispensa" class="page active">
+  <div id="pg-dispensa" class="page">
 
     <div id="dlist"></div>
   </div>
@@ -1638,6 +1735,10 @@ body:not(.authed) #app-shell { display: none; }
 
   <!-- ===== TAB: RICETTE ===== -->
   <div id="pg-ricette" class="page">
+    <div class="page-hero page-hero--ricette">
+      <div><div class="page-hero__title">Ricette</div><div class="page-hero__sub">Cosa cuciniamo oggi con quello che hai?</div></div>
+      <div class="page-hero__emoji">👨‍🍳</div>
+    </div>
     <div class="sbox"><span>🔍</span><input id="rsearch" placeholder="Cerca ricetta…" oninput="renderR()"></div>
     <div class="frow">
       <div class="chip active" id="rf-possibili" onclick="toggleRPossibili(this)">✅ Fattibili</div>
@@ -1655,6 +1756,15 @@ body:not(.authed) #app-shell { display: none; }
 
   <!-- ===== TAB: LISTA DELLA SPESA ===== -->
   <div id="pg-spesa" class="page">
+
+    <!-- Header colorato -->
+    <div class="spesa-hero">
+      <div class="spesa-hero__txt">
+        <div class="spesa-hero__title">Lista della spesa</div>
+        <div class="spesa-hero__sub">Tieni tutto sotto controllo e non dimenticare nulla!</div>
+      </div>
+      <div class="spesa-hero__emoji">🛒</div>
+    </div>
 
     <!-- Form aggiunta veloce -->
     <div class="card">
@@ -1709,6 +1819,10 @@ body:not(.authed) #app-shell { display: none; }
 
   <!-- ===== TAB: CALENDARIO ===== -->
   <div id="pg-calendario" class="page">
+    <div class="page-hero page-hero--cal">
+      <div><div class="page-hero__title">Calendario</div><div class="page-hero__sub">Cosa hai acquistato e aggiunto giorno per giorno</div></div>
+      <div class="page-hero__emoji">📅</div>
+    </div>
     <div class="cal-nav">
       <button class="cal-nav-btn" onclick="calPrev()">‹</button>
       <div class="cal-month-label" id="cal-month-label"></div>
@@ -1724,13 +1838,11 @@ body:not(.authed) #app-shell { display: none; }
 
   <!-- ===== TAB: LISTINO PREZZI ===== -->
   <div id="pg-listino" class="page">
-    <div class="listino-header">
-      <div>
-        <div class="listino-title">📒 Listino Prezzi</div>
-        <div class="listino-sub">Memoria automatica dei tuoi acquisti</div>
-      </div>
-      <button class="btn btn-p listino-add-btn" onclick="openListinoEdit(null)">＋ Aggiungi</button>
+    <div class="page-hero page-hero--listino">
+      <div><div class="page-hero__title">Listino Prezzi</div><div class="page-hero__sub">Memoria automatica dei tuoi acquisti</div></div>
+      <div class="page-hero__emoji">📒</div>
     </div>
+    <button class="btn btn-p" style="margin-bottom:12px" onclick="openListinoEdit(null)">＋ Aggiungi al listino</button>
     <div class="sbox" style="margin-bottom:10px">
       <span>🔍</span>
       <input id="listino-search" placeholder="Cerca alimento…" oninput="renderListino()">
@@ -1753,8 +1865,8 @@ body:not(.authed) #app-shell { display: none; }
 
   <!-- Voci di navigazione -->
   <div class="nav-items">
-    <button class="tb" onclick="goTab('dashboard',this)"><span class="ico">📊</span><span class="lbl">Dashboard</span></button>
-    <button class="tb active" onclick="goTab('dispensa',this)"><span class="ico">🫙</span><span class="lbl">Dispensa</span></button>
+    <button class="tb active" onclick="goTab('dashboard',this)"><span class="ico">📊</span><span class="lbl">Dashboard</span></button>
+    <button class="tb" onclick="goTab('dispensa',this)"><span class="ico">🫙</span><span class="lbl">Dispensa</span></button>
     <button class="tb" onclick="goTab('ricette',this)"><span class="ico">👨‍🍳</span><span class="lbl">Ricette</span></button>
     <button class="tb" onclick="goTab('spesa',this)" id="tb-spesa"><span class="ico">🛒</span><span class="lbl">Spesa</span><span class="tb-badge" id="spesa-badge"></span></button>
     <button class="tb" onclick="goTab('calendario',this)"><span class="ico">📅</span><span class="lbl">Calendario</span></button>
@@ -3435,6 +3547,25 @@ const CATS = {
 /** Ritorna l'emoji per la categoria indicata */
 function ico(cat) { return CATS[cat] || '❓'; }
 
+/** Colore accento per categoria (per le tessere colorate stile "Vivace"). */
+const CAT_COLOR = {
+  carne:'#EF4444', pesce:'#0EA5E9', salumi:'#F472B6', latticini:'#F59E0B',
+  verdure:'#22C55E', frutta:'#F97316', legumi:'#A16207', pasta_cereali:'#D97706',
+  pane:'#CA8A04', colazione:'#FB923C', sughi:'#DC2626', condimenti:'#14B8A6',
+  spezie:'#B45309', farine:'#B8860B', scatola:'#64748B', surgelati:'#38BDF8',
+  dolci:'#EC4899', snack:'#8B5CF6', bevande:'#06B6D4', alcolici:'#A855F7',
+  casa:'#0891B2', generico:'#94A3B8',
+  // tipologie ricette (per le card colorate)
+  pasta:'#D97706', risotti:'#F59E0B', zuppe:'#EA580C', freddi:'#10B981',
+  uova:'#FBBF24', panini:'#8B5CF6',
+};
+function catColor(cat) { return CAT_COLOR[cat] || CAT_COLOR.generico; }
+function _hexA(hex, a) { const n = parseInt(String(hex).slice(1), 16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+/** Stile inline per una tessera icona categoria (sfondo tinto + bordo). */
+function catTileStyle(cat) { const c = catColor(cat); return `background:${_hexA(c,0.14)};border-color:${_hexA(c,0.30)};color:${c}`; }
+/** Prima lettera maiuscola. */
+function cap(s) { s = String(s || ''); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
 /** Label leggibile per categoria (ordine = ordine nei menu a tendina) */
 const CAT_LABELS_FULL = {
   carne:'🥩 Carne', pesce:'🐟 Pesce', salumi:'🥓 Salumi',
@@ -3784,8 +3915,8 @@ function renderD() {
   <div class="swipe-bg swipe-bg--finish"><button class="swipe-finish" onclick="consumeItem('${it.id}',event)">🛒 In spesa</button></div>
   <div class="swipe-bg swipe-bg--del"><button class="swipe-trash" onclick="delItem('${it.id}',event)" title="Elimina">🗑</button></div>
   <div class="pcard ${cc}" id="ic-${it.id}">
-  <div class="pcard__top" onclick="toggleAct('${it.id}')">
-    <div class="ds-food-ico">${ico(it.category)}</div>
+  <div class="pcard__top" onclick="openItemDetail('${it.id}')">
+    <div class="ds-food-ico" style="${catTileStyle(it.category)}">${ico(it.category)}</div>
     <div class="pcard__info">
       <div class="pcard__name">${escHtml(it.name)} ${cooked}</div>
       <div class="pcard__meta">${it.category || 'generico'} · ${it.quantity} ${it.unit}${it.price > 0 ? ` · <span class="pcard__price">€${parseFloat(it.price).toFixed(2)}</span>` : ''}</div>
@@ -3994,6 +4125,104 @@ if (typeof window !== 'undefined' && window.addEventListener) {
   else initSelects();
 }
 
+// ── Pagina "Categorie" (griglia) ──────────────────────────────────
+function openCategorie() {
+  // conta gli articoli per categoria presenti in dispensa
+  const counts = {};
+  items.forEach(it => { const c = it.category || 'generico'; counts[c] = (counts[c] || 0) + 1; });
+  const cats = Object.keys(CAT_LABELS_FULL).filter(c => counts[c]);
+  const tiles = cats.map(c => `
+    <button class="cat-tile" onclick="closeCategorie(null,1);goDispCat('${c}')">
+      <span class="cat-tile__ico" style="${catTileStyle(c)}">${ico(c)}</span>
+      <span class="cat-tile__lbl">${(CAT_LABELS_FULL[c] || c).replace(/^\S+\s/, '')}</span>
+      <span class="cat-tile__n">${counts[c]} ${counts[c] === 1 ? 'articolo' : 'articoli'}</span>
+    </button>`).join('');
+  document.getElementById('categorie-box').innerHTML = `
+    <button class="idet-close" onclick="closeCategorie(null,1)">×</button>
+    <div class="cat-page__head">🗂️ Categorie</div>
+    <div class="cat-page__sub">Sfoglia la tua dispensa per tipologia</div>
+    <button class="cat-tile cat-tile--all" onclick="closeCategorie(null,1);goDispCat('')"><span class="cat-tile__ico" style="background:var(--surface-elevated);border-color:var(--border);color:var(--text2)">🫙</span><span class="cat-tile__lbl">Tutte le categorie</span><span class="cat-tile__n">${items.length} articoli</span></button>
+    ${cats.length ? `<div class="cat-grid">${tiles}</div>` : '<div style="color:var(--text2);font-size:14px;padding:20px 0;text-align:center">La dispensa è vuota.</div>'}`;
+  document.getElementById('categorie-modal').classList.add('show');
+}
+function closeCategorie(e, force) {
+  if (force || e?.target === document.getElementById('categorie-modal'))
+    document.getElementById('categorie-modal').classList.remove('show');
+}
+
+// ── Dettaglio ingrediente a pagina piena ──────────────────────────
+function openItemDetail(id) {
+  if (Date.now() - _swipeEndAt < 350) return; // ignora tap generato da swipe
+  const it = items.find(x => x.id === id);
+  if (!it) return;
+  const cat = it.category || 'generico';
+  const d = daysTo(it.expiryDate);
+  // chip scadenza (stessa logica delle card)
+  let chip;
+  if (it.frozen)        chip = '<span class="exp-chip exp-chip--frozen">❄ In cella</span>';
+  else if (d === null)  chip = '<span class="exp-chip exp-chip--none">Nessuna scadenza</span>';
+  else if (d < 0)       chip = '<span class="exp-chip exp-chip--expired">Scaduto</span>';
+  else if (d === 0)     chip = '<span class="exp-chip exp-chip--soon">Scade oggi</span>';
+  else if (d <= 7)      chip = `<span class="exp-chip exp-chip--soon">Scade tra ${d}g</span>`;
+  else { const [yy, mm, dd] = it.expiryDate.split('-').map(Number); chip = `<span class="exp-chip exp-chip--fresh">${new Date(yy, mm - 1, dd).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span>`; }
+  const consumed = it.consumed || 0;
+  // ricette che usano questo ingrediente
+  const iname = it.name.toLowerCase();
+  let ideas = [];
+  try {
+    ideas = RECIPES.filter(r => r.ingredients.some(ing => {
+      const n = (ing.name || '').toLowerCase(), k = (ing.key || '').toLowerCase();
+      return (n && (iname.includes(n) || n.includes(iname))) || (k && (iname.includes(k) || k.includes(iname)));
+    })).slice(0, 4);
+  } catch (_) {}
+  const ideasHtml = ideas.map(r => `
+    <button class="idet-idea" onclick="closeItemDetail(null,1);openR('${r.id}')">
+      <span class="idet-idea__ico" style="${catTileStyle(recipeType(r))}">${r.icon}</span>
+      <span class="idet-idea__txt"><span class="idet-idea__name">${escHtml(r.name)}</span><span class="idet-idea__meta">⏱ ${r.time} min · ${r.diff}</span></span>
+      <span class="idet-idea__arr">›</span>
+    </button>`).join('');
+  const c = catColor(cat);
+
+  document.getElementById('item-detail-box').innerHTML = `
+    <button class="idet-close" onclick="closeItemDetail(null,1)">×</button>
+    <div class="idet-hero" style="background:${_hexA(c, 0.16)}">
+      <div class="idet-ico" style="${catTileStyle(cat)}">${ico(cat)}</div>
+    </div>
+    <div class="idet-name">${escHtml(it.name)}</div>
+    <div class="idet-meta">${CAT_LABELS_FULL[cat] || cat} · ${it.quantity} ${it.unit}</div>
+    <div class="idet-chiprow">${chip}</div>
+    <div class="idet-consume">
+      <div class="idet-consume__head"><span>Consumato</span><span id="idet-cons-val">${consumed}%</span></div>
+      <input type="range" min="0" max="100" step="5" value="${consumed}" oninput="setItemConsumed('${id}',this.value)">
+    </div>
+    <div class="idet-actions">
+      <button class="idet-act" onclick="closeItemDetail(null,1);consumeItem('${id}',null)"><span>🍴</span>Finito</button>
+      <button class="idet-act" onclick="closeItemDetail(null,1);addToShopFromItem('${id}',null)"><span>🛒</span>In spesa</button>
+      ${it.frozen
+        ? `<button class="idet-act" onclick="closeItemDetail(null,1);thawItem('${id}',null)"><span>🌡</span>Scongela</button>`
+        : `<button class="idet-act" onclick="closeItemDetail(null,1);freezeItem('${id}',null)"><span>❄</span>Congela</button>`}
+      <button class="idet-act" onclick="closeItemDetail(null,1);openPriceModal('${id}',null)"><span>€</span>Prezzo</button>
+      <button class="idet-act" onclick="closeItemDetail(null,1);openEdit('${id}',null)"><span>✏️</span>Modifica</button>
+      <button class="idet-act idet-act--del" onclick="closeItemDetail(null,1);delItem('${id}',null)"><span>🗑</span>Elimina</button>
+    </div>
+    ${ideas.length ? `<div class="idet-ideas"><div class="idet-ideas__head">💡 Idee con ${escHtml(it.name)}</div>${ideasHtml}</div>` : ''}`;
+  document.getElementById('item-detail-modal').classList.add('show');
+}
+function closeItemDetail(e, force) {
+  if (force || e?.target === document.getElementById('item-detail-modal')) {
+    document.getElementById('item-detail-modal').classList.remove('show');
+    if (_itemDetailDirty) { _itemDetailDirty = false; renderD(); }
+  }
+}
+let _itemDetailDirty = false;
+function setItemConsumed(id, val) {
+  const it = items.find(x => x.id === id); if (!it) return;
+  it.consumed = Math.max(0, Math.min(100, parseInt(val) || 0));
+  save(); _itemDetailDirty = true;
+  const lbl = document.getElementById('idet-cons-val'); if (lbl) lbl.textContent = it.consumed + '%';
+  if (it.consumed >= 100) { closeItemDetail(null, 1); setTimeout(() => consumeItem(id, null), 150); }
+}
+
 /** Apre/chiude la barra azioni di un item (chiude gli altri) */
 function toggleAct(id) {
   if (Date.now() - _swipeEndAt < 350) return; // ignora il "click" generato da uno swipe
@@ -4104,7 +4333,7 @@ function openRepKpiModal(type, from, to) {
     else {
       const sorted = [...logSlice].sort((a,b) => b.date.localeCompare(a.date));
       content = sorted.map(c => `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">${getCatIco(c.category)}</span>
+        <span class="lst-ico" style="${catTileStyle(c.category)}">${getCatIco(c.category)}</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:600">${escHtml(c.name)}</div>
         <div style="font-size:11px;color:var(--text2)">${fmtDate(c.date)} · ${CAT_LABELS_FULL[c.category]||c.category}</div></div>
       </div>`).join('');
@@ -4115,7 +4344,7 @@ function openRepKpiModal(type, from, to) {
     else {
       const sorted = [...addSlice].sort((a,b) => b.date.localeCompare(a.date));
       content = sorted.map(a => `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">${getCatIco(a.category)}</span>
+        <span class="lst-ico" style="${catTileStyle(a.category)}">${getCatIco(a.category)}</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:600">${escHtml(a.name)}</div>
         <div style="font-size:11px;color:var(--text2)">${fmtDate(a.date)} · ${a.qty} ${a.unit} · ${CAT_LABELS_FULL[a.category]||a.category}</div></div>
         ${a.price ? `<div style="font-size:13px;font-weight:700;color:var(--success)">€${a.price.toFixed(2)}</div>` : ''}
@@ -4129,7 +4358,7 @@ function openRepKpiModal(type, from, to) {
     else {
       const sorted = [...withPrice].sort((a,b) => b.date.localeCompare(a.date));
       content = sorted.map(a => `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:18px">${getCatIco(a.category)}</span>
+        <span class="lst-ico" style="${catTileStyle(a.category)}">${getCatIco(a.category)}</span>
         <div style="flex:1"><div style="font-size:13px;font-weight:600">${escHtml(a.name)}</div>
         <div style="font-size:11px;color:var(--text2)">${fmtDate(a.date)} · ${a.qty} ${a.unit}</div></div>
         <div style="font-size:14px;font-weight:800;color:var(--success)">€${a.price.toFixed(2)}</div>
@@ -4309,7 +4538,7 @@ function renderR() {
     const st = canMake(r) ? '<span class="ds-badge ds-badge--fresh">✓ Fattibile</span>' : '';
     return `<div class="rcard" onclick="openR('${r.id}')">
   <div class="rcard__top">
-    <div class="ds-food-ico rcard__ico">${r.icon}</div>
+    <div class="ds-food-ico rcard__ico" style="${catTileStyle(recipeType(r))}">${r.icon}</div>
     <div class="rcard__info">
       <div class="rcard__name">${escHtml(r.name)}</div>
       <div class="rcard__meta">⏱ ${r.time} min · ${r.diff}</div>
@@ -4366,8 +4595,11 @@ ${r.mambo.map((s,idx) => `<div class="step" style="margin-bottom:9px"><div class
     : `<div class="mambo-box" style="opacity:.5;font-size:13px;color:var(--text2)">🤖 Questa ricetta richiede wok/forno — non replicabile col robot da cucina.</div>`;
 
   document.getElementById('rbody').innerHTML = `
-<div style="font-family:'Inter',sans-serif;font-weight:800;font-size:23px;line-height:1.2;margin-bottom:6px">${r.icon} ${escHtml(r.name)}</div>
-<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;font-size:13px;color:var(--text2)">
+<div class="rdet-hero" style="background:${_hexA(catColor(recipeType(r)), 0.16)}">
+  <div class="rdet-hero__ico" style="${catTileStyle(recipeType(r))}">${r.icon}</div>
+</div>
+<div style="font-family:'Inter',sans-serif;font-weight:800;font-size:23px;line-height:1.2;margin:2px 0 6px;text-align:center">${escHtml(r.name)}</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:22px;font-size:13px;color:var(--text2)">
   <span>${CAT_L[r.cat]||r.cat}</span><span>⏱ ${r.time} min</span><span>⚡ ${r.diff}</span><span>👥 ${portions} pers.</span>
 </div>
 ${portionWarn}
@@ -4639,7 +4871,7 @@ function renderShop() {
   <button class="shop-del" onclick="deleteShopItem('${s.id}')" title="Elimina">🗑</button>
 </div>`).join('');
     return `<div class="shop-group">
-  <div class="shop-cat-label"><span>${label}</span></div>
+  <div class="shop-cat-label"><span class="shop-cat-ico" style="${catTileStyle(cat)}">${ico(cat)}</span><span>${(CAT_LABELS_FULL[cat] || cat).replace(/^\S+\s/, '')}</span></div>
   ${itemsHtml}
 </div>`;
   }).join('');
@@ -4768,6 +5000,21 @@ function goTabById(name) {
   if (tabBtn) goTab(name, tabBtn);
 }
 
+/** Dalla Home: apri le Ricette mostrando quelle fattibili. */
+function dashGoFeasible() {
+  rPossibili = true; rVeg = false; rVegan = false; rtypeSel.clear();
+  document.getElementById('rf-possibili')?.classList.add('active');
+  document.getElementById('rf-veg')?.classList.remove('active');
+  document.getElementById('rf-vegan')?.classList.remove('active');
+  goTabById('ricette');
+}
+/** Dalla Home: apri la Dispensa filtrata su una categoria (vuoto = tutte). */
+function goDispCat(cat) {
+  dcatSel.clear(); if (cat) dcatSel.add(cat);
+  goTabById('dispensa');
+  renderD();
+}
+
 /** Vai alla Dispensa applicando un filtro (usato dalle card della Dashboard) */
 function goDispFilter(f) {
   goTabById('dispensa');
@@ -4833,20 +5080,60 @@ function renderDashboard() {
   const consumi = keys.map(k => consumptionLog.filter(e => e.date === k).length);
   const valore  = keys.map(k => additionLog.filter(e => e.date === k).reduce((s, e) => s + (parseFloat(e.price) || 0), 0));
 
+  // Nome utente per il saluto
+  const _nm = (document.getElementById('acct-name')?.textContent || document.getElementById('nav-name')?.textContent || '').trim();
+  const first = _nm && _nm.toLowerCase() !== 'utente' ? cap(_nm.split(' ')[0]) : '';
+  // Ricette fattibili con ciò che hai
+  let feasible = 0; try { feasible = RECIPES.filter(r => canMake(r)).length; } catch (_) {}
+  // Categorie presenti → tessere colorate
+  const presentCats = [...new Set(items.map(it => it.category || 'generico'))];
+  const catList = Object.keys(CAT_LABELS_FULL).filter(c => presentCats.includes(c)).slice(0, 5);
+  const catTiles = catList.map(c => `
+    <button class="home-cat" onclick="goDispCat('${c}')">
+      <span class="home-cat__ico" style="${catTileStyle(c)}">${ico(c)}</span>
+      <span class="home-cat__lbl">${(CAT_LABELS_FULL[c] || c).replace(/^\S+\s/, '')}</span>
+    </button>`).join('')
+    + `<button class="home-cat" onclick="goDispCat('')"><span class="home-cat__ico" style="background:var(--surface-elevated);border-color:var(--border);color:var(--text2)">🫙</span><span class="home-cat__lbl">Dispensa</span></button>`;
+  // Ricette da provare oggi (fattibili)
+  let toTry = []; try { toTry = RECIPES.filter(r => canMake(r)).slice(0, 4); } catch (_) {}
+  const recipeCards = toTry.map(r => `
+    <button class="home-rc" onclick="openR('${r.id}')">
+      <div class="home-rc__top" style="${catTileStyle(recipeType(r))}"><span>${r.icon}</span></div>
+      <div class="home-rc__name">${escHtml(r.name)}</div>
+      <div class="home-rc__meta">⏱ ${r.time} min · ${r.diff}</div>
+    </button>`).join('');
+
   root.innerHTML = `
-    <div class="dash-hero">
-      <h1 class="dash-title">La tua dispensa, sempre sotto controllo</h1>
-      <p class="dash-sub">Tutto quello che hai, quando ne hai bisogno.</p>
-    </div>
-    <div class="dash-kpis">
-      <div class="ds-metric" role="button" tabindex="0" onclick="goDispFilter('tutti')"><div class="ds-metric__head"><div class="ds-metric__value">${total}</div><div class="ds-metric__icon">🥗</div></div><div class="ds-metric__label">Ingredienti</div><div class="ds-metric__hint">in dispensa</div></div>
-      <div class="ds-metric ds-metric--soon" role="button" tabindex="0" onclick="goDispFilter('presto')"><div class="ds-metric__head"><div class="ds-metric__value">${soon}</div><div class="ds-metric__icon">⏰</div></div><div class="ds-metric__label">In scadenza</div><div class="ds-metric__hint">entro 7 giorni</div></div>
-      <div class="ds-metric ds-metric--expired" role="button" tabindex="0" onclick="goDispFilter('scaduti')"><div class="ds-metric__head"><div class="ds-metric__value">${expired}</div><div class="ds-metric__icon">⚠️</div></div><div class="ds-metric__label">Scaduti</div><div class="ds-metric__hint">da controllare</div></div>
-      <div class="ds-metric ds-metric--info" role="button" tabindex="0" onclick="goTabById('spesa')"><div class="ds-metric__head"><div class="ds-metric__value">${toBuy}</div><div class="ds-metric__icon">🛒</div></div><div class="ds-metric__label">Da comprare</div><div class="ds-metric__hint">in lista spesa</div></div>
-    </div>
-    <div class="dash-charts">
-      <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Consumi settimanali</div><div class="ds-chart-card__tools"><span class="ds-badge ds-badge--fresh">7 giorni</span><button class="chart-info" onclick="openTip('consumi')" title="Cosa mostra questo grafico">i</button></div></div><div id="chart-consumi"></div></div>
-      <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Valore aggiunto (€)</div><div class="ds-chart-card__tools"><span class="ds-badge ds-badge--info">7 giorni</span><button class="chart-info" onclick="openTip('valore')" title="Cosa mostra questo grafico">i</button></div></div><div id="chart-valore"></div></div>
+    <div class="home">
+      <div class="home-hi">Ciao${first ? ' ' + escHtml(first) : ''}! 👋</div>
+      <div class="home-hisub">Pronta a creare qualcosa di buono?</div>
+      <button class="home-search" onclick="goTabById('ricette')"><span>🔍</span><span>Cerca ricette o alimenti…</span></button>
+
+      <button class="home-hero" onclick="dashGoFeasible()">
+        <div class="home-hero__txt">
+          <div class="home-hero__big">Hai ${feasible} ricett${feasible === 1 ? 'a' : 'e'}</div>
+          <div class="home-hero__small">che puoi preparare con quello che hai</div>
+        </div>
+        <div class="home-hero__emoji">🥗</div>
+      </button>
+
+      ${catList.length ? `<div class="home-sechead"><span>Categorie</span><a onclick="openCategorie()">Vedi tutte ›</a></div><div class="home-cats">${catTiles}</div>` : ''}
+
+      <div class="home-sechead"><span>La tua dispensa</span><a onclick="goDispCat('')">Vedi tutto ›</a></div>
+      <div class="dash-kpis">
+        <div class="ds-metric" role="button" tabindex="0" onclick="goDispFilter('tutti')"><div class="ds-metric__head"><div class="ds-metric__value">${total}</div><div class="ds-metric__icon">🥗</div></div><div class="ds-metric__label">Ingredienti</div><div class="ds-metric__hint">in dispensa</div></div>
+        <div class="ds-metric ds-metric--soon" role="button" tabindex="0" onclick="goDispFilter('presto')"><div class="ds-metric__head"><div class="ds-metric__value">${soon}</div><div class="ds-metric__icon">⏰</div></div><div class="ds-metric__label">In scadenza</div><div class="ds-metric__hint">entro 7 giorni</div></div>
+        <div class="ds-metric ds-metric--expired" role="button" tabindex="0" onclick="goDispFilter('scaduti')"><div class="ds-metric__head"><div class="ds-metric__value">${expired}</div><div class="ds-metric__icon">⚠️</div></div><div class="ds-metric__label">Scaduti</div><div class="ds-metric__hint">da controllare</div></div>
+        <div class="ds-metric ds-metric--info" role="button" tabindex="0" onclick="goTabById('spesa')"><div class="ds-metric__head"><div class="ds-metric__value">${toBuy}</div><div class="ds-metric__icon">🛒</div></div><div class="ds-metric__label">Da comprare</div><div class="ds-metric__hint">in lista spesa</div></div>
+      </div>
+
+      ${toTry.length ? `<div class="home-sechead"><span>Da provare oggi</span><a onclick="dashGoFeasible()">Vedi tutte ›</a></div><div class="home-recipes">${recipeCards}</div>` : ''}
+
+      <div class="home-sechead"><span>Andamento settimanale</span></div>
+      <div class="dash-charts">
+        <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Consumi settimanali</div><div class="ds-chart-card__tools"><span class="ds-badge ds-badge--fresh">7 giorni</span><button class="chart-info" onclick="openTip('consumi')" title="Cosa mostra questo grafico">i</button></div></div><div id="chart-consumi"></div></div>
+        <div class="ds-chart-card"><div class="ds-chart-card__head"><div class="ds-chart-card__title">Valore aggiunto (€)</div><div class="ds-chart-card__tools"><span class="ds-badge ds-badge--info">7 giorni</span><button class="chart-info" onclick="openTip('valore')" title="Cosa mostra questo grafico">i</button></div></div><div id="chart-valore"></div></div>
+      </div>
     </div>`;
 
   _dashCharts.forEach(c => { try { c.destroy(); } catch (e) {} });
@@ -4916,9 +5203,9 @@ function renderStatistiche() {
   const valore = items.reduce((s, it) => { const p = pbGet(it.name); const pr = it.price || (p && p.price) || 0; return s + (parseFloat(pr) || 0); }, 0);
 
   root.innerHTML = `
-    <div class="dash-hero">
-      <h1 class="dash-title">Statistiche</h1>
-      <p class="dash-sub">Sprechi evitati, risparmio e dispensa ottimizzata.</p>
+    <div class="page-hero page-hero--stats">
+      <div><div class="page-hero__title">Statistiche</div><div class="page-hero__sub">Sprechi evitati, risparmio e dispensa ottimizzata</div></div>
+      <div class="page-hero__emoji">📊</div>
     </div>
     <div class="stats-grid">
       <div class="ds-chart-card stats-donut" style="position:relative"><button class="chart-info" style="position:absolute;top:12px;right:12px;z-index:2" onclick="openTip('ottim')" title="Cosa mostra questo grafico">i</button><div id="stat-donut"></div></div>
@@ -5753,7 +6040,7 @@ function renderCalDayDetail(ds) {
       : '<span class="cal-src cal-src--out">⚠️ Esaurito</span>';
     return `
     <div class="cal-event-row">
-      <div class="cal-event-ico">${getCatIco(e.category)}</div>
+      <div class="cal-event-ico" style="${catTileStyle(e.category)}">${getCatIco(e.category)}</div>
       <div class="cal-event-txt">
         <div class="cal-event-name"><strong>${escHtml(e.name)}</strong><span style="color:var(--text2);font-size:12px">${e.qty} ${e.unit}</span></div>
         <div>${chip}</div>
@@ -5959,7 +6246,7 @@ function renderReceiptReview() {
   list.innerHTML = _receiptItems.map((it, i) => `
     <label class="rcpt-row">
       <input type="checkbox" ${it.keep ? 'checked' : ''} onchange="_receiptItems[${i}].keep=this.checked;updateReceiptTotal()">
-      <span class="rcpt-ico">${getCatIco(it.category)}</span>
+      <span class="rcpt-ico" style="${catTileStyle(it.category)}">${getCatIco(it.category)}</span>
       <input class="rcpt-name" value="${escHtml(it.name)}" onchange="_receiptItems[${i}].name=this.value">
       <input class="rcpt-qty" type="number" min="0" step="0.1" value="${it.qty}" onchange="_receiptItems[${i}].qty=parseFloat(this.value)||1">
       <input class="rcpt-price" type="number" min="0" step="0.01" value="${it.price != null ? it.price : ''}" placeholder="€" onchange="_receiptItems[${i}].price=this.value!==''?parseFloat(this.value):null">
@@ -6127,7 +6414,7 @@ function renderListino() {
   }
   listEl.innerHTML = entries.map(e => `
 <div class="listino-row" id="lb-${CSS.escape(pbKey(e.name))}">
-  <span style="font-size:20px;flex-shrink:0">${getCatIco(e.category)}</span>
+  <span class="lst-ico" style="${catTileStyle(e.category)}">${getCatIco(e.category)}</span>
   <div style="flex:1;min-width:0">
     <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(e.name)}</div>
     <div style="font-size:11px;color:var(--text2);margin-top:2px">${CAT_LABELS_FULL[e.category]||e.category}${e.qty ? ` · ${e.qty} ${e.unit||'pz'}` : ''} · ${fmtDate(e.updatedAt)}</div>
@@ -6253,7 +6540,7 @@ function openPiattoModal() {
   if(!av.length){showAlert('Dispensa vuota','warn',3000);return;}
   list.innerHTML=av.map(it=>`<div class="piatto-ingr-row" id="pi-${it.id}">
     <div class="piatto-ingr-check" id="pic-${it.id}" onclick="togglePiattoIngr('${it.id}')"></div>
-    <span style="font-size:17px">${getCatIco(it.category)}</span>
+    <span class="lst-ico" style="${catTileStyle(it.category)};width:32px;height:32px;font-size:16px">${getCatIco(it.category)}</span>
     <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${escHtml(it.name)}</div>
     <div style="font-size:11px;color:var(--text2)">${it.quantity} ${it.unit}</div></div>
   </div>`).join('');
@@ -7172,12 +7459,10 @@ window.bootApp = function (user) {
   // Init calendario (anno/mese corrente)
   calYear  = new Date().getFullYear();
   calMonth = new Date().getMonth();
-  // Su desktop (mouse) l'app atterra sulla Dashboard; su mobile resta su Dispensa.
+  // L'app atterra SEMPRE sulla Dashboard (la home principale).
   try {
-    if (window.matchMedia && window.matchMedia('(min-width:1100px) and (pointer:fine)').matches) {
-      const _db = document.querySelector('.tb[onclick*="dashboard"]');
-      if (_db) goTab('dashboard', _db);
-    }
+    const _db = document.querySelector('.tb[onclick*="dashboard"]');
+    if (_db) goTab('dashboard', _db);
   } catch (e) {}
 };
 
