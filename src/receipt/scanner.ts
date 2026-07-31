@@ -33,9 +33,11 @@ export function setOcrEngine(e: OcrEngine): void { engineOverride = e; }
 export interface ScanOutput {
   products: ReceiptProduct[];
   total: number | null;
+  /** Testo grezzo restituito dall'OCR (per diagnosi quando non si riconosce nulla). */
+  raw: string;
 }
 
-/** OCR di una o più immagini (anche parti dello stesso scontrino) → prodotti + totale. */
+/** OCR di una o più immagini (anche parti dello stesso scontrino) → prodotti + totale + testo grezzo. */
 async function scan(images: string[]): Promise<ScanOutput> {
   const engine = engineOverride || getOcrEngine();
   const texts: string[] = [];
@@ -46,7 +48,8 @@ async function scan(images: string[]): Promise<ScanOutput> {
       console.error('OCR error', e);
     }
   }
-  return parseReceipt(texts.join('\n'));
+  const raw = texts.join('\n');
+  return { ...parseReceipt(raw), raw };
 }
 
 const ReceiptScanner = {

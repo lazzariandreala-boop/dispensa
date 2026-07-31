@@ -19,12 +19,13 @@ export interface ReceiptScanResult {
   total: number | null;
 }
 
-// Prezzo in formato italiano: 1.234,56 — virgola decimale, punto migliaia.
-const PRICE = /\d{1,3}(?:\.\d{3})*,\d{2}/g;
-// Prezzo a fine riga, eventualmente seguito da classe IVA (una lettera) o €/*.
-const PRICE_AT_END = /(\d{1,3}(?:\.\d{3})*,\d{2})\s*(?:[A-Za-z€*]){0,2}\s*$/;
-// Riga quantità: "2 X 1,20", "2x1,20", "N. 2 x 1,20".
-const QTY_LINE = /^\s*(?:n[.\s]*)?(\d{1,3})\s*[xX*]\s*(\d{1,3}(?:\.\d{3})*,\d{2})/;
+// Prezzo — TOLLERANTE all'OCR: migliaia con "." o spazio, decimale "," o "."
+// (l'OCR scambia spesso la virgola con il punto). Es: 1,29 · 1.29 · 1.234,56 · 1 234,56.
+const PRICE = /\d{1,3}(?:[.\s]\d{3})*[.,]\d{2}(?!\d)/g;
+// Prezzo a fine riga, eventualmente seguito da classe IVA/€/*/spazi.
+const PRICE_AT_END = /(\d{1,3}(?:[.\s]\d{3})*[.,]\d{2})\s*(?:[A-Za-z€*]){0,3}\s*$/;
+// Riga quantità: "2 X 1,20", "2x1.20", "N. 2 x 1,20".
+const QTY_LINE = /^\s*(?:n[.\s]*)?(\d{1,3})\s*[xX*]\s*(\d{1,3}(?:[.\s]\d{3})*[.,]\d{2})/;
 // Unità nella riga: "0,450 kg", "500 g", "1 l"…
 const UNIT_IN_LINE = /(\d+(?:[.,]\d+)?)\s*(kg|gr|g|lt|l|ml|pz|pezzi|conf)\b/i;
 
@@ -38,8 +39,15 @@ const EXCLUDE = [
   'NUMERO ARTICOLI', 'ARTICOLI',
 ];
 
+// L'ultimo separatore ("," o ".") è il decimale; gli altri sono migliaia.
+// Robusto sia al formato IT (1.234,56) sia al punto decimale dell'OCR (1.29).
 function parsePrice(s: string): number {
-  return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+  const str = String(s).trim();
+  const dec = Math.max(str.lastIndexOf(','), str.lastIndexOf('.'));
+  if (dec === -1) return parseFloat(str.replace(/\D/g, '')) || 0;
+  const intPart = str.slice(0, dec).replace(/\D/g, '');
+  const decPart = str.slice(dec + 1).replace(/\D/g, '');
+  return parseFloat((intPart || '0') + '.' + decPart);
 }
 
 // Match del token NON circondato da lettere: evita falsi positivi come
@@ -74,10 +82,26 @@ function cleanName(line: string): string {
   return s;
 }
 
+/** Costruisce un prodotto ricavando qty/unità dalla riga sorgente. */
+function makeProduct(name: string, sourceLine: string, price: number | null): ReceiptProduct {
+  let qty = 1;
+  let unit: string | null = null;
+  const um = sourceLine.match(UNIT_IN_LINE);
+  if (um) {
+    const n = parseFloat(um[1].replace(',', '.'));
+    if (n > 0) qty = n;
+    unit = normUnit(um[2]);
+  }
+  return { name, qty, unit, price };
+}
+
 /** Estrae prodotti e totale dal testo grezzo dell'OCR di uno scontrino italiano. */
 export function parseReceipt(raw: string): ReceiptScanResult {
   const products: ReceiptProduct[] = [];
   let total: number | null = null;
+  // Nome di prodotto letto senza prezzo: l'OCR a colonne mette spesso la
+  // descrizione e il prezzo su righe separate → lo abbiniamo al prezzo seguente.
+  let pendingName: string | null = null;
 
   const lines = String(raw || '')
     .split(/\r?\n/)
@@ -92,6 +116,7 @@ export function parseReceipt(raw: string): ReceiptScanResult {
       // Riga con "TOTALE" (ma non SUBTOTALE/PARZIALE/TOTALE IVA).
       if (/\bTOTALE\b/.test(upper) && !upper.includes('SUBTOTALE')
           && !upper.includes('PARZIALE') && !upper.includes('IVA')) {
+        pendingName = null;
         const m = line.match(PRICE_AT_END);
         const val = m ? parsePrice(m[1]) : null;
         if (val != null) {
@@ -104,6 +129,7 @@ export function parseReceipt(raw: string): ReceiptScanResult {
       // ── Riga quantità "2 x 1,20" → aggiorna il prodotto precedente ──
       const q = line.match(QTY_LINE);
       if (q && products.length) {
+        pendingName = null;
         const qty = parseInt(q[1], 10);
         const unitPrice = parsePrice(q[2]);
         const prev = products[products.length - 1];
@@ -115,27 +141,30 @@ export function parseReceipt(raw: string): ReceiptScanResult {
         continue;
       }
 
-      if (isExcluded(line)) continue;
+      if (isExcluded(line)) { pendingName = null; continue; }
 
-      // ── Riga prodotto: descrizione + prezzo a fine riga ─────────
+      // ── Riga con prezzo a fine riga ─────────────────────────────
       const priceMatch = line.match(PRICE_AT_END);
-      if (!priceMatch) continue;
-      const price = parsePrice(priceMatch[1]);
-      const name = cleanName(line);
-      if (name.length < 2 || /^\d+$/.test(name)) continue; // niente descrizione → scarta
-
-      let qty = 1;
-      let unit: string | null = null;
-      const um = line.match(UNIT_IN_LINE);
-      if (um) {
-        const n = parseFloat(um[1].replace(',', '.'));
-        if (n > 0) qty = n;
-        unit = normUnit(um[2]);
+      if (priceMatch) {
+        const price = parsePrice(priceMatch[1]);
+        const name = cleanName(line);
+        if (name.length < 2 || /^\d+$/.test(name)) {
+          // Solo prezzo (colonna prezzi separata): abbinalo al nome in sospeso.
+          if (pendingName) { products.push(makeProduct(pendingName, line, price)); }
+          pendingName = null;
+          continue;
+        }
+        products.push(makeProduct(name, line, price));
+        pendingName = null;
+        continue;
       }
 
-      products.push({ name, qty, unit, price });
+      // ── Riga senza prezzo: forse è un nome in attesa del prezzo (riga dopo) ──
+      const cand = cleanName(line);
+      pendingName = (cand.length >= 2 && /[A-Za-zÀ-ù]/.test(cand)) ? cand : null;
     } catch {
       // riga problematica → salta, non far crashare il parse
+      pendingName = null;
     }
   }
 

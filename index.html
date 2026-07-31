@@ -532,7 +532,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .page-hero__sub { font-size:13px; opacity:.95; margin-top:4px; max-width:240px; line-height:1.4; }
 .page-hero__emoji { font-size:44px; line-height:1; filter:drop-shadow(0 6px 10px rgba(0,0,0,.25)); flex-shrink:0; }
 .page-hero--ricette  { background:linear-gradient(135deg,#F59E0B,#EF4444); box-shadow:0 12px 30px rgba(239,68,68,.26); }
-.page-hero--cal      { background:linear-gradient(135deg,#6366F1,#0EA5E9); box-shadow:0 12px 30px rgba(99,102,241,.26); }
+.page-hero--cal      { background:linear-gradient(135deg,#6366F1,#0EA5E9); box-shadow:0 12px 30px rgba(99,102,241,.26); margin-bottom:38px; }
 .page-hero--listino  { background:linear-gradient(135deg,#14B8A6,#22C55E); box-shadow:0 12px 30px rgba(20,184,166,.26); }
 .page-hero--stats    { background:linear-gradient(135deg,#8B5CF6,#EC4899); box-shadow:0 12px 30px rgba(139,92,246,.26); }
 /* Filtro categorie a selezione multipla (spesa) */
@@ -821,6 +821,16 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .theme-seg { display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:3px;gap:3px; }
 .theme-opt { border:none;background:transparent;color:var(--text2);font-family:var(--font-body);font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:9px;cursor:pointer;transition:all .15s; }
 .theme-opt.active { background:var(--grad-primary);color:#05140A; }
+/* ── Modale Impostazioni (stile vivace) ── */
+.sync-box--set { padding:0; overflow:hidden; position:relative; }
+.sync-box--set .idet-close { background:rgba(255,255,255,.22); border-color:rgba(255,255,255,.35); color:#fff; }
+.set-hero { display:flex; align-items:center; gap:14px; padding:22px 20px; background:linear-gradient(135deg,#6366F1,#0EA5E9); color:#fff; }
+.set-hero__ico { width:54px; height:54px; border-radius:16px; background:rgba(255,255,255,.20); display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0; }
+.set-hero__title { font-family:var(--font-head); font-weight:800; font-size:22px; line-height:1.1; letter-spacing:-.2px; }
+.set-hero__sub { font-size:12.5px; opacity:.92; margin-top:3px; }
+.set-body { padding:6px 20px 20px; max-height:calc(90vh - 100px); overflow-y:auto; }
+.set-sec { padding-top:16px; }
+.set-sec__head { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--text3); margin-bottom:10px; }
 .info-body { max-height:min(62vh,560px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:4px; }
 .info-sec { margin-bottom:16px; }
 .info-h { font-family:var(--font-head,'Inter');font-weight:800;font-size:14px;margin-bottom:6px;color:var(--text); }
@@ -870,7 +880,9 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .idet-modal.show .idet-box { transform:none; }
 @media (min-width:700px) { .idet-modal { align-items:center; } .idet-box { border-radius:28px; } }
 .idet-close { position:absolute; top:16px; right:16px; width:36px; height:36px; border-radius:50%; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:19px; cursor:pointer; z-index:2; }
-.idet-hero { height:150px; border-radius:22px; display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+/* Hero dettaglio: quadrato centrato; il ritaglio dell'ingrediente sta tutto dentro */
+.idet-hero { width:210px; height:210px; border-radius:22px; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; overflow:hidden; padding:16px; }
+.idet-photo { width:100%; height:100%; object-fit:contain; display:block; }
 .idet-ico { width:94px; height:94px; border-radius:26px; display:flex; align-items:center; justify-content:center; font-size:54px; border:1px solid transparent; }
 .idet-name { font-family:var(--font-head); font-weight:800; font-size:24px; text-align:center; letter-spacing:-.3px; }
 .idet-meta { font-size:14px; color:var(--text2); text-align:center; margin-top:5px; }
@@ -893,7 +905,11 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .idet-idea__meta { font-size:11.5px; color:var(--text3); margin-top:2px; }
 .idet-idea__arr { color:var(--text3); font-size:20px; flex-shrink:0; }
 /* Hero colorato nel dettaglio ricetta */
-.rdet-hero { height:120px; border-radius:20px; display:flex; align-items:center; justify-content:center; margin:2px 0 16px; }
+/* Quadrato centrato, come l'hero degli ingredienti */
+.rdet-hero { width:210px; height:210px; border-radius:22px; display:flex; align-items:center; justify-content:center; margin:2px auto 16px; overflow:hidden; }
+.rdet-photo { width:100%; height:100%; display:block; }
+.rdet-photo--cover { object-fit:cover; }
+.rdet-photo--contain { object-fit:contain; padding:16px; }
 .rdet-hero__ico { width:80px; height:80px; border-radius:22px; display:flex; align-items:center; justify-content:center; font-size:46px; border:1px solid transparent; }
 
 /* ── Pagina Categorie (griglia) ─────────────────────────────────── */
@@ -1255,17 +1271,24 @@ select.fi option { background: #1b1b1f; color: #f0ece6; }
   gap: 6px; margin-bottom: 10px;
 }
 .scard {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 10px 6px; text-align: center;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 13px 6px; text-align: center;
   cursor: pointer; transition: all .18s; user-select: none;
 }
 .scard:active { transform: scale(.96); }
-.scard.sf-tutti   { border-color: rgba(240,125,30,.4);  background: var(--accent-dim); }
-.scard.sf-presto  { border-color: rgba(232,190,64,.4);  background: var(--warn-dim); }
-.scard.sf-frozen  { border-color: rgba(91,155,224,.4);  background: var(--freeze-dim); }
-.scard.sf-scaduti { border-color: rgba(224,85,85,.4);   background: var(--danger-dim); }
-.snum { font-weight: 800; font-size: 20px; line-height: 1; display: block; }
-.slbl { font-size: 8px; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; margin-top: 3px; }
+/* Tinte permanenti per stato (stile vivace) */
+#sc-tutti   { background: rgba(34,197,94,.10);  border-color: rgba(34,197,94,.26); }
+#sc-scaduti { background: rgba(239,68,68,.10);  border-color: rgba(239,68,68,.26); }
+#sc-presto  { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.26); }
+#sc-frozen  { background: rgba(56,189,248,.10); border-color: rgba(56,189,248,.26); }
+/* Filtro attivo: bordo più marcato */
+#sc-tutti.sf-tutti     { border-color: rgba(34,197,94,.7); }
+#sc-presto.sf-presto   { border-color: rgba(245,158,11,.7); }
+#sc-frozen.sf-frozen   { border-color: rgba(56,189,248,.7); }
+#sc-scaduti.sf-scaduti { border-color: rgba(239,68,68,.7); }
+.scard__ico { display: block; font-size: 15px; line-height: 1; margin-bottom: 5px; }
+.snum { font-family: var(--font-head); font-weight: 800; font-size: 23px; line-height: 1; display: block; }
+.slbl { font-size: 9px; color: var(--text2); text-transform: uppercase; letter-spacing: .4px; margin-top: 5px; font-weight: 600; }
 
 /* Hide old sidebar stat elements if they leak */
 .sb-stats, .sb-stat { display: none !important; }
@@ -1489,7 +1512,7 @@ body:not(.authed) #app-shell { display: none; }
   .pcard, .rcard { margin-bottom: 0; }
 
   /* Blocchi con form: centrati e di larghezza comoda */
-  #pg-spesa > .card, #pg-spesa > div[style] { max-width: 680px; margin-left: auto; margin-right: auto; }
+  #pg-spesa > div[style] { max-width: 680px; margin-left: auto; margin-right: auto; }
 
   /* ── Pannello destro (aggiunta veloce) ── */
   #sidebar { width: 372px; flex: none; flex-shrink: 0; border-left: 1px solid var(--border); background: var(--bg); }
@@ -1501,6 +1524,21 @@ body:not(.authed) #app-shell { display: none; }
   .scan-btn, #scanbtn, [onclick*="openScanner"] { display: none !important; }
 }
 
+/* ════════════════════════════════════════
+   ALLINEAMENTO STILE CARD (Vivace) — override finale
+   Tutte le card/box condividono superficie e raggi coerenti
+════════════════════════════════════════ */
+.card, .icard, .rcard, .pcard,
+.ebox, .restock-box, .sync-box, .piatto-box, .idet-box,
+.rep-card, .rep-detail-sheet, .rep-monthly-item,
+.cal-day-detail, .shop-item, .add-sheet {
+  background: var(--surface);
+}
+.card, .icard, .cal-day-detail, .rep-card { border-radius: 18px; }
+.rcard, .pcard { border-radius: var(--radius-card); }
+.ebox, .restock-box, .sync-box, .piatto-box,
+.idet-box, .rep-detail-sheet { border-radius: 22px; }
+.shop-item, .rep-monthly-item { border-radius: 14px; }
 </style>
 <meta name="theme-color" content="#0B0E12">
 <script>
@@ -1518,13 +1556,13 @@ body:not(.authed) #app-shell { display: none; }
 
 <!-- ===== LOADER GLOBALE (mostrato finché l'auth non è risolta) ===== -->
 <div id="app-loader">
-  <div class="app-loader__jar">🫙</div>
+  <div class="app-loader__jar"><svg class="jar-ico" viewBox="0 0 48 48" fill="none" style="width:1em;height:1em;vertical-align:-.15em"><rect x="14" y="4.5" width="20" height="8.5" rx="2.5" fill="#C9CFD6"/><rect x="15.5" y="11" width="17" height="5" rx="1.6" fill="#A9B1BB"/><rect x="12.5" y="15" width="23" height="28.5" rx="6.5" fill="#E9EEF3" stroke="#B7C0C9" stroke-width="1.6"/><rect x="16.5" y="21" width="15" height="17" rx="3.5" fill="#F7FAFC" opacity=".5"/></svg></div>
   <div class="app-loader__text">Loading</div>
 </div>
 
 <!-- ===== LOGIN GATE — accesso con Google (Firebase Auth) ===== -->
 <div id="login-gate">
-  <div class="lg-logo">🫙</div>
+  <div class="lg-logo"><svg class="jar-ico" viewBox="0 0 48 48" fill="none" style="width:1em;height:1em;vertical-align:-.15em"><rect x="14" y="4.5" width="20" height="8.5" rx="2.5" fill="#C9CFD6"/><rect x="15.5" y="11" width="17" height="5" rx="1.6" fill="#A9B1BB"/><rect x="12.5" y="15" width="23" height="28.5" rx="6.5" fill="#E9EEF3" stroke="#B7C0C9" stroke-width="1.6"/><rect x="16.5" y="21" width="15" height="17" rx="3.5" fill="#F7FAFC" opacity=".5"/></svg></div>
   <h2><span class="brand-dis">Dis</span><span class="brand-pensa">Pensa</span></h2>
   <p>Accedi con Google per salvare la tua dispensa nel cloud e ritrovarla su ogni dispositivo.</p>
   <button id="login-btn"><span class="g-ico"></span> Accedi con Google</button>
@@ -1535,7 +1573,7 @@ body:not(.authed) #app-shell { display: none; }
 <div id="wrap">
 
 <header id="hdr">
-  <h1><span class="hdr-jar">🫙</span><span class="hdr-name"><span class="brand-dis">Dis</span><span class="brand-pensa">Pensa</span></span></h1>
+  <h1><span class="hdr-jar"><svg class="jar-ico" viewBox="0 0 48 48" fill="none" style="width:1em;height:1em;vertical-align:-.15em"><rect x="14" y="4.5" width="20" height="8.5" rx="2.5" fill="#C9CFD6"/><rect x="15.5" y="11" width="17" height="5" rx="1.6" fill="#A9B1BB"/><rect x="12.5" y="15" width="23" height="28.5" rx="6.5" fill="#E9EEF3" stroke="#B7C0C9" stroke-width="1.6"/><rect x="16.5" y="21" width="15" height="17" rx="3.5" fill="#F7FAFC" opacity=".5"/></svg></span><span class="hdr-name"><span class="brand-dis">Dis</span><span class="brand-pensa">Pensa</span></span></h1>
   <div style="display:flex;align-items:center;gap:7px">
     <!-- JARVIS DISATTIVATO — sostituito dall'integrazione Alexa (vedi cartella alexa-skill/).
          Codice mantenuto per riferimento. Per riattivarlo: rimuovi i commenti qui e in JS,
@@ -1698,10 +1736,10 @@ body:not(.authed) #app-shell { display: none; }
 <div id="alert"></div>
 <div id="disp-fixed-header">
   <div class="disp-stats">
-    <div class="scard" id="sc-tutti"   onclick="setDF('tutti',this)"><span class="snum" style="color:var(--accent)" id="sb-tot">0</span><div class="slbl">Prodotti</div></div>
-    <div class="scard" id="sc-scaduti" onclick="setDF('scaduti',this)"><span class="snum" style="color:var(--danger)" id="sb-scd">0</span><div class="slbl">Scaduti</div></div>
-    <div class="scard" id="sc-presto"  onclick="setDF('presto',this)"><span class="snum" style="color:var(--warn)" id="sb-scad-exp">0</span><div class="slbl">In scadenza</div></div>
-    <div class="scard" id="sc-frozen"  onclick="setDF('frozen',this)"><span class="snum" style="color:var(--freeze)" id="sb-frz">0</span><div class="slbl">In cella</div></div>
+    <div class="scard" id="sc-tutti"   onclick="setDF('tutti',this)"><span class="scard__ico">📦</span><span class="snum" style="color:var(--accent)" id="sb-tot">0</span><div class="slbl">Prodotti</div></div>
+    <div class="scard" id="sc-scaduti" onclick="setDF('scaduti',this)"><span class="scard__ico">⚠️</span><span class="snum" style="color:var(--danger)" id="sb-scd">0</span><div class="slbl">Scaduti</div></div>
+    <div class="scard" id="sc-presto"  onclick="setDF('presto',this)"><span class="scard__ico">⏰</span><span class="snum" style="color:var(--warn)" id="sb-scad-exp">0</span><div class="slbl">In scadenza</div></div>
+    <div class="scard" id="sc-frozen"  onclick="setDF('frozen',this)"><span class="scard__ico">❄️</span><span class="snum" style="color:var(--freeze)" id="sb-frz">0</span><div class="slbl">In cella</div></div>
   </div>
   <div class="sbox" style="margin-bottom:0">
     <span>🔍</span>
@@ -1741,7 +1779,7 @@ body:not(.authed) #app-shell { display: none; }
     </div>
     <div class="sbox"><span>🔍</span><input id="rsearch" placeholder="Cerca ricetta…" oninput="renderR()"></div>
     <div class="frow">
-      <div class="chip active" id="rf-possibili" onclick="toggleRPossibili(this)">✅ Fattibili</div>
+      <div class="chip" id="rf-possibili" onclick="toggleRPossibili(this)">✅ Fattibili</div>
       <div class="chip" id="rf-veg" onclick="toggleRVeg(this)">🌱 Vegetariano</div>
       <div class="chip" id="rf-vegan" onclick="toggleRVegan(this)">🌿 Vegano</div>
     </div>
@@ -1856,7 +1894,7 @@ body:not(.authed) #app-shell { display: none; }
 <nav id="tabs">
   <!-- Brand (solo desktop) -->
   <div class="nav-brand">
-    <span class="nav-brand__logo">🫙</span>
+    <span class="nav-brand__logo"><svg class="jar-ico" viewBox="0 0 48 48" fill="none" style="width:1em;height:1em;vertical-align:-.15em"><rect x="14" y="4.5" width="20" height="8.5" rx="2.5" fill="#C9CFD6"/><rect x="15.5" y="11" width="17" height="5" rx="1.6" fill="#A9B1BB"/><rect x="12.5" y="15" width="23" height="28.5" rx="6.5" fill="#E9EEF3" stroke="#B7C0C9" stroke-width="1.6"/><rect x="16.5" y="21" width="15" height="17" rx="3.5" fill="#F7FAFC" opacity=".5"/></svg></span>
     <div class="nav-brand__txt">
       <div class="nav-brand__name"><span class="brand-dis">Dis</span><span class="brand-pensa">Pensa</span></div>
       <div class="nav-brand__tag">Fresco · Zero sprechi</div>
@@ -1866,7 +1904,7 @@ body:not(.authed) #app-shell { display: none; }
   <!-- Voci di navigazione -->
   <div class="nav-items">
     <button class="tb active" onclick="goTab('dashboard',this)"><span class="ico">📊</span><span class="lbl">Dashboard</span></button>
-    <button class="tb" onclick="goTab('dispensa',this)"><span class="ico">🫙</span><span class="lbl">Dispensa</span></button>
+    <button class="tb" onclick="goTab('dispensa',this)"><span class="ico"><svg class="jar-ico" viewBox="0 0 48 48" fill="none" style="width:1em;height:1em;vertical-align:-.15em"><rect x="14" y="4.5" width="20" height="8.5" rx="2.5" fill="#C9CFD6"/><rect x="15.5" y="11" width="17" height="5" rx="1.6" fill="#A9B1BB"/><rect x="12.5" y="15" width="23" height="28.5" rx="6.5" fill="#E9EEF3" stroke="#B7C0C9" stroke-width="1.6"/><rect x="16.5" y="21" width="15" height="17" rx="3.5" fill="#F7FAFC" opacity=".5"/></svg></span><span class="lbl">Dispensa</span></button>
     <button class="tb" onclick="goTab('ricette',this)"><span class="ico">👨‍🍳</span><span class="lbl">Ricette</span></button>
     <button class="tb" onclick="goTab('spesa',this)" id="tb-spesa"><span class="ico">🛒</span><span class="lbl">Spesa</span><span class="tb-badge" id="spesa-badge"></span></button>
     <button class="tb" onclick="goTab('calendario',this)"><span class="ico">📅</span><span class="lbl">Calendario</span></button>
@@ -2005,96 +2043,55 @@ body:not(.authed) #app-shell { display: none; }
 
 <!-- ===== SYNC GIST MODAL ===== -->
 <div id="sync-modal" class="sync-modal" onclick="closeSyncModal(event)">
-  <div class="sync-box">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <div class="sync-title">☁️ Sincronizzazione</div>
-      <button class="mclose" style="position:static" onclick="closeSyncModal(null,1)">×</button>
-    </div>
-    <div class="sync-sub">I tuoi dati sono salvati nel cloud (Firebase) sul tuo account Google e sincronizzati in tempo reale su tutti i dispositivi e con Alexa.</div>
-
-    <!-- Tema chiaro / scuro -->
-    <div class="theme-row">
-      <span class="theme-row__lbl">🎨 Tema</span>
-      <div class="theme-seg" id="theme-seg">
-        <button type="button" class="theme-opt" data-theme-val="dark"  onclick="setTheme('dark')">🌙 Scuro</button>
-        <button type="button" class="theme-opt" data-theme-val="light" onclick="setTheme('light')">☀️ Chiaro</button>
+  <div class="sync-box sync-box--set">
+    <button class="idet-close" onclick="closeSyncModal(null,1)">×</button>
+    <div class="set-hero">
+      <div class="set-hero__ico">⚙️</div>
+      <div>
+        <div class="set-hero__title">Impostazioni</div>
+        <div class="set-hero__sub">Aspetto, account e sincronizzazione</div>
       </div>
     </div>
 
-    <!-- Account Google collegato -->
-    <div class="acct-box">
-      <div class="acct-name" id="acct-name">Utente</div>
-      <div class="acct-email" id="acct-email"></div>
-      <div class="acct-uid-row">
-        <span>ID per Alexa:</span>
-        <code id="acct-uid">—</code>
-        <button id="copy-uid-btn" title="Copia" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:2px 6px;font-size:11px">📋</button>
+    <div class="set-body">
+      <!-- Aspetto / Tema -->
+      <div class="set-sec">
+        <div class="set-sec__head">🎨 Aspetto</div>
+        <div class="theme-row" style="margin-bottom:0">
+          <span class="theme-row__lbl">Tema</span>
+          <div class="theme-seg" id="theme-seg">
+            <button type="button" class="theme-opt" data-theme-val="dark"  onclick="setTheme('dark')">🌙 Scuro</button>
+            <button type="button" class="theme-opt" data-theme-val="light" onclick="setTheme('light')">☀️ Chiaro</button>
+          </div>
+        </div>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Usa questo ID come <code>HOUSEHOLD_ID</code> nella Lambda di Alexa (vedi alexa-skill/GUIDA.md).</div>
-      <button id="logout-btn">Esci</button>
-    </div>
 
-    <!-- ===== SYNC LEGACY GITHUB GIST — RIMOSSO (ora si usa Firestore) =====
-    <details style="margin-bottom:6px">
-      <summary style="font-size:12px;color:var(--text3);cursor:pointer">Sync legacy GitHub Gist (opzionale)</summary>
-    <div class="sync-step">
-      <div class="sync-step-n">1</div>
-      <div>Vai su <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong> e crea un token con scope <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">gist</code></div>
-    </div>
-    <div class="sync-step">
-      <div class="sync-step-n">2</div>
-      <div>Incolla il token qui sotto. Rimane solo su questo dispositivo (localStorage), non viene mai inviato a nessuno se non a GitHub.</div>
-    </div>
+      <!-- Account & Sync -->
+      <div class="set-sec">
+        <div class="set-sec__head">☁️ Account & Sincronizzazione</div>
+        <div class="sync-sub" style="margin-bottom:12px">I tuoi dati sono salvati nel cloud (Firebase) sul tuo account Google e sincronizzati in tempo reale su tutti i dispositivi e con Alexa.</div>
+        <div class="acct-box">
+          <div class="acct-name" id="acct-name">Utente</div>
+          <div class="acct-email" id="acct-email"></div>
+          <div class="acct-uid-row">
+            <span>ID per Alexa:</span>
+            <code id="acct-uid">—</code>
+            <button id="copy-uid-btn" title="Copia" style="background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:2px 6px;font-size:11px">📋</button>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Usa questo ID come <code>HOUSEHOLD_ID</code> nella Lambda di Alexa (vedi alexa-skill/GUIDA.md).</div>
+          <button id="logout-btn">Esci</button>
+        </div>
+      </div>
 
-    <div class="fg" style="margin-bottom:10px">
-      <label class="fl">GitHub Personal Access Token</label>
-      <input class="fi" id="gist-token" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-      <span class="sync-link" onclick="toggleTokenVis()">👁 Mostra/nascondi</span>
-    </div>
-    <div class="fg" style="margin-bottom:4px">
-      <label class="fl">Gist ID <span style="color:var(--text3);font-weight:400">(lascia vuoto la prima volta — verrà creato)</span></label>
-      <input class="fi" id="gist-id" placeholder="es. a1b2c3d4e5f6..." autocomplete="off">
-    </div>
-
-    <div id="sync-status" class="sync-status"></div>
-
-    <div class="sync-actions">
-      <button class="btn btn-p" onclick="syncSave()" style="flex:1">☁️ Salva sul Gist</button>
-      <button class="btn btn-s" onclick="syncLoad()" style="flex:1">⬇️ Carica dal Gist</button>
-    </div>
-    <div style="margin-top:10px;display:flex;gap:8px">
-      <button class="btn btn-p" onclick="saveGistConfig()" style="flex:1;background:var(--bg3);color:var(--text);border:1px solid var(--border)">💾 Salva configurazione</button>
-      <button class="btn btn-s" onclick="clearGistConfig()" style="padding:10px 14px;color:var(--danger)">🗑</button>
-    </div>
-    </details>
-    ===== fine sync legacy Gist ===== -->
-    <div class="divider"></div>
-    <!-- ===== JARVIS AI (Groq) — DISATTIVATO, sostituito da Alexa ==========
-         L'assistente vocale in-app non serve più: i comandi vocali passano
-         ora dalle Alexa di casa (vedi cartella alexa-skill/). Blocco mantenuto
-         per riferimento; per riattivarlo scommenta e imposta JARVIS_ENABLED=true.
-    <div style="font-size:12px;font-weight:700;margin-bottom:6px">🤖 Jarvis AI — Groq API Key (gratuita)</div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5">
-      Gratuita senza limiti di crediti. Ottienila su <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a> → API Keys.
-    </div>
-    <div class="fg" style="margin-bottom:6px">
-      <input class="fi" id="anthropic-key" type="password" placeholder="gsk_..." autocomplete="off" style="font-size:13px">
-    </div>
-
-    <button class="btn btn-s" onclick="saveGroqKey()" style="margin-bottom:0;font-size:13px;padding:9px">💾 Salva API Key Jarvis</button>
-
-    <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.5">
-      ⚠ Token e API key salvati solo in questo browser (localStorage). Non inviati ad altri server.
-    </div>
-    ===== fine blocco JARVIS disattivato ===== -->
-
-    <!-- Scansione scontrino: ora completamente on-device, nessuna chiave -->
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-      <div style="font-size:13px;font-weight:700;margin-bottom:6px">🧾 Scansione scontrino</div>
-      <div style="font-size:11px;color:var(--text2);line-height:1.5">
-        La lettura degli scontrini avviene <strong>direttamente sul dispositivo</strong> (offline, senza alcuna chiave o account): le foto non lasciano il telefono. Disponibile nell'app per Android e iOS.
+      <!-- Scansione scontrino -->
+      <div class="set-sec">
+        <div class="set-sec__head">🧾 Scansione scontrino</div>
+        <div style="font-size:11.5px;color:var(--text2);line-height:1.55">
+          La lettura degli scontrini avviene <strong>direttamente sul dispositivo</strong> (offline, senza alcuna chiave o account): le foto non lasciano il telefono. Disponibile nell'app per Android e iOS.
+        </div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -3566,6 +3563,142 @@ function catTileStyle(cat) { const c = catColor(cat); return `background:${_hexA
 /** Prima lettera maiuscola. */
 function cap(s) { s = String(s || ''); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
+// ══ Immagini ingrediente (TheMealDB, gratis, senza API key) ══
+// TheMealDB fornisce foto PULITE dell'ingrediente (ritaglio su fondo trasparente,
+// SENZA marca né testo, mai persone). L'immagine è deterministica dal nome
+// inglese: nessuna chiamata di rete/ricerca, solo una mappa IT→EN.
+function _imgKey(s) { return String(s || '').toLowerCase().trim().replace(/\s+/g, ' '); }
+// Mappa nomi italiani (singolare/plurale) → nome ingrediente TheMealDB (inglese).
+const MEALDB_IT = {
+  // Verdure e ortaggi
+  aglio:'Garlic', cipolla:'Onion', cipolle:'Onion', carota:'Carrots', carote:'Carrots',
+  pomodoro:'Tomato', pomodori:'Tomato', pomodorini:'Cherry Tomatoes', patata:'Potatoes', patate:'Potatoes',
+  zucchina:'Zucchini', zucchine:'Zucchini', melanzana:'Aubergine', melanzane:'Aubergine',
+  peperone:'Red Pepper', peperoni:'Red Pepper', broccoli:'Broccoli', broccolo:'Broccoli',
+  spinaci:'Spinach', funghi:'Mushrooms', fungo:'Mushrooms', insalata:'Lettuce', lattuga:'Lettuce',
+  cetriolo:'Cucumber', cetrioli:'Cucumber', sedano:'Celery', cavolo:'Cabbage', verza:'Savoy Cabbage',
+  zucca:'Butternut Squash', fagiolini:'Green Beans', piselli:'Peas', porro:'Leek', porri:'Leek',
+  asparagi:'Asparagus', barbabietola:'Beetroot', ravanello:'Radish', ravanelli:'Radish',
+  mais:'Sweetcorn', rucola:'Rocket', finocchio:'Fennel', finocchi:'Fennel', rapa:'Turnips',
+  // Erbe e spezie
+  basilico:'Basil', prezzemolo:'Parsley', rosmarino:'Rosemary', salvia:'Sage', timo:'Thyme',
+  menta:'Mint', origano:'Oregano', coriandolo:'Coriander', aneto:'Dill', erba:'Chives',
+  cannella:'Cinnamon', vaniglia:'Vanilla', curry:'Curry Powder', paprika:'Paprika',
+  zenzero:'Ginger', curcuma:'Turmeric', pepe:'Black Pepper', peperoncino:'Chilli', zafferano:'Saffron',
+  // Frutta
+  mela:'Apple', mele:'Apple', banana:'Banana', banane:'Banana', arancia:'Orange', arance:'Orange',
+  limone:'Lemon', limoni:'Lemon', lime:'Lime', pera:'Pears', pere:'Pears', pesca:'Peaches', pesche:'Peaches',
+  fragola:'Strawberries', fragole:'Strawberries', lampone:'Raspberries', lamponi:'Raspberries',
+  mirtillo:'Blueberries', mirtilli:'Blueberries', more:'Blackberries', mango:'Mango',
+  pompelmo:'Grapefruit', cocco:'Coconut', fichi:'Figs', fico:'Figs', prugne:'Prunes', prugna:'Prunes',
+  albicocca:'Apricot', albicocche:'Apricot', ciliegia:'Cherry', ciliegie:'Cherry', melograno:'Pomegranate',
+  // Latticini e uova
+  latte:'Milk', burro:'Butter', formaggio:'Cheese', parmigiano:'Parmesan', grana:'Parmesan',
+  mozzarella:'Mozzarella', ricotta:'Ricotta', yogurt:'Yogurt', panna:'Cream', mascarpone:'Mascarpone',
+  feta:'Feta', pecorino:'Pecorino', uovo:'Eggs', uova:'Eggs', cheddar:'Cheddar Cheese',
+  // Carne e pesce
+  pollo:'Chicken', manzo:'Beef', maiale:'Pork', tacchino:'Turkey', agnello:'Lamb',
+  prosciutto:'Prosciutto', pancetta:'Bacon', bacon:'Bacon', salsiccia:'Sausages', salsicce:'Sausages',
+  vitello:'Veal', anatra:'Duck', salmone:'Salmon', tonno:'Tuna', merluzzo:'Cod', baccalà:'Salt Cod',
+  gamberi:'Prawns', gambero:'Prawns', gamberetti:'Shrimp', cozze:'Mussels', vongole:'Clams',
+  calamari:'Squid', calamaro:'Squid', sardine:'Sardines', trota:'Trout', acciughe:'Anchovy Fillet',
+  branzino:'Sea Bass', orata:'Sea Bass', wurstel:'Sausages',
+  // Dispensa / base
+  zucchero:'Sugar', sale:'Salt', farina:'Flour', olio:'Olive Oil', aceto:'Vinegar',
+  riso:'Rice', pasta:'Spaghetti', spaghetti:'Spaghetti', penne:'Penne Rigate', pane:'Bread',
+  miele:'Honey', lievito:'Yeast', cacao:'Cocoa', cioccolato:'Dark Chocolate', nutella:'Nutella',
+  marmellata:'Jam', confettura:'Jam', ceci:'Chickpeas', lenticchie:'Lentils', fagioli:'Kidney Beans',
+  tofu:'Tofu', mandorle:'Almonds', noci:'Walnuts', nocciole:'Hazlenuts', pistacchi:'Pistachio',
+  arachidi:'Peanuts', pinoli:'Pine Nuts', avena:'Oats', senape:'Mustard', maionese:'Mayonnaise',
+  ketchup:'Tomato Ketchup', passata:'Passata', couscous:'Couscous', quinoa:'Quinoa', semola:'Semolina',
+  'noce moscata':'Nutmeg', 'olio di oliva':'Olive Oil', 'olio extravergine':'Extra Virgin Olive Oil',
+};
+/** Nome TheMealDB per un ingrediente italiano (o null). */
+function mealdbName(name) {
+  const n = _imgKey(name);
+  if (MEALDB_IT[n]) return MEALDB_IT[n];                     // match esatto (anche multi-parola)
+  const words = n.split(/[^a-zà-ùé]+/).filter(w => w.length > 2);
+  for (const w of words) if (MEALDB_IT[w]) return MEALDB_IT[w]; // parola chiave (es. "petto di pollo")
+  return null;
+}
+// Solo ingredienti la cui foto TheMealDB è un ritaglio PULITO (verificati a mano):
+// niente confezioni, marche o testo. Gli altri (riso, zucchero, farina, latticini
+// di marca, scatolame…) ricadono sull'icona colorata.
+const MEALDB_CLEAN = new Set([
+  'Almonds','Apple','Apricot','Asparagus','Aubergine','Bacon','Banana','Basil','Beef','Beetroot',
+  'Blackberries','Blueberries','Bread','Broccoli','Butternut Squash','Cabbage','Carrots','Celery',
+  'Cheese','Cherry','Cherry Tomatoes','Chicken','Chilli','Chives','Cinnamon','Cod','Coriander',
+  'Cucumber','Dill','Duck','Eggs','Fennel','Figs','Garlic','Ginger','Grapefruit','Green Beans',
+  'Hazlenuts','Lamb','Leek','Lemon','Lettuce','Lime','Mango','Milk','Mint','Mushrooms','Nutmeg',
+  'Onion','Orange','Paprika','Parsley','Peaches','Peanuts','Pears','Peas','Pomegranate','Pork',
+  'Potatoes','Prawns','Prunes','Radish','Raspberries','Red Pepper','Rocket','Rosemary','Saffron',
+  'Sage','Salmon','Salt Cod','Sardines','Savoy Cabbage','Sea Bass','Shrimp','Spaghetti','Spinach',
+  'Strawberries','Tomato','Trout','Tuna','Turnips','Vanilla','Veal','Walnuts','Zucchini',
+]);
+/** URL foto ingrediente pulita (ritaglio, senza marca/testo) o null → icona colorata. */
+function productImageUrl(name) {
+  const en = mealdbName(name);
+  return (en && MEALDB_CLEAN.has(en)) ? `https://www.themealdb.com/images/ingredients/${encodeURIComponent(en)}.png` : null;
+}
+/** Immagine di ripiego per una ricetta: il ritaglio dell'ingrediente principale. */
+function recipeIngredientImage(recipe) {
+  let u = productImageUrl(recipe.name);
+  if (u) return u;
+  for (const ing of (recipe.ingredients || [])) { u = productImageUrl(ing.name || ing.key || ''); if (u) return u; }
+  return null;
+}
+// Foto del PIATTO (TheMealDB meal search): foto reale del piatto, quando esiste. Cache locale.
+const _MEAL_CACHE_KEY = 'dispensa_meal_cache';
+const _mealCache = (() => { try { return JSON.parse(localStorage.getItem(_MEAL_CACHE_KEY) || '{}'); } catch (_) { return {}; } })();
+const _MEAL_STOP = new Set(['spaghetti', 'pasta', 'risotto', 'zuppa', 'vellutata', 'insalata', 'torta',
+  'con', 'alla', 'allo', 'della', 'del', 'dei', 'delle', 'di', 'in', 'al', 'ai', 'la', 'le', 'il', 'lo', 'e', 'ripieni', 'ripieno']);
+async function fetchMealPhoto(name) {
+  const k = _imgKey(name);
+  if (k in _mealCache) return _mealCache[k];
+  // TheMealDB cerca per parola chiave: proviamo il nome intero e poi le parole distintive.
+  const words = name.split(/\s+/).filter(w => w.length >= 4 && !_MEAL_STOP.has(_imgKey(w))).sort((a, b) => b.length - a.length);
+  const cands = [name, ...words];
+  const seen = new Set();
+  let url = null;
+  try {
+    for (const c of cands.slice(0, 4)) {
+      const ck = _imgKey(c);
+      if (!ck || seen.has(ck)) continue;
+      seen.add(ck);
+      const r = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(c)}`);
+      const d = await r.json();
+      const ms = d.meals || [];
+      if (!ms.length) continue;
+      const best = ms.find(m => _imgKey(m.strMeal) === k)
+                || ms.find(m => _imgKey(m.strMeal).includes(ck))
+                || ms[0];
+      if (best && best.strMealThumb) { url = best.strMealThumb; break; }
+    }
+  } catch (_) { return undefined; }             // rete ko: non memorizzare
+  _mealCache[k] = url;
+  try { localStorage.setItem(_MEAL_CACHE_KEY, JSON.stringify(_mealCache)); } catch (_) {}
+  return url;
+}
+let _recipeDetailId = null;
+/** Inserisce la foto nell'hero ricetta. livello: piatto(2) batte ingrediente(1). */
+function applyRecipePhoto(id, url, isMeal) {
+  if (id !== _recipeDetailId || !url) return;
+  const hero = document.getElementById('rdet-hero'); if (!hero) return;
+  const lvl = isMeal ? 2 : 1;
+  const img = new Image();
+  img.className = 'rdet-photo ' + (isMeal ? 'rdet-photo--cover' : 'rdet-photo--contain');
+  img.alt = '';
+  img.onload = () => {
+    if (id !== _recipeDetailId) return;
+    if ((+hero.dataset.imglvl || 0) > lvl) return;   // c'è già una foto migliore
+    hero.dataset.imglvl = lvl;
+    hero.innerHTML = '';
+    if (isMeal) hero.style.background = 'var(--bg2)';
+    hero.appendChild(img);
+  };
+  img.src = url;                                  // se fallisce il load resta l'icona/foto attuale
+}
+
 /** Label leggibile per categoria (ordine = ordine nei menu a tendina) */
 const CAT_LABELS_FULL = {
   carne:'🥩 Carne', pesce:'🐟 Pesce', salumi:'🥓 Salumi',
@@ -3785,7 +3918,7 @@ function setDF(f, el) {
 
 /** Imposta filtro ricette */
 // Filtri ricette: fattibili (canMake), vegetariano/vegano, e tipologie (multi-select)
-let rPossibili = true, rVeg = false, rVegan = false;
+let rPossibili = false, rVeg = false, rVegan = false;
 const rtypeSel = new Set();
 const RTYPE_LABELS = {
   carne: '🍗 Carne', pesce: '🐟 Pesce', pasta: '🍝 Pasta', risotti: '🍚 Risotti',
@@ -4185,7 +4318,7 @@ function openItemDetail(id) {
 
   document.getElementById('item-detail-box').innerHTML = `
     <button class="idet-close" onclick="closeItemDetail(null,1)">×</button>
-    <div class="idet-hero" style="background:${_hexA(c, 0.16)}">
+    <div class="idet-hero" id="idet-hero" style="background:${_hexA(c, 0.16)}">
       <div class="idet-ico" style="${catTileStyle(cat)}">${ico(cat)}</div>
     </div>
     <div class="idet-name">${escHtml(it.name)}</div>
@@ -4207,6 +4340,19 @@ function openItemDetail(id) {
     </div>
     ${ideas.length ? `<div class="idet-ideas"><div class="idet-ideas__head">💡 Idee con ${escHtml(it.name)}</div>${ideasHtml}</div>` : ''}`;
   document.getElementById('item-detail-modal').classList.add('show');
+  // Foto reale del prodotto (Open Food Facts): dalla cache subito, altrimenti in rete
+  _itemDetailId = id;
+  applyItemPhoto(id, productImageUrl(it.name));
+}
+let _itemDetailId = null;
+/** Inserisce la foto reale nell'hero del dettaglio (solo se è ancora l'item aperto). */
+function applyItemPhoto(id, url) {
+  if (id !== _itemDetailId || !url) return;
+  const hero = document.getElementById('idet-hero'); if (!hero) return;
+  const img = new Image();
+  img.className = 'idet-photo'; img.alt = '';
+  img.onload = () => { if (id !== _itemDetailId) return; hero.innerHTML = ''; hero.appendChild(img); };
+  img.src = url;   // se fallisce il load resta l'icona colorata
 }
 function closeItemDetail(e, force) {
   if (force || e?.target === document.getElementById('item-detail-modal')) {
@@ -4595,7 +4741,7 @@ ${r.mambo.map((s,idx) => `<div class="step" style="margin-bottom:9px"><div class
     : `<div class="mambo-box" style="opacity:.5;font-size:13px;color:var(--text2)">🤖 Questa ricetta richiede wok/forno — non replicabile col robot da cucina.</div>`;
 
   document.getElementById('rbody').innerHTML = `
-<div class="rdet-hero" style="background:${_hexA(catColor(recipeType(r)), 0.16)}">
+<div class="rdet-hero" id="rdet-hero" style="background:${_hexA(catColor(recipeType(r)), 0.16)}">
   <div class="rdet-hero__ico" style="${catTileStyle(recipeType(r))}">${r.icon}</div>
 </div>
 <div style="font-family:'Inter',sans-serif;font-weight:800;font-size:23px;line-height:1.2;margin:2px 0 6px;text-align:center">${escHtml(r.name)}</div>
@@ -4610,6 +4756,10 @@ ${portionWarn}
 ${mamboHtml}`;
 
   document.getElementById('rmodal').classList.add('show');
+  // Immagine: SOLO la foto del piatto intero (TheMealDB). Niente ritagli di ingredienti:
+  // se non c'è una foto del piatto, resta l'icona (che rappresenta comunque un piatto).
+  _recipeDetailId = id;
+  fetchMealPhoto(r.name).then(u => { if (u) applyRecipePhoto(id, u, true); });
 }
 
 /** Aggiunge un ingrediente di una ricetta al carrello con la quantità necessaria */
@@ -6218,8 +6368,20 @@ async function onReceiptImages(images) {
   document.getElementById('receipt-actions').style.display = 'none';
   try {
     // OCR on-device + parser locale (nessuna chiave, nessuna rete).
-    const { products, total } = await window.ReceiptScanner.scan(images);
-    if (!products.length) { setReceiptStatus('😕 Nessun prodotto riconosciuto. Riprova con una foto più nitida, dritta e ben illuminata.', false); return; }
+    const { products, total, raw } = await window.ReceiptScanner.scan(images);
+    if (!products.length) {
+      const txt = (raw || '').trim();
+      if (!txt) {
+        setReceiptStatus('😕 Non sono riuscito a leggere testo dalla foto. Riprova con una foto più nitida, dritta, ben illuminata e ravvicinata sullo scontrino.', false);
+      } else {
+        // Mostra il testo letto dall'OCR: aiuta a capire cosa è stato riconosciuto
+        // e permette di aggiungere i prodotti a mano.
+        setReceiptStatus('😕 Ho letto il testo ma non ho riconosciuto prodotti/prezzi. Ecco cosa ha letto la fotocamera:', false);
+        const box = document.getElementById('receipt-list');
+        if (box) box.innerHTML = `<pre style="white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.5;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;max-height:40vh;overflow:auto;font-family:ui-monospace,Menlo,monospace">${escHtml(txt)}</pre>`;
+      }
+      return;
+    }
     // Completa categoria e unità con la logica dell'app (il parser resta puro).
     _receiptItems = products.map(p => {
       const cat = detectCat(p.name);
@@ -7437,6 +7599,9 @@ window.applyCloudData = function (d, silent) {
   renderD(); renderR(); renderShop(); updateShopBadge(); updateSidebar();
   if (typeof renderMiniCal === 'function') renderMiniCal();
   if (typeof refreshReportIfVisible === 'function') refreshReportIfVisible();
+  // Aggiorna anche la Home (contatore ricette fattibili) se è la pagina attiva,
+  // così non resta un numero “vecchio” diverso da quello della sezione Ricette.
+  try { if (typeof renderDashboard === 'function' && document.getElementById('dash-root')?.offsetParent) renderDashboard(); } catch (_) {}
   if (!silent) showAlert('☁️ Dispensa aggiornata dal cloud', 'ok', 2500);
 };
 

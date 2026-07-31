@@ -71,6 +71,42 @@ test('preferisce TOTALE COMPLESSIVO e ignora SUBTOTALE; prezzi con migliaia', ()
   assert.equal(total, 1299);
 });
 
+test('OCR con punto decimale invece della virgola (Conad)', () => {
+  const raw = [
+    'CONAD',
+    'LATTE INTERO        1.29 A',
+    'PANE                0.95 A',
+    'PASTA BARILLA       1.10 B',
+    'TOTALE EURO         3.34',
+  ].join('\n');
+  const { products, total } = parseReceipt(raw);
+  assert.equal(products.length, 3);
+  assert.equal(products[0].price, 1.29);
+  assert.equal(products[1].price, 0.95);
+  assert.equal(products[2].price, 1.1);
+  assert.equal(total, 3.34);
+});
+
+test('OCR a colonne: nome e prezzo su righe separate', () => {
+  const raw = [
+    'CONAD',
+    'LATTE INTERO',
+    '1,29 A',
+    'PANE',
+    '0,95 A',
+    'PARMIGIANO',
+    '4,50',
+    'TOTALE              6,74',
+  ].join('\n');
+  const { products, total } = parseReceipt(raw);
+  assert.equal(products.length, 3);
+  assert.match(products[0].name, /LATTE INTERO/i);
+  assert.equal(products[0].price, 1.29);
+  assert.match(products[2].name, /PARMIGIANO/i);
+  assert.equal(products[2].price, 4.5);
+  assert.equal(total, 6.74);
+});
+
 test('unità nella riga viene rilevata', () => {
   const { products } = parseReceipt('PROSCIUTTO 0,200 kg     3,80 A');
   assert.equal(products.length, 1);
