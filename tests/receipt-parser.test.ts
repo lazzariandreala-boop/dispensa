@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert';
 import { parseReceipt } from '../src/receipt/parser.ts';
+import { reconstructRows } from '../src/receipt/layout.ts';
 
 test('scontrino base: estrae prodotti e totale, scarta riepilogo/pagamento', () => {
   const raw = [
@@ -118,4 +119,59 @@ test('input vuoto o nullo non crasha', () => {
   assert.deepEqual(parseReceipt(''), { products: [], total: null });
   // @ts-expect-error test robustezza con input non valido
   assert.deepEqual(parseReceipt(null), { products: [], total: null });
+});
+
+test('ferma i prodotti al SUBTOTAL e scarta sconti/footer (Conad)', () => {
+  const raw = [
+    'CONAD',
+    'DESCRIZIONE          PREZZO(€) IVA',
+    'APEROL 11            11,89 A',
+    'ANACARDO TOSTATO SAL  3,99 B',
+    'CONAD HAMBURGER COTT  1,89 B',
+    'RIO MARE TONNO O     16,90 B',
+    'SUBTOTAL             34,67',
+    'OFF. FEDELTA         -5,91',
+    'SUBTOTAL             28,76',
+    'RIEPILOGO SCONTI PER IVA',
+    'IVA 10,00%           -5,91 B',
+    'TOTALE COMPLESSIVO   28,76',
+    'DI CUI IVA            3,67',
+    'PAGAMENTO ELETTRONICO 28,76',
+    'DETTAGLIO PAGAMENTI',
+    'DOC.2439-0169',
+  ].join('\n');
+  const { products, total } = parseReceipt(raw);
+  const names = products.map((p) => p.name.toUpperCase());
+  assert.equal(products.length, 4);
+  assert.match(names[0], /APEROL/);
+  assert.equal(products[0].price, 11.89);
+  assert.match(names[1], /ANACARDO/);
+  assert.equal(products[1].price, 3.99);
+  assert.match(names[2], /HAMBURGER/);
+  assert.equal(products[2].price, 1.89);
+  assert.match(names[3], /RIO MARE/);
+  assert.equal(products[3].price, 16.9);
+  assert.equal(total, 28.76);
+  // niente subtotali, sconti, righe di riepilogo/pagamento/documento
+  assert.ok(!names.some((n) => /SUBTOTAL|FEDELTA|RIEPILOGO|PAGAMENT|DETTAGLIO|DOC/.test(n)));
+});
+
+test('reconstructRows: raggruppa per riga (Y) e ordina per colonna (X)', () => {
+  // Elementi in ordine SPARSO (come li dà l'OCR a colonne): prezzi prima, nomi dopo.
+  const L = (text, top, left) => ({ text, top, bottom: top + 16, left, right: left + 60 });
+  const lines = [
+    L('11,89 A', 100, 220), L('3,99 B', 130, 220), L('16,90 B', 190, 220),
+    L('APEROL 11', 100, 10), L('ANACARDO TOSTATO', 130, 10), L('1,89 B', 160, 220),
+    L('CONAD HAMBURGER', 160, 10), L('RIO MARE TONNO', 190, 10),
+  ];
+  const text = reconstructRows(lines);
+  const rows = text.split('\n');
+  assert.equal(rows.length, 4);
+  assert.equal(rows[0], 'APEROL 11  11,89 A');
+  assert.equal(rows[1], 'ANACARDO TOSTATO  3,99 B');
+  assert.equal(rows[2], 'CONAD HAMBURGER  1,89 B');
+  assert.equal(rows[3], 'RIO MARE TONNO  16,90 B');
+  // e il parser ne ricava i 4 prodotti
+  const { products } = parseReceipt(text);
+  assert.equal(products.length, 4);
 });

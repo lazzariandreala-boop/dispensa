@@ -8,6 +8,7 @@ import { parseReceipt } from './parser';
 import type { ReceiptProduct } from './parser';
 import { getOcrEngine, isOcrAvailable } from './ocr';
 import type { OcrEngine } from './ocr';
+import { reconstructRows } from './layout';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
@@ -43,7 +44,10 @@ async function scan(images: string[]): Promise<ScanOutput> {
   const texts: string[] = [];
   for (const img of images) {
     try {
-      texts.push(await engine.recognize(img));
+      const res = await engine.recognize(img);
+      // Se abbiamo le bounding box ricostruiamo le righe reali (layout a colonne),
+      // altrimenti usiamo il testo grezzo così com'è.
+      texts.push(res.lines.length ? reconstructRows(res.lines) : res.text);
     } catch (e) {
       console.error('OCR error', e);
     }

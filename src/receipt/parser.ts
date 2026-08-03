@@ -24,6 +24,10 @@ export interface ReceiptScanResult {
 const PRICE = /\d{1,3}(?:[.\s]\d{3})*[.,]\d{2}(?!\d)/g;
 // Prezzo a fine riga, eventualmente seguito da classe IVA/€/*/spazi.
 const PRICE_AT_END = /(\d{1,3}(?:[.\s]\d{3})*[.,]\d{2})\s*(?:[A-Za-z€*]){0,3}\s*$/;
+// Prezzo NEGATIVO a fine riga (sconto/abbuono) → non è un prodotto.
+const NEG_AT_END = /[-–]\s*\d{1,3}(?:[.\s]\d{3})*[.,]\d{2}\s*(?:[A-Za-z€*]){0,3}\s*$/;
+// Inizio della sezione riepilogo/totali: da qui in poi NON ci sono più prodotti.
+const SUMMARY_START = /\b(SUBTOTAL|SUBTOTALE|PARZIALE|RIEPILOGO)\b/;
 // Riga quantità: "2 X 1,20", "2x1.20", "N. 2 x 1,20".
 const QTY_LINE = /^\s*(?:n[.\s]*)?(\d{1,3})\s*[xX*]\s*(\d{1,3}(?:[.\s]\d{3})*[.,]\d{2})/;
 // Unità nella riga: "0,450 kg", "500 g", "1 l"…
@@ -102,6 +106,9 @@ export function parseReceipt(raw: string): ReceiptScanResult {
   // Nome di prodotto letto senza prezzo: l'OCR a colonne mette spesso la
   // descrizione e il prezzo su righe separate → lo abbiniamo al prezzo seguente.
   let pendingName: string | null = null;
+  // Da quando inizia la sezione riepilogo/totali (SUBTOTALE, TOTALE, RIEPILOGO…)
+  // non ci sono più prodotti: solo sconti, IVA, pagamenti e footer da ignorare.
+  let summaryReached = false;
 
   const lines = String(raw || '')
     .split(/\r?\n/)
@@ -117,6 +124,7 @@ export function parseReceipt(raw: string): ReceiptScanResult {
       if (/\bTOTALE\b/.test(upper) && !upper.includes('SUBTOTALE')
           && !upper.includes('PARZIALE') && !upper.includes('IVA')) {
         pendingName = null;
+        summaryReached = true;
         const m = line.match(PRICE_AT_END);
         const val = m ? parsePrice(m[1]) : null;
         if (val != null) {
@@ -125,6 +133,11 @@ export function parseReceipt(raw: string): ReceiptScanResult {
         }
         continue;
       }
+
+      // Inizio riepilogo (SUBTOTALE/PARZIALE/RIEPILOGO) → stop ai prodotti.
+      if (!summaryReached && SUMMARY_START.test(upper)) summaryReached = true;
+      // Nella sezione riepilogo/footer non si estraggono prodotti.
+      if (summaryReached) { pendingName = null; continue; }
 
       // ── Riga quantità "2 x 1,20" → aggiorna il prodotto precedente ──
       const q = line.match(QTY_LINE);
@@ -142,6 +155,9 @@ export function parseReceipt(raw: string): ReceiptScanResult {
       }
 
       if (isExcluded(line)) { pendingName = null; continue; }
+
+      // Prezzo negativo (sconto/abbuono fedeltà) → non è un prodotto.
+      if (NEG_AT_END.test(line)) { pendingName = null; continue; }
 
       // ── Riga con prezzo a fine riga ─────────────────────────────
       const priceMatch = line.match(PRICE_AT_END);
