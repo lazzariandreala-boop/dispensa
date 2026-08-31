@@ -260,8 +260,11 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .app-loader__jar img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .app-loader__text { font-family: var(--font-head); font-weight: 600; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-secondary); }
 @keyframes jarspin { to { transform: rotate(360deg); } }
-/* Icona barattolo (stessa del loader/desktop) usata in header, nav, login */
-.jar-img { width: 1em; height: 1em; object-fit: contain; vertical-align: -.18em; display: inline-block; }
+/* Icona barattolo (stessa del loader/desktop) usata in header, nav, login.
+   Il barattolo è alto/stretto e sottile: va ingrandito per pareggiare
+   la resa visiva delle emoji (piene e larghe). */
+.hdr-jar, .nav-brand__logo, .tb .ico { display: inline-flex; align-items: center; justify-content: center; }
+.jar-img { width: 1.5em; height: 1.5em; object-fit: contain; display: block; margin: -.25em 0; }
 
 /* Bottoni-icona nell'header (Statistiche + Impostazioni) */
 .hdr-icon-btn, #sync-btn { width: 40px; height: 40px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; gap: 0; font-size: 18px; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: all .18s; flex-shrink: 0; white-space: normal; }
@@ -445,6 +448,19 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
   border-top: 1px solid var(--border);
 }
 .overlay.show .sheet { transform: translateY(0); }
+/* Modale ricetta: popup CENTRATO (non più bottom-sheet con swipe-to-close),
+   con la X sempre visibile in alto a destra e il contenuto che scorre dentro. */
+#rmodal { align-items: center; padding: 18px; }
+#rmodal .sheet {
+  position: relative; max-width: 470px; margin: 0 auto; border-radius: 24px;
+  max-height: 88vh; overflow: hidden; display: flex; flex-direction: column;
+  padding: 16px; border: 1px solid var(--border);
+  transform: scale(.96); transition: transform .22s cubic-bezier(.2,1,.35,1);
+}
+#rmodal.show .sheet { transform: scale(1); }
+#rmodal .handle { display: none; }
+#rmodal #rbody { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 2px; }
+#rmodal .mclose { position: absolute; top: 14px; right: 14px; z-index: 5; }
 .handle { width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 16px; }
 .mclose {
   position: absolute; top: 18px; right: 18px; width: 32px; height: 32px;
@@ -889,6 +905,12 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .idet-name { font-family:var(--font-head); font-weight:800; font-size:24px; text-align:center; letter-spacing:-.3px; }
 .idet-meta { font-size:14px; color:var(--text2); text-align:center; margin-top:5px; }
 .idet-chiprow { display:flex; justify-content:center; margin-top:14px; }
+.idet-exp { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
+.idet-exp__lbl { font-size:13px; font-weight:700; color:var(--text2); }
+.idet-exp__inp { background:var(--bg2); border:1px solid var(--border); border-radius:10px; color:var(--text); padding:6px 10px; font-size:13px; }
+.idet-exp__q { background:var(--bg3); border:1px solid var(--border); border-radius:9px; color:var(--text2); font-size:12px; font-weight:600; padding:6px 9px; cursor:pointer; }
+.idet-exp__q:active { transform:scale(.95); }
+.idet-exp__note { text-align:center; font-size:11.5px; color:var(--warn); margin-top:8px; }
 .idet-consume { margin:24px 4px; }
 .idet-consume__head { display:flex; justify-content:space-between; font-size:13px; font-weight:700; color:var(--text2); margin-bottom:12px; }
 .idet-consume input[type=range] { width:100%; height:6px; accent-color:var(--accent, #22C55E); cursor:pointer; }
@@ -903,7 +925,7 @@ h1, h2, h3, .stitle, .sync-title, #hdr h1 { font-family: var(--font-head); }
 .idet-idea:hover { border-color:var(--border-strong); }
 .idet-idea__ico { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:25px; border:1px solid transparent; flex-shrink:0; }
 .idet-idea__txt { flex:1; min-width:0; display:flex; flex-direction:column; }
-.idet-idea__name { font-weight:700; font-size:14px; }
+.idet-idea__name { font-weight:700; font-size:14px; color:var(--text); }
 .idet-idea__meta { font-size:11.5px; color:var(--text3); margin-top:2px; }
 .idet-idea__arr { color:var(--text3); font-size:20px; flex-shrink:0; }
 /* Hero colorato nel dettaglio ricetta */
@@ -1349,6 +1371,14 @@ select.fi                        { padding-right: 32px !important; }
 #disp-fixed-header .sbox { margin-bottom: 0; }
 .dcat-row { display: flex; gap: 7px; overflow-x: auto; margin-top: 9px; padding-bottom: 2px; scrollbar-width: none; -ms-overflow-style: none; }
 .dcat-row::-webkit-scrollbar { display: none; }
+/* Riga filtri Dispensa: categorie + ordinamento affiancati */
+.disp-filters { display: flex; gap: 8px; align-items: stretch; margin-top: 9px; }
+.disp-filters .msel { flex: 1; min-width: 0; margin: 0; }
+.disp-filters .msel-trigger { width: 100%; }
+.dsort { display: flex; gap: 6px; flex-shrink: 0; }
+.dsort__sel { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 13px; padding: 0 8px; min-height: 42px; cursor: pointer; font-family: inherit; }
+.dsort__dir { width: 42px; flex-shrink: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 17px; font-weight: 700; cursor: pointer; }
+.dsort__dir:active { transform: scale(.95); }
 .dcat-chip { flex-shrink: 0; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-family: var(--font-body); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .15s; }
 .dcat-chip.active { background: var(--grad-primary); color: #05140A; border-color: transparent; }
 
@@ -1747,11 +1777,24 @@ body:not(.authed) #app-shell { display: none; }
     <span>🔍</span>
     <input id="dsearch" placeholder="Cerca alimento…" oninput="renderD()">
   </div>
-  <div class="msel" id="dcat-msel" style="display:none">
-    <button type="button" class="msel-trigger" onclick="toggleDcatMenu(event)">
-      <span id="dcat-label">Tutte le categorie</span>
-      <span class="cs-trigger__chev">▾</span>
-    </button>
+  <div class="disp-filters">
+    <div class="msel" id="dcat-msel" style="display:none">
+      <button type="button" class="msel-trigger" onclick="toggleDcatMenu(event)">
+        <span id="dcat-label">Tutte le categorie</span>
+        <span class="cs-trigger__chev">▾</span>
+      </button>
+    </div>
+    <div class="dsort">
+      <select id="dsort" class="dsort__sel" onchange="renderD()" title="Ordina per">
+        <option value="expiry">Scadenza</option>
+        <option value="name">Nome</option>
+        <option value="category">Categoria</option>
+        <option value="consumed">Consumato</option>
+        <option value="quantity">Quantità</option>
+        <option value="added">Aggiunta</option>
+      </select>
+      <button class="dsort__dir" id="dsort-dir" onclick="toggleSortDir()" title="Inverti ordine">↑</button>
+    </div>
   </div>
 </div>
 
@@ -3445,6 +3488,13 @@ const SK = 'dispensa_v3';
  */
 let items = [], shopping = [], consumptionLog = [], additionLog = [], monthlyReports = [], priceBook = {};
 let df = 'tutti';
+let dsortDir = 1; // 1 = crescente, -1 = decrescente (per il filtro ordinamento Dispensa)
+function toggleSortDir() {
+  dsortDir = -dsortDir;
+  const b = document.getElementById('dsort-dir');
+  if (b) b.textContent = dsortDir > 0 ? '↑' : '↓';
+  renderD();
+}
 let editId = null, scanner = null, scanRunning = false;
 
 /** Carica i dati da localStorage — gestisce sia v2 che v3 */
@@ -3540,7 +3590,7 @@ const CATS = {
   verdure:'🥬', frutta:'🍎', legumi:'🫘', pasta_cereali:'🍝', pane:'🍞',
   colazione:'🥣', sughi:'🍅', condimenti:'🫗', spezie:'🧂', farine:'🌾',
   scatola:'🥫', surgelati:'❄️', dolci:'🍰', snack:'🍿', bevande:'🥤',
-  alcolici:'🍷', casa:'🧴', generico:'❓'
+  alcolici:'🍷', casa:'🧴', frutta_secca:'🥜', uova:'🥚', generico:'❓'
 };
 
 /** Ritorna l'emoji per la categoria indicata */
@@ -3553,7 +3603,7 @@ const CAT_COLOR = {
   pane:'#CA8A04', colazione:'#FB923C', sughi:'#DC2626', condimenti:'#14B8A6',
   spezie:'#B45309', farine:'#B8860B', scatola:'#64748B', surgelati:'#38BDF8',
   dolci:'#EC4899', snack:'#8B5CF6', bevande:'#06B6D4', alcolici:'#A855F7',
-  casa:'#0891B2', generico:'#94A3B8',
+  casa:'#0891B2', frutta_secca:'#92400E', generico:'#94A3B8',
   // tipologie ricette (per le card colorate)
   pasta:'#D97706', risotti:'#F59E0B', zuppe:'#EA580C', freddi:'#10B981',
   uova:'#FBBF24', panini:'#8B5CF6',
@@ -3710,6 +3760,7 @@ const CAT_LABELS_FULL = {
   spezie:'🧂 Spezie', farine:'🌾 Farine', scatola:'🥫 Scatolame',
   surgelati:'❄️ Surgelati', dolci:'🍰 Dolci', snack:'🍿 Snack e salati',
   bevande:'🥤 Bevande', alcolici:'🍷 Alcolici', casa:'🧴 Casa e cura',
+  frutta_secca:'🥜 Frutta secca', uova:'🥚 Uova',
   generico:'❓ Generico'
 };
 
@@ -3717,14 +3768,29 @@ const CAT_LABELS_FULL = {
 const FREEZE_DAYS = {
   carne:90, pesce:60, verdure:180, frutta:90, pane:90, latticini:60,
   salumi:60, pasta_cereali:180, legumi:180, dolci:60, sughi:120, sughi_pronti:120,
-  colazione:180, snack:120, surgelati:365, generico:60
+  colazione:180, snack:120, surgelati:365, frutta_secca:365, uova:60, generico:60
 };
 
 /** Giorni di consumo dopo scongelamento */
 const THAW_DAYS = {
   carne:2, pesce:1, verdure:3, frutta:2, pane:2, latticini:3,
-  salumi:3, pasta_cereali:3, legumi:4, dolci:2, surgelati:2, generico:2
+  salumi:3, pasta_cereali:3, legumi:4, dolci:2, surgelati:2, frutta_secca:30, uova:2, generico:2
 };
+
+/** Durata stimata (giorni da OGGI) prima della scadenza, per categoria.
+ *  Stima PESSIMISTICA (meglio corta che lunga) per prodotti freschi;
+ *  usata come scadenza di default quando non è indicata (es. scontrino). */
+const SHELF_DAYS = {
+  carne:3, pesce:2, salumi:6, latticini:7, uova:21, verdure:6, frutta:6,
+  frutta_secca:180, legumi:365, pasta_cereali:365, pane:3, colazione:180,
+  sughi:20, condimenti:180, spezie:365, farine:240, scatola:540, surgelati:180,
+  dolci:60, snack:90, bevande:180, alcolici:1095, casa:1095, generico:14,
+};
+/** Data di scadenza stimata (YYYY-MM-DD) per una categoria, a partire da oggi. */
+function estimateExpiry(cat) {
+  const d = SHELF_DAYS[cat] != null ? SHELF_DAYS[cat] : SHELF_DAYS.generico;
+  return addDays(today(), d);
+}
 
 /** Calcola la data di scadenza in cella partendo dalla scadenza originale */
 function freezeExp(origExp, cat) {
@@ -3744,27 +3810,29 @@ function thawExp(cat) {
 // generiche (verdure, condimenti, bevande…) per evitare falsi positivi
 // (es. "passata di pomodoro" → sughi, non verdure).
 const CAT_RULES = [
-  { c:'sughi',        w:['passata','sugo','ragù','ragu','besciamella','arrabbiata','amatriciana','pesto','pomodori pelati','polpa di pomodoro','concentrato','salsa di pomodoro','salsa pronta','salsa','pomarola','marinara','bolognese','sugo pronto'] },
-  { c:'alcolici',     w:['vino','birra','spritz','aperol','prosecco','spumante','champagne','gin','vodka','whisky','whiskey','liquore','grappa','tequila','cocktail','sidro','martini','campari','limoncello','sambuca','bacardi','bitter','wine'] },
-  { c:'bevande',      w:['acqua','succo','coca cola','coca-cola','pepsi','fanta','sprite','aranciata','limonata','tè','tisana','camomilla','caffè','bibita','energy','red bull','gatorade','tonica','chinotto','smoothie','latte vegetale','latte di mandorla','latte di soia','latte di avena'] },
-  { c:'colazione',    w:['cereali','cornflakes','muesli','fette biscottate','avena','porridge','granola','gallette'] },
-  { c:'snack',        w:['patatine','chips','snack','popcorn','taralli','grissini','cracker','crackers','salatini','pretzel','noccioline','arachidi','pistacchi','anacardi','frutta secca','mandorle'] },
-  { c:'carne',        w:['pollo','manzo','vitello','maiale','agnello','tacchino','bistecca','hamburger','cotoletta','braciola','salsiccia','wurstel','spiedino','arrosto','coniglio','anatra','piccione','cinghiale','selvaggina','macinat','carne'] },
-  { c:'pesce',        w:['salmone','tonno','merluzzo','branzino','orata','gamberi','cozze','vongole','calamari','trota','baccalà','acciughe','sardine','polpo','sgombro','dentice','spigola','halibut','pesce','bastoncini'] },
-  { c:'salumi',       w:['prosciutto','salame','mortadella','bresaola','pancetta','guanciale','speck','coppa','lardo','nduja','salumi','ciccioli','lonza'] },
-  { c:'latticini',    w:['latte','yogurt','formaggio','mozzarella','parmigiano','ricotta','burro','panna','mascarpone','gorgonzola','pecorino','grana','brie','camembert','fontina','scamorza','provolone','stracchino','asiago','crescenza','philadelphia','fiocchi di latte'] },
-  { c:'verdure',      w:['pomodoro','pomodori','cipolla','cipolle','carota','carote','zucchina','zucchine','melanzana','melanzane','peperone','peperoni','spinaci','insalata','cavolo','broccoli','funghi','piselli','fagiolini','carciofo','carciofi','asparagi','lattuga','rucola','radicchio','cetriolo','cetrioli','finocchio','finocchi','porro','zucca','cavolfiore','sedano','bietola','rapa','patata','patate'] },
-  { c:'frutta',       w:['mela','mele','pera','pere','banana','banane','arancia','arance','limone','limoni','fragola','fragole','uva','kiwi','ananas','pesca','pesche','albicocca','albicocche','ciliegia','ciliegie','mango','avocado','melograno','pompelmo','mandarino','mandarini','cocomero','anguria','melone','fico','prugna','prugne','lampone','lamponi','mirtillo','mirtilli','datteri','cocco'] },
-  { c:'pasta_cereali',w:['pasta','spaghetti','rigatoni','penne','fusilli','riso','orzo','farro','couscous','quinoa','lasagne','tagliatelle','linguine','orecchiette','farfalle','polenta','bulgur','semola','gnocchi','tortellini','ravioli'] },
-  { c:'pane',         w:['pane','baguette','panino','piadina','focaccia','ciabatta','tramezzino','toast','brioche','cornetto','croissant','chapati','naan','pancarré'] },
-  { c:'condimenti',   w:['olio','aceto','ketchup','maionese','senape','soia','miso','wasabi','tahini','harissa','curry','dado','brodo','worcester','tabasco'] },
-  { c:'spezie',       w:['sale','pepe','paprika','zafferano','cannella','curcuma','cumino','coriandolo','timo','rosmarino','salvia','basilico','origano','spezie','noce moscata','zenzero','peperoncino','alloro','prezzemolo','erbe aromatiche'] },
-  { c:'dolci',        w:['cioccolato','biscotti','torta','gelato','nutella','marmellata','miele','zucchero','caramella','wafer','meringa','cacao','vaniglia','savoiardi','crostata','confettura','budino','merendine','crema spalmabile'] },
-  { c:'legumi',       w:['fagioli','lenticchie','ceci','fave','lupini','cannellini','borlotti','azuki','edamame','legumi','soia'] },
+  { c:'sughi',        w:['passata','sugo','ragù','ragu','besciamella','arrabbiata','amatriciana','pesto','pomodori pelati','polpa di pomodoro','concentrato di pomodoro','salsa di pomodoro','salsa pronta','pomarola','marinara','bolognese','sugo pronto','datterino sugo'] },
+  { c:'alcolici',     w:['vino','birra','spritz','aperol','prosecco','spumante','champagne','gin','vodka','whisky','whiskey','liquore','grappa','tequila','cocktail','sidro','martini','campari','limoncello','sambuca','bacardi','bitter','wine','rum','cognac','brandy','vermouth','amaro','baileys','cointreau','moscato','lambrusco','chianti','barolo','negroni','ipa','lager','birretta'] },
+  { c:'bevande',      w:['acqua','succo','coca cola','coca-cola','cocacola','pepsi','fanta','sprite','aranciata','limonata','tè','the freddo','tisana','camomilla','caffè','caffe','bibita','energy','red bull','gatorade','tonica','chinotto','smoothie','gassosa','cedrata','estathè','estathe','nesquik','latte vegetale','latte di mandorla','latte di soia','latte di avena','latte di riso','latte di cocco','bevanda vegetale'] },
+  { c:'colazione',    w:['cereali','cornflakes','muesli','fette biscottate','avena','porridge','granola','gallette','biscotti da colazione'] },
+  { c:'frutta_secca', w:['mandorle','mandorla','noci','gheriglio','gherigli','nocciole','nocciola','anacardi','anacardo','pistacchi','pistacchio','arachidi','arachide','noccioline','pinoli','pinolo','castagne','castagna','frutta secca','semi di zucca','semi di girasole','semi di lino','semi di chia','semi di sesamo','uvetta','uva passa','uva sultanina','datteri','dattero','fichi secchi','albicocche secche','prugne secche','mirtilli rossi secchi','cranberry','noci pecan','noci di macadamia'] },
+  { c:'snack',        w:['patatine','chips','snack','popcorn','taralli','grissini','cracker','crackers','salatini','pretzel','nachos','tortillas','crostini salati'] },
+  { c:'carne',        w:['pollo','manzo','vitello','vitellone','scottona','maiale','agnello','tacchino','faraona','bistecca','hamburger','svizzera','cotoletta','braciola','salsiccia','wurstel','würstel','spiedino','arrosto','coniglio','anatra','piccione','cinghiale','selvaggina','macinat','carne','petto di pollo','coscia di pollo','fesa','tagliata','filetto','entrecote','roast beef','porchetta','spezzatino','trippa','fegato','polpette','polpettone','cotechino','zampone','ossobuco','nodini','costine','costolette','fettine','scaloppine'] },
+  { c:'pesce',        w:['salmone','tonno','merluzzo','branzino','orata','gamberi','gambero','gamberetti','cozze','vongole','calamari','calamaro','trota','baccalà','baccala','acciughe','alici','sardine','sarde','polpo','sgombro','dentice','spigola','halibut','pesce','bastoncini','nasello','platessa','pangasio','persico','sogliola','rombo','ricciola','pesce spada','seppie','seppia','scampi','astice','aragosta','granchio','surimi','aringa','bottarga','caviale','frutti di mare','moscardini','totani','cernia'] },
+  { c:'salumi',       w:['prosciutto','salame','mortadella','bresaola','pancetta','guanciale','speck','coppa','lardo','nduja','salumi','ciccioli','lonza','affettato','affettati','salamino','soppressata','capocollo'] },
+  { c:'latticini',    w:['latte','yogurt','yoghurt','formaggio','mozzarella','parmigiano','reggiano','ricotta','burro','panna','mascarpone','gorgonzola','pecorino','grana','brie','camembert','fontina','scamorza','provolone','stracchino','asiago','crescenza','philadelphia','fiocchi di latte','kefir','skyr','feta','emmental','emmentaler','edamer','groviera','gruviera','caciotta','caciocavallo','taleggio','robiola','squacquerone','burrata','stracciatella','quark','cheddar','formaggino','formaggini','sottiletta','sottilette','tomino','primo sale','galbanino'] },
+  { c:'verdure',      w:['aglio','scalogno','pomodoro','pomodori','pomodorini','ciliegino','datterini','cipolla','cipolle','cipollotto','carota','carote','zucchina','zucchine','melanzana','melanzane','peperone','peperoni','spinaci','insalata','misticanza','songino','soncino','valeriana','lattuga','rucola','radicchio','cicoria','indivia','scarola','catalogna','crescione','cavolo','cavolfiore','cavolini','cavoletti','verza','broccoli','broccolo','funghi','fungo','champignon','porcini','fagiolini','taccole','carciofo','carciofi','asparagi','cetriolo','cetrioli','finocchio','finocchi','porro','porri','zucca','sedano','bietola','bietole','coste','erbette','rapa','rape','ravanello','ravanelli','barbabietola','topinambur','patata','patate','patata dolce','batata','friarielli','germogli'] },
+  { c:'frutta',       w:['mela','mele','pera','pere','banana','banane','arancia','arance','limone','limoni','lime','cedro','bergamotto','clementine','clementina','mandarino','mandarini','pompelmo','fragola','fragole','fragoline','uva','kiwi','ananas','pesca','pesche','albicocca','albicocche','ciliegia','ciliegie','mango','avocado','melograno','melagrana','cachi','caco','papaya','maracuja','frutto della passione','litchi','nespola','nespole','fichi','fico','cocomero','anguria','melone','prugna','prugne','susine','lampone','lamponi','mirtillo','mirtilli','more','ribes','frutti di bosco','cocco','uva spina'] },
+  { c:'pasta_cereali',w:['pasta','spaghetti','rigatoni','penne','fusilli','riso','risotto','orzo','farro','couscous','cous cous','quinoa','lasagne','tagliatelle','linguine','orecchiette','farfalle','polenta','bulgur','semola','semolino','gnocchi','tortellini','tortelli','ravioli','maccheroni','ziti','bucatini','vermicelli','capellini','pappardelle','trofie','fregola','miglio','grano saraceno','amaranto','pastina','ditalini','stelline','cannelloni','pizzoccheri','trenette','paccheri','calamarata','mezze maniche','sedanini','conchiglie','tagliolini','casarecce'] },
+  { c:'pane',         w:['pane','baguette','panino','panini','piadina','focaccia','ciabatta','tramezzino','toast','pancarré','pancarre','brioche','cornetto','croissant','chapati','naan','rosetta','michetta','filoncino','schiacciata','crostini','bruschette','pita','tortilla','wrap','bagel','carasau','frisella','friselle','pane in cassetta','pangrattato'] },
+  { c:'condimenti',   w:['olio','aceto','ketchup','maionese','senape','mostarda','salsa di soia','miso','wasabi','tahini','tahina','harissa','curry','dado','brodo','worcester','worcestershire','tabasco','glassa balsamica','chutney','guacamole','hummus','tzatziki','salsa yogurt','salsa rosa','salsa tartara','salsa barbecue','burro di arachidi','vinaigrette'] },
+  { c:'spezie',       w:['sale','pepe','paprika','zafferano','cannella','curcuma','cumino','coriandolo','timo','rosmarino','salvia','basilico','origano','spezie','noce moscata','zenzero','peperoncino','alloro','prezzemolo','erbe aromatiche','erbe di provenza','chiodi di garofano','anice','finocchietto','maggiorana','erba cipollina','menta','aneto','dragoncello','garam masala','cardamomo','semi di finocchio'] },
+  { c:'dolci',        w:['cioccolato','cioccolata','biscotti','biscotto','torta','gelato','ghiacciolo','nutella','marmellata','confettura','miele','zucchero','caramella','caramelle','wafer','meringa','cacao','vaniglia','savoiardi','crostata','budino','merendine','merendina','crema spalmabile','plumcake','pandoro','panettone','colomba','pasticcini','cannoli','tiramisù','panna cotta','cheesecake','muffin','brownie','pancake','waffle','ciambella','krapfen','bombolone','zeppole','frittelle','marshmallow','chewing gum','lecca lecca','torrone','croccante','cioccolatini','crema pasticcera','pan di spagna','sciroppo','caramello','gianduia'] },
+  { c:'legumi',       w:['fagioli','lenticchie','ceci','fave','lupini','cannellini','borlotti','azuki','edamame','legumi','soia','tofu','tempeh','seitan','cicerchie','fagioli neri','fagioli rossi','fagioli bianchi','piselli'] },
   { c:'surgelati',    w:['surgelat','congelat'] },
-  { c:'farine',       w:['farina','manitoba','maizena','amido','frumento','lievito'] },
-  { c:'scatola',      w:['pelati','lattina','conserva','olive','capperi','mais','tonno in scatola','sottolio','sottaceti'] },
-  { c:'casa',         w:['detersivo','detergente','sapone','shampoo','bagnoschiuma','dentifricio','carta igienica','scottex','tovaglioli','sacchetti','spugne','ammorbidente','candeggina','sgrassatore','deodorante','pannolini','fazzoletti'] },
+  { c:'farine',       w:['farina','manitoba','maizena','amido','frumento','lievito','fecola','bicarbonato','cremor tartaro','pangrattato','pan grattato','semola rimacinata','malto','lievito madre'] },
+  { c:'uova',         w:['uova','uovo','albume','tuorlo','uovo sodo'] },
+  { c:'scatola',      w:['pelati','lattina','conserva','conserve','olive','capperi','mais','tonno in scatola','sottolio','sott\'olio','sottaceti','sottaceto','carciofini','giardiniera','filetti di acciuga','antipasto'] },
+  { c:'casa',         w:['detersivo','detergente','sapone','shampoo','bagnoschiuma','dentifricio','carta igienica','scottex','tovaglioli','sacchetti','spugne','ammorbidente','candeggina','sgrassatore','deodorante','pannolini','fazzoletti','salviette','anticalcare','lavastoviglie','brillantante','sacchi spazzatura','pellicola','carta forno','cotton fioc'] },
 ];
 
 const CAT_QTY_DEFAULTS = {
@@ -3812,9 +3880,13 @@ function autoUnit(nameElId, catElId, unitElId) {
 
 /** Rileva la categoria da un nome prodotto */
 function detectCat(name) {
-  const n = name.toLowerCase();
+  // Normalizza: minuscolo, i separatori diventano spazi, spazi singoli.
+  // Il match richiede che la parola-chiave inizi a confine di parola (preceduta
+  // da spazio) → evita falsi positivi come "gin" dentro "extraverGINe".
+  // Resta valido il match come prefisso di parola (es. "macinat" → macinato).
+  const n = ' ' + String(name || '').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').replace(/\s+/g, ' ');
   for (const rule of CAT_RULES) {
-    if (rule.w.some(w => n.includes(w))) return rule.c;
+    if (rule.w.some(w => n.includes(' ' + w))) return rule.c;
   }
   return 'generico';
 }
@@ -3994,13 +4066,27 @@ function renderD() {
     return true; // df === 'tutti'
   });
 
-  // Ordina: scaduti/scadenza vicina prima → congelati → senza scadenza
+  // Ordinamento configurabile (filtro accanto alle categorie)
+  const dsortKey = document.getElementById('dsort')?.value || 'expiry';
+  const dir = dsortDir;
+  const cmpName = (a, b) => a.name.localeCompare(b.name, 'it');
   list.sort((a, b) => {
-    const da = daysTo(a.expiryDate), db = daysTo(b.expiryDate);
-    if (da === null && db === null) return a.name.localeCompare(b.name);
-    if (da === null) return 1;
-    if (db === null) return -1;
-    return da - db;
+    switch (dsortKey) {
+      case 'name':     return cmpName(a, b) * dir;
+      case 'category': return ((CAT_LABELS_FULL[a.category] || a.category || '').localeCompare(CAT_LABELS_FULL[b.category] || b.category || '', 'it') || cmpName(a, b)) * dir;
+      case 'consumed': return (((a.consumed || 0) - (b.consumed || 0)) || cmpName(a, b)) * dir;
+      case 'quantity': return (((a.quantity || 0) - (b.quantity || 0)) || cmpName(a, b)) * dir;
+      case 'added':    return (String(a.addedDate || '').localeCompare(String(b.addedDate || '')) || cmpName(a, b)) * dir;
+      case 'expiry':
+      default: {
+        // I "senza scadenza" restano sempre in fondo, indipendentemente dal verso.
+        const da = daysTo(a.expiryDate), db = daysTo(b.expiryDate);
+        if (da === null && db === null) return cmpName(a, b);
+        if (da === null) return 1;
+        if (db === null) return -1;
+        return (da - db) * dir;
+      }
+    }
   });
 
   const el = document.getElementById('dlist');
@@ -4291,15 +4377,7 @@ function openItemDetail(id) {
   const it = items.find(x => x.id === id);
   if (!it) return;
   const cat = it.category || 'generico';
-  const d = daysTo(it.expiryDate);
-  // chip scadenza (stessa logica delle card)
-  let chip;
-  if (it.frozen)        chip = '<span class="exp-chip exp-chip--frozen">❄ In cella</span>';
-  else if (d === null)  chip = '<span class="exp-chip exp-chip--none">Nessuna scadenza</span>';
-  else if (d < 0)       chip = '<span class="exp-chip exp-chip--expired">Scaduto</span>';
-  else if (d === 0)     chip = '<span class="exp-chip exp-chip--soon">Scade oggi</span>';
-  else if (d <= 7)      chip = `<span class="exp-chip exp-chip--soon">Scade tra ${d}g</span>`;
-  else { const [yy, mm, dd] = it.expiryDate.split('-').map(Number); chip = `<span class="exp-chip exp-chip--fresh">${new Date(yy, mm - 1, dd).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span>`; }
+  const chip = expiryChipHtml(it);
   const consumed = it.consumed || 0;
   // ricette che usano questo ingrediente
   const iname = it.name.toLowerCase();
@@ -4325,7 +4403,15 @@ function openItemDetail(id) {
     </div>
     <div class="idet-name">${escHtml(it.name)}</div>
     <div class="idet-meta">${CAT_LABELS_FULL[cat] || cat} · ${it.quantity} ${it.unit}</div>
-    <div class="idet-chiprow">${chip}</div>
+    <div class="idet-chiprow" id="idet-chiprow">${chip}</div>
+    <div class="idet-exp">
+      <span class="idet-exp__lbl">📅 Scadenza</span>
+      <input type="date" class="idet-exp__inp" value="${it.expiryDate || ''}" onchange="setItemExpiry('${id}', this.value)">
+      <button class="idet-exp__q" onclick="bumpItemExpiry('${id}',3)">+3g</button>
+      <button class="idet-exp__q" onclick="bumpItemExpiry('${id}',7)">+7g</button>
+      <button class="idet-exp__q" onclick="bumpItemExpiry('${id}',30)">+1m</button>
+    </div>
+    ${it.expiryEstimated ? '<div class="idet-exp__note" id="idet-exp-note">⚠️ Scadenza stimata automaticamente — modificala se la conosci</div>' : ''}
     <div class="idet-consume">
       <div class="idet-consume__head"><span>Consumato</span><span id="idet-cons-val">${consumed}%</span></div>
       <input type="range" min="0" max="100" step="5" value="${consumed}" oninput="setItemConsumed('${id}',this.value)">
@@ -4369,6 +4455,34 @@ function setItemConsumed(id, val) {
   save(); _itemDetailDirty = true;
   const lbl = document.getElementById('idet-cons-val'); if (lbl) lbl.textContent = it.consumed + '%';
   if (it.consumed >= 100) { closeItemDetail(null, 1); setTimeout(() => consumeItem(id, null), 150); }
+}
+/** Chip di scadenza per un item (usato nel dettaglio, aggiornabile al volo). */
+function expiryChipHtml(it) {
+  if (it.frozen) return '<span class="exp-chip exp-chip--frozen">❄ In cella</span>';
+  const d = daysTo(it.expiryDate);
+  if (d === null) return '<span class="exp-chip exp-chip--none">Nessuna scadenza</span>';
+  if (d < 0)      return '<span class="exp-chip exp-chip--expired">Scaduto</span>';
+  if (d === 0)    return '<span class="exp-chip exp-chip--soon">Scade oggi</span>';
+  if (d <= 7)     return `<span class="exp-chip exp-chip--soon">Scade tra ${d}g</span>`;
+  const [yy, mm, dd] = it.expiryDate.split('-').map(Number);
+  return `<span class="exp-chip exp-chip--fresh">${new Date(yy, mm - 1, dd).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })}</span>`;
+}
+/** Imposta/modifica la scadenza di un item dal dettaglio (aggiorna al volo). */
+function setItemExpiry(id, val) {
+  const it = items.find(x => x.id === id); if (!it) return;
+  it.expiryDate = val || null;
+  it.expiryEstimated = false;
+  if (it.frozen) it.originalExpiry = val || null;
+  save(); _itemDetailDirty = true;
+  const cr = document.getElementById('idet-chiprow'); if (cr) cr.innerHTML = expiryChipHtml(it);
+  const note = document.getElementById('idet-exp-note'); if (note) note.remove();
+  const inp = document.querySelector('#item-detail-box .idet-exp__inp'); if (inp) inp.value = it.expiryDate || '';
+}
+/** Sposta la scadenza in avanti di N giorni (da oggi se assente/scaduta). */
+function bumpItemExpiry(id, days) {
+  const it = items.find(x => x.id === id); if (!it) return;
+  const base = (it.expiryDate && daysTo(it.expiryDate) >= 0) ? it.expiryDate : today();
+  setItemExpiry(id, addDays(base, days));
 }
 
 /** Apre/chiude la barra azioni di un item (chiude gli altri) */
@@ -5396,12 +5510,12 @@ function sbQuickAdd() {
   if (isNaN(qty)||qty<=0){ showAlert('Quantità non valida', 'err'); return; }
   let finalExp = null, origExp = null;
   if (frozen && expRaw) { origExp = expRaw; finalExp = freezeExp(expRaw, cat); }
-  else { finalExp = expRaw; }
+  else { finalExp = expRaw || estimateExpiry(cat); }
   items.push({
     id: uid(), name, quantity: qty, unit, category: cat,
     expiryDate: finalExp, originalExpiry: origExp,
     frozen, frozenDate: frozen ? today() : null,
-    thawedDate: null, barcode: null, addedDate: today()
+    thawedDate: null, barcode: null, addedDate: today(), expiryEstimated: !frozen && !expRaw
   });
   // Registra nel log aggiunte
   additionLog.push({ id: uid(), name, category: cat, qty, unit, price, date: today() });
@@ -5607,7 +5721,7 @@ function saveItem() {
   if (frozen) {
     if (already) { finalExp = exp; origExp = null; }
     else         { origExp = exp; finalExp = freezeExp(exp, cat); }
-  } else { finalExp = exp || null; }
+  } else { finalExp = exp || estimateExpiry(cat); }
 
   const priceRaw = parseFloat(document.getElementById('fprice')?.value);
   const price = isNaN(priceRaw) || priceRaw <= 0 ? null : priceRaw;
@@ -5616,7 +5730,7 @@ function saveItem() {
     expiryDate: finalExp, originalExpiry: origExp,
     frozen, frozenDate: frozen ? today() : null,
     thawedDate: null, barcode: lastScanBarcode, addedDate: today(),
-    isSurgelato: frozen && already, price
+    isSurgelato: frozen && already, price, expiryEstimated: !frozen && !exp
   };
 
   // Add 1 + copies items
@@ -6271,8 +6385,8 @@ function saveCalEntry() {
   } else {
     additionLog.push({ id: uid(), name, category: cat, qty, unit, price, date: _calEntry.ds, source, expiryDate: exp });
     if (document.getElementById('ce-pantry').checked) {
-      items.push({ id: uid(), name, quantity: qty, unit, category: cat, expiryDate: exp, originalExpiry: null,
-        frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: _calEntry.ds, price: price || 0, consumed: 0 });
+      items.push({ id: uid(), name, quantity: qty, unit, category: cat, expiryDate: exp || estimateExpiry(cat), originalExpiry: null,
+        frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: _calEntry.ds, price: price || 0, consumed: 0, expiryEstimated: !exp });
     }
     if (price != null) { try { pbUpdate(name, price, qty, unit, cat); } catch (_) {} }
   }
@@ -6430,8 +6544,8 @@ function confirmReceiptItems() {
   keep.forEach(it => {
     const nm = it.name.trim();
     additionLog.push({ id: uid(), name: nm, category: it.category, qty: it.qty, unit: it.unit, price: it.price, date: ds, source: 'scontrino' });
-    items.push({ id: uid(), name: nm, quantity: it.qty, unit: it.unit, category: it.category, expiryDate: null, originalExpiry: null,
-      frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: ds, price: it.price || 0, consumed: 0 });
+    items.push({ id: uid(), name: nm, quantity: it.qty, unit: it.unit, category: it.category, expiryDate: estimateExpiry(it.category), originalExpiry: null,
+      frozen: false, frozenDate: null, thawedDate: null, barcode: null, addedDate: ds, price: it.price || 0, consumed: 0, expiryEstimated: true });
     if (it.price != null) { try { pbUpdate(nm, it.price, it.qty, it.unit, it.category); } catch (_) {} }
   });
   save();
@@ -7712,14 +7826,8 @@ async function manualRefresh() {
   // quindi usiamo solo il pulsante su desktop. Touch è sufficiente per mobile.
 })();
 
-// Swipe down per chiudere il modal ricetta
-let swipeStartY = 0;
-document.getElementById('rsheet').addEventListener('touchstart', e => {
-  swipeStartY = e.touches[0].clientY;
-}, { passive: true });
-document.getElementById('rsheet').addEventListener('touchmove', e => {
-  if (e.touches[0].clientY - swipeStartY > 80) closeRModal(null, 1);
-}, { passive: true });
+// Il modal ricetta è un popup centrato: si chiude SOLO con la X o toccando fuori.
+// (Rimosso lo swipe-down che si attivava per errore durante lo scroll.)
 
 
 // Init mini calendar

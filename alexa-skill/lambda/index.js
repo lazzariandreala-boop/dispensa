@@ -75,7 +75,7 @@ async function runSkill(event, context) {
   function cap(s) { s = String(s || '').trim(); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
   function emptyPayload() { return { items: [], shopping: [], consumptionLog: [], additionLog: [], monthlyReports: [], priceBook: {}, v: 3 }; }
   function slotValue(h, name) { try { return Alexa.getSlotValue(h.requestEnvelope, name) || ''; } catch (_) { return ''; } }
-  function speak(h, text, keepOpen) { const b = h.responseBuilder.speak(text); if (keepOpen) b.reprompt('Vuoi altro?'); return b.withShouldEndSession(!keepOpen).getResponse(); }
+  function speak(h, text, keepOpen) { const b = h.responseBuilder.speak(text); if (keepOpen) b.reprompt('Posso fare altro?'); return b.withShouldEndSession(!keepOpen).getResponse(); }
 
   // ── HTTP + OAuth (JWT) ─────────────────────────────────────────
   function httpsRequest(urlStr, { method = 'GET', headers = {}, body = null } = {}) {
@@ -182,7 +182,7 @@ async function runSkill(event, context) {
 
   const handlers = [
     { canHandle: (h) => Alexa.getRequestType(h.requestEnvelope) === 'LaunchRequest',
-      handle: (h) => speak(h, 'Pronta, dimmi pure.', true) },
+      handle: (h) => speak(h, 'Dimmi pure.', true) },
 
     { canHandle: (h) => is(h, 'AddPantryItemIntent'),
       async handle(h) {
@@ -202,9 +202,12 @@ async function runSkill(event, context) {
       async handle(h) {
         const raw = slotValue(h, 'item'); if (!raw) return speak(h, 'Cosa aggiungo?', true);
         const name = cap(raw);
+        const qty = Number(slotValue(h, 'quantity')) || null;
+        const unit = slotValue(h, 'unit') || null;
         const phrase = await withState((data) => {
-          if (data.shopping.some((s) => !s.checked && (s.name || '').toLowerCase() === name.toLowerCase())) return `${name} c'è già.`;
-          data.shopping.push({ id: uid(), name, category: detectCat(name), checked: false, addedDate: todayRome(), hintPrice: null, hintQty: null, hintUnit: null, source: 'alexa' });
+          const ex = data.shopping.find((s) => !s.checked && (s.name || '').toLowerCase() === name.toLowerCase());
+          if (ex) { if (qty) ex.hintQty = qty; if (unit) ex.hintUnit = unit; return `${name} c'è già in lista.`; }
+          data.shopping.push({ id: uid(), name, category: detectCat(name), checked: false, addedDate: todayRome(), hintPrice: null, hintQty: qty, hintUnit: unit, source: 'alexa' });
           return `${name} in lista.`;
         });
         return speak(h, phrase, true);
@@ -337,9 +340,11 @@ async function runSkill(event, context) {
         return speak(h, `No, per ${rec.n} ti manca ${st.missing.join(', ')}.`, true);
       } },
 
-    { canHandle: (h) => is(h, 'AMAZON.HelpIntent'), handle: (h) => speak(h, 'Dimmi: aggiungi il latte per la spesa; aggiungi il latte in dispensa che scade domani; congela i peperoni; oppure, che ricette posso fare.', true) },
-    { canHandle: (h) => is(h, 'AMAZON.StopIntent') || is(h, 'AMAZON.CancelIntent'), handle: (h) => speak(h, 'Ciao!') },
-    { canHandle: (h) => is(h, 'AMAZON.FallbackIntent'), handle: (h) => speak(h, 'Non ho capito. Prova: aggiungi il latte.', true) },
+    { canHandle: (h) => is(h, 'AMAZON.HelpIntent'), handle: (h) => speak(h, 'Posso aggiungere prodotti alla lista della spesa o in dispensa, segnare le scadenze, congelare, dirti cosa scade e che ricette puoi fare. Ad esempio: aggiungi il latte; aggiungi il latte in dispensa che scade domani; cosa scade; che ricette posso fare.', true) },
+    // "no" / "no grazie" / "stop" / "annulla" → chiude la sessione (niente più aggiunte accidentali)
+    { canHandle: (h) => is(h, 'AMAZON.StopIntent') || is(h, 'AMAZON.CancelIntent') || is(h, 'AMAZON.NoIntent'), handle: (h) => speak(h, 'A presto!') },
+    { canHandle: (h) => is(h, 'AMAZON.YesIntent'), handle: (h) => speak(h, 'Dimmi pure.', true) },
+    { canHandle: (h) => is(h, 'AMAZON.FallbackIntent'), handle: (h) => speak(h, 'Non ho capito. Prova: aggiungi il latte, oppure cosa scade.', true) },
     { canHandle: (h) => Alexa.getRequestType(h.requestEnvelope) === 'SessionEndedRequest', handle: (h) => h.responseBuilder.getResponse() },
   ];
 
